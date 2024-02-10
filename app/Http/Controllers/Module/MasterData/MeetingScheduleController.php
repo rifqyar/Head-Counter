@@ -11,6 +11,7 @@ use DatePeriod;
 use DateTime;
 use Illuminate\Http\Request;
 use App\Helpers\DataAccessHelpers;
+use App\Models\Module\MasterData\Package;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -97,6 +98,8 @@ class MeetingScheduleController extends Controller
                 array_push($data['avail_date'], $dt->format('Y-m-d'));
             }
         }
+
+        $data['package'] = Package::get();
 
         return view('module.MasterData.MeetingSchedule.add', $data);
     }

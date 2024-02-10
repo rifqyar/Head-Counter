@@ -55,20 +55,29 @@ function renderView(route) {
     const newURL = currentURL.replace("{{ url('/') }}", "/");
     history.pushState({}, null, newURL);
     const render = $("#render");
+    NProgress.configure({
+        template: `<div class="progress bar">
+                        <div class="progress-bar bg-danger" role="bar" style="width:50%; height:6px;"></div>
+                    </div>`
+    });
+
     $.ajax({
         url: route,
         method: "GET",
         beforeSend: () => {
+            NProgress.start();
             beforeAjaxSend();
         },
         success: (res) => {
-            $(".loading").hide();
+            NProgress.done();
             render.html(res);
         },
         error: (err) => {
+            NProgress.done();
             onAjaxError(err);
         },
     });
+    NProgress.remove();
 }
 
 function beforeAjaxSend() {

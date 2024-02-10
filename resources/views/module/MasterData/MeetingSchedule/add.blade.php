@@ -1,241 +1,167 @@
 @prepend('after-style')
+<link href="{{asset('assets/plugins/wizard/steps.css')}}" rel="stylesheet" type="text/css">
 <style>
-    /*BBC/Sport/football/Scores&Fixtures*/
-    .timeline-container {
-    /*
-    Note 1: because overflow-x: auto; hides the active div down arrow, expand the list div height by the height of the arrow.
-    Height 60px = arrow size=6px + scroller height=54px
-    */
+    .pricing-header {
+        -webkit-box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.05);
+        box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.05);
     }
-    .timeline-container .timeline-list {
-    text-align: center;
-    -ms-flex-wrap: nowrap !important;
-    flex-wrap: nowrap !important;
-    scrollbar-width: none;
-    /* Firefox */
-    -ms-overflow-style: none;
-    /* IE 10+ */
-    white-space: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    /*see Note 1*/
-    height: 60px;
-    }
-    .timeline-container .timeline-list .active {
-    background-color: #252525;
-    border: none;
-    }
-    .timeline-container .timeline-list .active:hover {
-    background-color: #252525;
-    }
-    .timeline-container .timeline-list .active:after {
-    /*
-    YOUTUBE: Create DIV Boxes with Arrows and Pointers, using CSS
-    https://www.youtube.com/watch?v=s7JwxPnYoOw&t=175s
-    */
-    content: "";
-    height: 0;
-    width: 0;
-    border-top: 6px solid #252525;
-    border-right: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-    border-left: 6px solid transparent;
-    border-radius: 50%;
-    top: 100%;
-    left: 50%;
-    position: absolute;
-    /*take away arrow size=6px*/
-    margin-left: -6px;
-    }
-    .timeline-container .timeline-list .active .timeline-date {
-        color: #fff;
-    }
-    .timeline-container .timeline-list::-webkit-scrollbar {
-    /* Chrome */
-    width: 0;
-    height: 0;
-    }
-    .timeline-container .timeline-item {
-        display: inline-block;
-        float: none;
-        height: 54px; /*scroller height*/
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        background-color: #a2ecff;
-        border-style: solid;
-        border-color: #e2e3e5;
-        border-top-width: 1px;
-        border-right-width: 0;
-        border-bottom-width: 1px;
-        border-left-width: 1px;
-        padding-top: 5px;
-        padding-left: 0;
-        padding-right: 0;
-    }
-    .timeline-container .timeline-item a:hover,
-    .timeline-container .timeline-item a:visited,
-    .timeline-container .timeline-item a:link,
-    .timeline-container .timeline-item a:active {
-        text-decoration: none;
-        color: #252525;
-    }
-    .timeline-container .timeline-item:hover {
-        background-color: #7ee1fa;
-    }
-    .timeline-container .timeline-item:active {
-        background-color: #6698a4;
-    }
-    .timeline-container .prev-btn {
-        text-align: center;
-        color: #252525;
-        cursor: pointer;
-        font-size: 2rem;
-        background-color: #e9ecef;
-        padding: 0;
-        height: 54px;
-        border-top-left-radius: 25%;
-        border-bottom-left-radius: 25%;
-    }
-    .timeline-container .next-btn {
-        text-align: center;
-        color: #252525;
-        cursor: pointer;
-        font-size: 2rem;
-        background-color: #e9ecef;
-        padding: 0;
-        height: 54px;
-        border-top-right-radius: 25%;
-        border-bottom-right-radius: 25%;
-    }
-    .timeline-container .prev-btn:hover,
-    .timeline-container .next-btn:hover {
-        background-color: #e2e3e5;
-    }
-
 </style>
-<div class="page-heading">
-    <div class="page-title">
-        <div class="row">
-            <div class="col-12 col-md-6 order-md-1 order-last">
-                <h3>Add Meeting Schedule <i class="fas fa-refresh refresh-page" onclick="renderView(`{!!route('meeting-schedule.add')!!}`)"></i> </h3>
-                <p class="text-subtitle text-muted"></p>
-            </div>
-            <div class="col-12 col-md-6 order-md-2 order-first">
-                <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">Master Data</a></li>
-                        <li class="breadcrumb-item spa_route" aria-current="page"><a href="javascript:void(0)" onclick="renderView(`{!!route('masterdata.meeting-schedule')!!}`)">Meeting Schedule</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Add</a></li>
-                    </ol>
-                </nav>
+
+<div class="container-fluid">
+    <div class="row page-titles">
+        <div class="col-md-5 col-8 align-self-center">
+            <h3 class="text-themecolor"> Add Meeting Schedule <i class="mdi mdi-refresh refresh-page mt-2" onclick="renderView(`{!! route('meeting-schedule.add') !!}`)"></i></h3>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="javascript:void(0)">Master Data</a></li>
+                <li class="breadcrumb-item"><a href="javascript:void(0)" onclick="renderView(`{!! route('masterdata.meeting-schedule') !!}`)">Meeting Schedule</a></li>
+                <li class="breadcrumb-item active">Add Meeting Schedule</li>
+            </ol>
+        </div>
+    </div>
+    <div class="row" id="validation">
+        <div class="col-12">
+            <div class="card wizard-content">
+                <div class="card-body">
+                    <h4 class="card-title">Create Meeting Schedule</h4>
+                    <form action="#" class="validation-wizard wizard-circle">
+                        <!-- Step 1 -->
+                        <h6>Choose Package</h6>
+                        <section>
+                            @include('module.MasterData.MeetingSchedule.formPackage')
+                        </section>
+                        <!-- Step 2 -->
+                        <h6>Step 2</h6>
+                        <section>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="jobTitle2">Company Name :</label>
+                                        <input type="text" class="form-control required" id="jobTitle2">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="webUrl3">Company URL :</label>
+                                        <input type="url" class="form-control required" id="webUrl3" name="webUrl3"> </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="shortDescription3">Short Description :</label>
+                                        <textarea name="shortDescription" id="shortDescription3" rows="6" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- Step 3 -->
+                        <h6>Step 3</h6>
+                        <section>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="wint1">Interview For :</label>
+                                        <input type="text" class="form-control required" id="wint1"> </div>
+                                    <div class="form-group">
+                                        <label for="wintType1">Interview Type :</label>
+                                        <select class="custom-select form-control required" id="wintType1" data-placeholder="Type to search cities" name="wintType1">
+                                            <option value="Banquet">Normal</option>
+                                            <option value="Fund Raiser">Difficult</option>
+                                            <option value="Dinner Party">Hard</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="wLocation1">Location :</label>
+                                        <select class="custom-select form-control required" id="wLocation1" name="wlocation">
+                                            <option value="">Select City</option>
+                                            <option value="India">India</option>
+                                            <option value="USA">USA</option>
+                                            <option value="Dubai">Dubai</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="wjobTitle2">Interview Date :</label>
+                                        <input type="date" class="form-control required" id="wjobTitle2">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Requirements :</label>
+                                        <div class="m-b-10">
+                                            <label class="custom-control custom-radio">
+                                                <input id="radio3" name="radio" type="radio" class="custom-control-input">
+                                                <span class="custom-control-label">Employee</span>
+                                            </label>
+                                            <label class="custom-control custom-radio">
+                                                <input id="radio4" name="radio" type="radio" class="custom-control-input">
+                                                <span class="custom-control-label">Membership</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- Step 4 -->
+                        <h6>Step 4</h6>
+                        <section>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="behName1">Behaviour :</label>
+                                        <input type="text" class="form-control required" id="behName1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="participants1">Confidance</label>
+                                        <input type="text" class="form-control required" id="participants1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="participants1">Result</label>
+                                        <select class="custom-select form-control required" id="participants1" name="location">
+                                            <option value="">Select Result</option>
+                                            <option value="Selected">Selected</option>
+                                            <option value="Rejected">Rejected</option>
+                                            <option value="Call Second-time">Call Second-time</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="decisions1">Comments</label>
+                                        <textarea name="decisions" id="decisions1" rows="4" class="form-control"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Rate Interviwer :</label>
+                                        <div class="c-inputs-stacked">
+                                            <label class="inline custom-control custom-checkbox block">
+                                                <input type="checkbox" class="custom-control-input">
+                                                <span class="custom-control-label ml-0">1 star</span>
+                                            </label>
+                                            <label class="inline custom-control custom-checkbox block">
+                                                <input type="checkbox" class="custom-control-input">
+                                                <span class="custom-control-label ml-0">2 star</span>
+                                            </label>
+                                            <label class="inline custom-control custom-checkbox block">
+                                                <input type="checkbox" class="custom-control-input">
+                                                <span class="custom-control-label ml-0">3 star</span>
+                                            </label>
+                                            <label class="inline custom-control custom-checkbox block">
+                                                <input type="checkbox" class="custom-control-input">
+                                                <span class="custom-control-label ml-0">4 star</span>
+                                            </label>
+                                            <label class="inline custom-control custom-checkbox block">
+                                                <input type="checkbox" class="custom-control-input">
+                                                <span class="custom-control-label ml-0">5 star</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-    <section class="section row">
-        <div class="card">
-            <div class="card-body">
-                <form class="form form-vertical" id="add-meeting" action="javascript:void(0)">
-                    @csrf
-                    <!--BBC/Sport/football/Scores&Fixtures-->
-                    <h4>Available Date</h4>
-                    <div class="container-fluid timeline-container">
-                        <div class="row">
-                            <div class="col-sm-1 d-none d-sm-block">
-                                <div class="row">
-                                    <div class="col-12 prev-btn">
-                                        <span class="fa fa-angle-left"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-10">
-                                <div>
-                                    <div class="row timeline-list">
-                                        @foreach ($avail_date as $date)
-                                            <div class="col-3 col-sm-2 col-lg-1 timeline-item">
-                                                <a href="#" class="timeline-date" onclick="setTglMeeting(this)" data-tgl="{{$date}}">
-                                                    <span class="d-block"><strong>{{\Carbon\Carbon::parse($date)->translatedFormat('D')}}</strong></span>
-                                                    <span class="d-block">{{\Carbon\Carbon::parse($date)->translatedFormat('d/M')}}</span>
-                                                </a>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-1 d-none d-sm-block">
-                                <div class="row">
-                                    <div class="col-12 next-btn">
-                                        <span class="fa fa-angle-right"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-body mt-4" style="display: none">
-                        <div class="row">
-                            <div class="col-md-6 col-12">
-                                <div class="form-group">
-                                    <label for="tgl">Tgl. Meeting</label>
-                                    <input type="text" class="form-input form-control required" name="tgl_meeting" readonly>
-                                </div>
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <div class="form-group">
-                                    <label for="client">Pilih Client</label>
-                                    <select id="client" name="code_client" class="form-control form-input required" data-placeholder="Harap Pilih Client">
-                                        <option></option>
-                                        @foreach ($client as $item)
-                                            <option value="{{ $item->code }}">{{ $item->name }} ({{$item->code}}) </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <div class="form-group">
-                                    <label for="start">Jam Mulai</label>
-                                    <input type="time" name="jam_mulai" id="start" class="form-control form-input required">
-                                </div>
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <div class="form-group">
-                                    <label for="end">Jam Selesai</label>
-                                    <input type="time" name="jam_selesai" id="end" class="form-control form-input">
-                                </div>
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <div class="form-group">
-                                    <label for="slot">Slot</label>
-                                    <input type="text" name="kuota" id="slot" class="form-control form-input required">
-                                </div>
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <label for="">Langsung generate QR Code</label>
-                                <div class="form-check">
-                                    <input class="form-check-input form-input required" type="radio" name="generateQR" id="generateQR1" value="ya">
-                                    <label class="form-check-label" for="generateQR1">
-                                        Ya
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input form-input required" type="radio" name="generateQR" id="generateQR2" value="tidak">
-                                    <label class="form-check-label" for="generateQR2">
-                                        Tidak
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-12 d-flex justify-content-end">
-                                <button type="submit" id="btn-save" class="btn btn-primary me-1 mb-1">Submit</button>
-                                <button type="button" class="btn btn-warning me-1 mb-1"
-                                    onclick="renderView(`{!! route('masterdata.meeting-schedule') !!}`)">Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-        </div>
-    </section>
-
-    @prepend('after-script')
-    <script type="text/javascript" src="{{ asset('js/module/masterdata/meetingschedule.js') }}"></script>
 </div>
+@prepend('after-script')
+<script src="{{asset('assets/plugins/wizard/jquery.steps.min.js')}}"></script>
+<script src="{{asset('assets/plugins/wizard/jquery.validate.min.js')}}"></script>
+<script type="text/javascript" src="{{ asset('js/module/masterdata/meetingschedule.js') }}"></script>
