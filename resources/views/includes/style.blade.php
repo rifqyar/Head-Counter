@@ -10,7 +10,7 @@
     <!-- Custom CSS -->
     <link href="{{asset('assets/css/style.css')}}" rel="stylesheet">
     <!-- You can change the theme colors from here -->
-    <link href="{{asset('assets/css/colors/blue.css')}}" id="theme" rel="stylesheet">
+    <link href="{{asset('assets/css/colors/purple-dark.css')}}" id="theme" rel="stylesheet">
 
     <link href="{{ asset('assets/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets/plugins/toast-master/css/jquery.toast.css') }}" rel="stylesheet">
