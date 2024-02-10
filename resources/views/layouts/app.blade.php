@@ -4,39 +4,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{-- <meta name="csrf-token" content="{{ csrf_token() }}"> --}}
     <title>@yield('title')</title>
-    @stack('before-style')
-    @include('includes.style')
-    @stack('after-style')
     <meta charset="utf-8">
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="baseurl" content="{{ asset('') }}">
-    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/icon/favicon.ico') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/images/icon/favicon.ico') }}">
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('/') }}assets/plugins/datatables/media/css/dataTables.bootstrap4.min.css">
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="{{ asset('assets/css/main/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/main/app-dark.css') }}">
+    <!-- Styles -->
+    @stack('before-style')
+    @include('includes.style')
+    @stack('after-style')
 </head>
 
-<body>
+<body class="fix-header fix-sidebar card-no-border">
+    <!-- ============================================================== -->
+    <!-- Preloader - style you can find in spinners.css -->
+    <!-- ============================================================== -->
+    <div class="preloader">
+        <svg class="circular" viewBox="25 25 50 50">
+            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2"
+                stroke-miterlimit="10" />
+        </svg>
+    </div>
 
-    @include('includes.sidebar')
-    <div id="main" class="layout-navbar">
+    <div id="main-wrapper">
         @include('includes.navbar')
-        <div id="main-content">
-            <div class="loading" style="display: none">
-                <div class="spinner-wrapper">
-                    <span class="spinner-text">Loading...</span>
-                    <span class="spinner"></span>
-                </div>
-            </div>
+
+        @include('includes.sidebar')
+
+        <div id="main-content" class="page-wrapper">
 
             @yield('content')
             @include('includes.footer')
@@ -47,7 +49,6 @@
     @include('includes.script')
     @stack('after-script')
 
-    <script src="{{ asset('js/core/table.js') }}"></script>
     @if (session()->has('Redirect'))
         <script>
             // Fungsi untuk menjalankan renderView secara otomatis

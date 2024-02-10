@@ -1,55 +1,51 @@
-  <script src="{{ asset('assets/extensions/jquery/jquery.js') }}"></script>
-  <script src="https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-  <script src="{{ asset('assets/js/bootstrap.js') }}"></script>
-  <script src="{{ asset('assets/js/app.js') }}"></script>
-  <script src="{{ asset('assets/js/scriptacces.js') }}"></script>
-  <script src="{{ asset('assets/extensions/choices.js/public/assets/scripts/choices.js') }}"></script>
-  <script src="{{ asset('assets/js/pages/form-element-select.js') }}"></script>
-  <script src="{{ asset('assets/extensions/sweetalert2/sweetalert2.min.js') }}"></script>
-  <script src="{{ asset('js/core/core.js') }}"></script>
-  <script src=" {{ asset('assets/extensions/toastify-js/src/toastify.js') }} "></script>
-  <script src="https://cdn.datatables.net/v/bs5/dt-1.12.1/datatables.min.js"></script>
-  <script src="{{ asset('assets/js/pages/datatables.js') }}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/1.2.2/js/dataTables.buttons.min.js"></script>
-  <script src="//cdn.datatables.net/buttons/1.2.2/js/buttons.flash.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
-  <script src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js"></script>
-  <script src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js"></script>
-  <script src="//cdn.datatables.net/buttons/1.2.2/js/buttons.html5.min.js"></script>
-  <script src="//cdn.datatables.net/buttons/1.2.2/js/buttons.print.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.7/jquery.inputmask.min.js" integrity="sha512-jTgBq4+dMYh73dquskmUFEgMY5mptcbqSw2rmhOZZSJjZbD2wMt0H5nhqWtleVkyBEjmzid5nyERPSNBafG4GQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="{{asset('assets/extensions/apexcharts/apexcharts.min.js')}}"></script>
-  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
+    <script src="{{asset('assets/plugins/jquery/jquery.min.js')}}"></script>
+    <!-- Bootstrap tether Core JavaScript -->
+    <script src="{{asset('assets/plugins/popper/popper.min.js')}}"></script>
+    <script src="{{asset('assets/plugins/bootstrap/js/bootstrap.min.js')}}"></script>
+    <!-- slimscrollbar scrollbar JavaScript -->
+    <script src="{{asset('assets/js/jquery.slimscroll.js')}}"></script>
+    <!--Wave Effects -->
+    <script src="{{asset('assets/js/waves.js')}}"></script>
+    <!--Menu sidebar -->
+    <script src="{{asset('assets/js/sidebarmenu.js')}}"></script>
+    <!--stickey kit -->
+    <script src="{{asset('assets/plugins/sticky-kit-master/dist/sticky-kit.min.js')}}"></script>
+    <script src="{{asset('assets/plugins/sparkline/jquery.sparkline.min.js')}}"></script>
+    <!--Custom JavaScript -->
+    <script src="{{asset('assets/js/custom.min.js')}}"></script>
+    <!-- ============================================================== -->
+    <!-- This page plugins -->
+    <!-- ============================================================== -->
+    <!-- chartist chart -->
+    <script src="{{asset('assets/plugins/chartist-js/dist/chartist.min.js')}}"></script>
+    <script src="{{asset('assets/plugins/chartist-plugin-tooltip-master/dist/chartist-plugin-tooltip.min.js')}}"></script>
+    <!-- Vector map JavaScript -->
+    <script src="{{asset('assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js')}}"></script>
+    <script src="{{asset('assets/plugins/vectormap/jquery-jvectormap-us-aea-en.js')}}"></script>
+    <script src="{{asset('assets/js/dashboard3.js')}}"></script>
+    <!-- ============================================================== -->
+    <!-- Style switcher -->
+    <!-- ============================================================== -->
+    <script src="{{asset('assets/plugins/styleswitcher/jQuery.style.switcher.js')}}"></script>
 
-  <script>
-      function startLoading() {
-          $('<div id="loading-overlay"></div>').appendTo('body');
-
-          // Menambahkan teks loading
-          $('<span>Waiting Process... DONT STOP LOADING PROCESS!!!!</span>').appendTo('#loading-overlay');
-
-          // Menambahkan tombol close ke dalam loading overlay
-          var closeButton = $('<button id="close-button">Close</button>').hide();
-          $('#loading-overlay').append(closeButton);
-
-          // Menampilkan tombol close setelah 10 detik
-          setTimeout(function() {
-              closeButton.show();
-          }, 120000);
-      }
-
-
-
-      function stopLoading() {
-          $('#loading-overlay').remove();
-      }
-
-
-      document.addEventListener('click', function(event) {
-          var closeButton = event.target.closest('#close-button');
-          if (closeButton) {
-              stopLoading();
-          }
-      });
-  </script>
+    <script src="{{ asset('js/core/core.js') }}"></script>
+    <script src=" {{ asset('assets/plugins/toastify-js/src/toastify.js') }} "></script>
+    <script src="{{ asset('assets/plugins/sweetalert/sweetalert.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/sweetalert/jquery.sweet-alert.custom.js') }}"></script>
+    <script src="{{ asset('assets/plugins/toast-master/js/jquery.toast.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/datatables.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/datatables/datatables.bootstrap4.min.js') }}"></script>
+    <script src="{{asset('assets/js/datatable-config.js')}}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.7/jquery.inputmask.min.js" integrity="sha512-jTgBq4+dMYh73dquskmUFEgMY5mptcbqSw2rmhOZZSJjZbD2wMt0H5nhqWtleVkyBEjmzid5nyERPSNBafG4GQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
+    <!-- js menu -->
+    <script>
+        $(function() {
+            var parentMenu = $('#sidebarnav').find('a')
+            for (let i = 0; i < parentMenu.length; i++) {
+                if ($(parentMenu[i]).next().length > 0) {
+                    $(parentMenu[i]).addClass('has-arrow')
+                }
+            }
+        })
+    </script>

@@ -1,11 +1,3 @@
-         <footer>
-             <div class="footer clearfix mb-0 text-muted">
-                 <div class="float-start">
-                     <p>2023 &copy;</p>
-                     <p>  </p>
-                 </div>
-                 <div class="float-end">
-                     <p>Crafted with <span class="text-danger"><i class="bi bi-heart"></i></span> by Rifqy Adtiya</p>
-                 </div>
-             </div>
-         </footer>
+<footer class="footer">
+    © 2023 Oria Hotel by Rekayasadigital.com
+</footer>

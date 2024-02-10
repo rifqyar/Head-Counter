@@ -38,7 +38,7 @@ class ClientController extends Controller
                 ->addIndexColumn()
                 ->editColumn('action', function($query){
                     return "<a href='javascript:void(0)' onclick='renderView(`" . route('client.edit', $query->id) . "`)'  class='btn icon btn-sm btn-outline-warning rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Edit Client'>
-                                <i class='fas fa-pencil'></i>
+                                <i class='fas fa-edit'></i>
                             </a>
                             <a href='javascript:void(0)' onclick='deleteClient(`$query->id`)'  class='btn icon btn-sm btn-outline-danger rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Delete Client'>
                                 <i class='fas fa-trash'></i>
