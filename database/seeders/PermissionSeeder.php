@@ -14,11 +14,11 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         // Main Menu Permission
-        // Permission::create(['name' => 'Dashboard']);
-        // Permission::create(['name' => 'Master Data']);
-        // Permission::create(['name' => 'Transaction']);
-        // Permission::create(['name' => 'Report']);
-        // Permission::create(['name' => 'Setting']);
+        Permission::create(['name' => 'Dashboard']);
+        Permission::create(['name' => 'Master Data']);
+        Permission::create(['name' => 'Transaction']);
+        Permission::create(['name' => 'Report']);
+        Permission::create(['name' => 'Setting']);
 
         // Child Menu Permission
             // Master Data
