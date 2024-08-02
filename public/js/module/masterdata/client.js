@@ -17,6 +17,8 @@ $( function(){
         columns: [{
                 data: 'DT_RowIndex',
                 name: 'DT_RowIndex',
+                orderable: false,
+                searchable: false,
                 className: 'text-center',
                 width: '20px'
             },

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Module\MasterData;
 
+use App\Enums\RoomStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Module\MasterData\Client;
 use App\Models\Module\MasterData\MeetingSchedule;
@@ -11,11 +12,15 @@ use DatePeriod;
 use DateTime;
 use Illuminate\Http\Request;
 use App\Helpers\DataAccessHelpers;
+use App\Models\Module\MasterData\MeetingRooms;
 use App\Models\Module\MasterData\Package;
+use App\Models\Transaction\QRDetail;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Yajra\DataTables\DataTables;
+// use Milon\Barcode\DNS2D;
 
 class MeetingScheduleController extends Controller
 {
@@ -29,23 +34,26 @@ class MeetingScheduleController extends Controller
 
     public function data(Request $request)
     {
-        $schedule = MeetingSchedule::orderBy('tgl_meeting');
+        $schedule = MeetingSchedule::orderBy('tgl_start')->with('ruangan')->with('paket')->with('qr');
 
-        if($request->client != null){
-            $schedule = $schedule->where('code_client', 'like', '%'.$request->client.'%');
+        if ($request->client != null) {
+            $schedule = $schedule->where('code_client', 'like', '%' . $request->client . '%');
         }
 
-        if($request->tgl != date('Y-m-d')){
-            $schedule = $schedule->orWhereDate('tgl_meeting', $request->tgl);
+        if ($request->tgl != date('Y-m-d')) {
+            $schedule = $schedule->orWhereDate('tgl_start', $request->tgl);
         }
 
         return DataTables::of($schedule->get())
-                ->addIndexColumn()
-                ->editColumn('action', function($query){
-                    return self::renderAction($query);
-                })
-                ->rawColumns(['action'])
-                ->make(true);
+            ->addIndexColumn()
+            ->editColumn('action', function ($query) {
+                return self::renderAction($query);
+            })
+            ->editColumn('tgl_meeting', function ($query) {
+                return $query->tgl_start . ' - ' . $query->tgl_end;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
 
     private function renderAction($data)
@@ -53,22 +61,21 @@ class MeetingScheduleController extends Controller
         $client = Client::where('code', $data->code_client)->first();
         $html = "
             <a href='javascript:void(0)' onclick='renderView(`" . route('meeting-schedule.edit', $data->id) . "`)'  class='btn icon btn-sm btn-outline-warning rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Edit Schedule'>
-                <i class='fas fa-pencil'></i>
+                <i class='fas fa-edit'></i>
             </a>
             <a href='javascript:void(0)' onclick='deleteSchedule(`$data->id`)'  class='btn icon btn-sm btn-outline-danger rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Delete Schedule'>
                 <i class='fas fa-trash'></i>
             </a>
         ";
-
-        if($data->qr_path != null){
-            $pathQr = asset("qrcode/meeting_schedule/$data->qr_path");
-            $pathQr = base64_encode($pathQr);
-            $html .= "<a href='javascript:void(0)' onclick='showQr(this)' data-qr_path='$pathQr' data-tag='Meeting $client->name at $data->tgl_meeting'  class='btn icon btn-sm btn-outline-info rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Show QR Code'>
-                        <i class='bi bi-qr-code'></i>
+        if (count($data->qr) > 0) {
+            // $pathQr = asset("qrcode/meeting_schedule/$data->qr_path");
+            // $pathQr = base64_encode($pathQr);
+            $html .= "<a href='javascript:void(0)' onclick='showQr(this, `$data->id`)' data-tag='Meeting $client->name at $data->tgl_start - $data->tgl_end'  class='btn icon btn-sm btn-outline-info rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Show QR Code'>
+                        <i class='fas fa-qrcode'></i>
                     </a>";
         } else {
             $html .= "<a href='javascript:void(0)' onclick='generateQr(`$data->id`)'  class='btn icon btn-sm btn-outline-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Generate QR Code'>
-                        <i class='bi bi-qr-code-scan'></i>
+                        <i class='fas fa-qrcode'></i>
                     </a>";
         }
 
@@ -81,26 +88,8 @@ class MeetingScheduleController extends Controller
     public function create()
     {
         $data['client'] = Client::orderBy('code')->get();
-
-        $now = Carbon::now()->format('Y-m-d');
-        $end = Carbon::now()->addDays(30)->format('Y-m-d');
-
-        $begin = new DateTime($now);
-        $end = new DateTime($end);
-
-        $interval = DateInterval::createFromDateString('1 day');
-        $period = new DatePeriod($begin, $interval, $end);
-
-        $data['avail_date'] = [];
-        foreach ($period as $dt) {
-            $existingSchedule = MeetingSchedule::whereDate('tgl_meeting', $dt->format('Y-m-d'))->count();
-            if($existingSchedule == 0){
-                array_push($data['avail_date'], $dt->format('Y-m-d'));
-            }
-        }
-
         $data['package'] = Package::get();
-
+        $data['rooms'] = MeetingRooms::with('status')->get();
         return view('module.MasterData.MeetingSchedule.add', $data);
     }
 
@@ -111,31 +100,61 @@ class MeetingScheduleController extends Controller
     {
         $trx_number = DataAccessHelpers::generateTransactionNumber($request->code_client);
         $encodedTrx = base64_encode($trx_number);
-
         try {
             $output_file = null;
-            $qrCodeIsi = route('meeting-attendance.form-attendance', $encodedTrx);
-
-            if($request->generateQR == 'ya'){
-                $image = QrCode::format('png')
-                 ->size(200)->errorCorrection('H')
-                 ->generate($qrCodeIsi);
-
-                $output_file = 'QR Code - Meeting ' . $request->code_client . ' - ' . $request->tgl_meeting . '.png';
-                Storage::disk('qr_meeting_schedule')->put($output_file, $image);
-            }
+            $package = Package::where("kd_pck", $request->package)->first();
 
             $data = [
                 'trx_number' => $trx_number,
                 'code_client' => $request->code_client,
-                'tgl_meeting' => $request->tgl_meeting,
+                'tgl_start' => $request->tgl_start,
+                'tgl_end' => $request->tgl_end,
                 'jam_mulai' => $request->jam_mulai,
                 'jam_selesai' => $request->jam_selesai,
-                'kuota' => $request->kuota,
-                'qr_path' => $output_file
+                'kuota' => $request->kuota * $package->count_qr,
+                'package' => $request->package,
+                'room' => $request->rooms[0],
+                'qr_path' => 0
             ];
 
             $schedule = MeetingSchedule::create($data);
+
+            $insertQR = [];
+            if ($package->count_qr == 1) {
+                $output_file = 'QR Code - Meeting ' . $request->code_client . ' - ' . $request->tgl_start . '.png';
+                array_push($insertQR, [
+                    'meeting_id' => $schedule->id,
+                    'qr_path' => $output_file,
+                    'qr_valid_start' => Carbon::createFromFormat('Y-m-d H:i',  $request->tgl_start . ' ' . $request->jam_mulai),
+                    'qr_valid_end' => Carbon::createFromFormat('Y-m-d H:i',  $request->tgl_end . ' ' . $request->jam_selesai),
+                ]);
+            } else {
+                for ($i = 1; $i <= $package->count_qr; $i++) {
+                    $output_file = 'QR Code - Meeting ' . $request->code_client . ' - ' . $request->tgl_start . ' - ' . $i . '.png';
+                    array_push($insertQR, [
+                        'meeting_id' => $schedule->id,
+                        'qr_path' => $output_file,
+                        'qr_valid_start' => Carbon::createFromFormat('Y-m-d H:i',  $request->tgl_start . ' ' . $request->jam_mulai),
+                        'qr_valid_end' => Carbon::createFromFormat('Y-m-d H:i',  $request->tgl_end . ' ' . $request->jam_selesai),
+                    ]);
+                }
+            }
+
+            foreach ($insertQR as $val) {
+                $qrCode = QRDetail::create($val);
+                $qrCodeIsi = route('meeting-attendance.form-attendance', ['meeting_id' => $encodedTrx, 'qr_code' => $qrCode->id]);
+
+                $image = QrCode::format('png')
+                    ->size(200)->errorCorrection('H')
+                    ->generate($qrCodeIsi);
+
+                Storage::disk('qr_meeting_schedule')->put($output_file, $image);
+            }
+
+            // update meeting room status
+            MeetingRooms::where('kd_room', $request->rooms[0])->update([
+                'room_availability' => RoomStatusEnum::Booked
+            ]);
 
             return response()->json([
                 'status' => [
@@ -161,29 +180,45 @@ class MeetingScheduleController extends Controller
      */
     public function generateQrCode(string $id)
     {
+        DB::beginTransaction();
         try {
             $schedule = MeetingSchedule::find($id);
             $client = Client::where('code', $schedule->code_client)->first();
-
+            $package = Package::where('kd_pck', $schedule->package)->first();
             $encodedTrx = base64_encode($schedule->trx_number);
-            $qrCodeIsi = route('meeting-attendance.form-attendance', $encodedTrx);
 
-            $image = QrCode::format('png')
-                ->size(200)->errorCorrection('H')
-                ->generate($qrCodeIsi);
-
-            $output_file = 'QR Code - Meeting ' . $client->code . ' - ' . $schedule->tgl_meeting . '.png';
-            $storageQr = Storage::disk('qr_meeting_schedule');
-
-            if(!$storageQr->exists($output_file)){
-                $storageQr->delete($output_file);
+            $insertQR = [];
+            if ($package->count_qr == 1) {
+                $output_file = 'QR Code - Meeting ' . $client->code . ' - ' . $schedule->tgl_start . '.png';
+                array_push($insertQR, [
+                    'meeting_id' => $schedule->id,
+                    'qr_path' => $output_file,
+                    'qr_valid_start' => $schedule->tgl_start . ' ' . $schedule->jam_mulai,
+                    'qr_valid_end' => $schedule->tgl_end . ' ' . $schedule->jam_selesai,
+                ]);
+            } else {
+                for ($i = 1; $i <= $package->count_qr; $i++) {
+                    $output_file = 'QR Code - Meeting ' . $client->code . ' - ' . $schedule->tgl_start . ' - ' . $i . '.png';
+                    array_push($insertQR, [
+                        'meeting_id' => $schedule->id,
+                        'qr_path' => $output_file,
+                        'qr_valid_start' => $schedule->tgl_start . ' ' . $schedule->jam_mulai,
+                        'qr_valid_end' => $schedule->tgl_end . ' ' . $schedule->jam_selesai,
+                    ]);
+                }
             }
-            $storageQr->put($output_file, $image);
+            foreach ($insertQR as $val) {
+                $qrCode = QRDetail::create($val);
+                $qrCodeIsi = route('meeting-attendance.form-attendance', ['meeting_id' => $encodedTrx, 'qr_code' => $qrCode->id]);
 
-            $schedule->update([
-                'qr_path' => $output_file
-            ]);
+                $image = QrCode::format('png')
+                    ->size(200)->errorCorrection('H')
+                    ->generate($qrCodeIsi);
 
+                Storage::disk('qr_meeting_schedule')->put($output_file, $image);
+            }
+
+            DB::commit();
             return response()->json([
                 'status' => [
                     'msg' => 'OK',
@@ -191,6 +226,7 @@ class MeetingScheduleController extends Controller
                 ],
             ], JsonResponse::HTTP_OK);
         } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json([
                 'status' => [
                     'msg' => 'Err',
@@ -200,6 +236,19 @@ class MeetingScheduleController extends Controller
                 'err_detail' => $th,
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public function getQR($id)
+    {
+        $qr = QRDetail::where("meeting_id", $id)->get();
+        return response()->json([
+            'status' => [
+                'msg' => 'OK',
+                'code' => JsonResponse::HTTP_OK,
+            ],
+            'data' => $qr,
+            'asset_path' => asset('qrcode/meeting_schedule/'),
+        ], JsonResponse::HTTP_OK);
     }
 
     /**

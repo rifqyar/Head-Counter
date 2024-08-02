@@ -51,14 +51,11 @@ class DataAccessHelpers
         $currentYear = Carbon::now()->translatedFormat('Y');
         $totalMeeting = DB::table('trx_meeting_schedule')->select('*')->whereYear('created_at', $currentYear)->count();
         $number = '0000';
-
-        if($totalMeeting == 0){
+        if ($totalMeeting == 0) {
             $number = '0001';
-        } else if(strlen($totalMeeting) < 4){
-            // $number = substr($number, 0, $totalMeeting).$totalMeeting;
-            $number = sprintf("%04d", (int)$totalMeeting);
         } else {
-            $number = $totalMeeting;
+            // $number = substr($number, 0, $totalMeeting).$totalMeeting;
+            $number = sprintf("%04d", (int)$totalMeeting + 1);
         }
 
         $code = $clientCode;
@@ -67,15 +64,26 @@ class DataAccessHelpers
         return $transNumber;
     }
 
-    public static function formatValueMoney($number){
-        $val = number_format($number,2,".",",");
-        $setVal = 'Rp. '.$val;
+    public static function formatValueMoney($number)
+    {
+        $val = number_format($number, 2, ".", ",");
+        $setVal = 'Rp. ' . $val;
 
         return $setVal;
     }
 
     public static function is_base64($s)
     {
-          return (bool) preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $s);
+        return (bool) preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $s);
+    }
+
+    public static function getMac()
+    {
+        $cmd = "arp -a " . $_SERVER["REMOTE_ADDR"];
+        $status = 0;
+        $return = [];
+        exec($cmd, $return, $status);
+        if (isset($return[3])) return strtoupper(str_replace("-", ":", substr($return[3], 24, 17)));
+        return false;
     }
 }

@@ -9,25 +9,8 @@ $(function () {
     $(".next-btn").click(function () {
         $(".timeline-list").animate({ scrollLeft: "+=" + move });
     });
-
-    //Custom design form example
-    $(".tab-wizard").steps({
-        headerTag: "h6",
-        bodyTag: "section",
-        transitionEffect: "fade",
-        titleTemplate: '<span class="step">#index#</span> #title#',
-        labels: {
-            finish: "Submit",
-        },
-        onFinished: function (event, currentIndex) {
-            swal(
-                "Form Submitted!",
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lorem erat eleifend ex semper, lobortis purus sed."
-            );
-        },
-    });
-
     var form = $(".validation-wizard").show();
+    var formInput = $("#add-meeting").find("input");
 
     $(".validation-wizard").steps({
         headerTag: "h6",
@@ -38,6 +21,24 @@ $(function () {
             finish: "Submit",
         },
         onStepChanging: function (event, currentIndex, newIndex) {
+            for (let i = 0; i < formInput.length; i++) {
+                const el = $(formInput[i]).attr("name");
+                const val = $(`input[name="${el}"]`).val();
+                if (el != "rooms[]") {
+                    $("#preview").find(`input[name="preview-${el}"]`).val(val);
+                } else {
+                    const roomId = $(formInput[i]).attr("id");
+                    const roomInput = $(`input[id="${roomId}"]`).is(":checked");
+                    if (roomInput) {
+                        const roomName = $(`input[id="${roomId}"]`).data(
+                            "roomname"
+                        );
+                        $("#preview")
+                            .find(`input[name="preview-${el}"]`)
+                            .val(roomName);
+                    }
+                }
+            }
             return (
                 currentIndex > newIndex ||
                 (!(3 === newIndex && Number($("#age-2").val()) < 18) &&
@@ -58,14 +59,11 @@ $(function () {
             );
         },
         onFinished: function (event, currentIndex) {
-            swal(
-                "Form Submitted!",
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lorem erat eleifend ex semper, lobortis purus sed."
-            );
+            postSchedule();
         },
     }),
         $(".validation-wizard").validate({
-            ignore: "input[type=hidden]",
+            ignore: "",
             errorClass: "text-danger",
             successClass: "text-success",
             highlight: function (element, errorClass) {
@@ -83,6 +81,33 @@ $(function () {
                 },
             },
         });
+
+    $(".datetime").daterangepicker({
+        timePicker: true,
+        timePickerIncrement: 30,
+        locale: {
+            format: "MM/DD/YYYY h:mm A",
+        },
+    });
+
+    $("#tgl_start").bootstrapMaterialDatePicker({ weekStart: 0, time: false });
+    $("#tgl_end").bootstrapMaterialDatePicker({ weekStart: 0, time: false });
+
+    $(".clockpicker")
+        .clockpicker({
+            donetext: "Done",
+        })
+        .find("input")
+        .change(function () {
+            console.log(this.value);
+        });
+
+    $(".select2-client").select2({
+        theme: "bootstrap4",
+        placeholder: "Choose Client",
+        allowClear: true,
+        debug: true,
+    });
 
     getData();
 });
@@ -110,6 +135,8 @@ function getData() {
                 name: "DT_RowIndex",
                 className: "text-center",
                 width: "20px",
+                orderable: false,
+                searchable: false,
             },
             {
                 data: "code_client",
@@ -137,6 +164,16 @@ function getData() {
                 className: "text-center",
             },
             {
+                data: "ruangan.name",
+                name: "ruangan.name",
+                className: "text-center",
+            },
+            {
+                data: "paket.name",
+                name: "paket.name",
+                className: "text-center",
+            },
+            {
                 data: "action",
                 name: "action",
                 orderable: false,
@@ -154,6 +191,11 @@ function getData() {
             );
         },
     });
+}
+
+function choosePackage(kd_pck, name) {
+    $('input[name="package-name"]').val(name);
+    $('input[name="package"]').val(kd_pck);
 }
 
 function setTglMeeting(el) {
@@ -174,84 +216,112 @@ function setTglMeeting(el) {
     }
 }
 
-$("#add-meeting").on("submit", function () {
-    const fAddComponent = $("#add-meeting");
-    var required = fAddComponent.find(".required");
-    var canInput = true;
-
-    required.removeClass("is-invalid");
-
-    // Form Validation
-    for (var i = 0; i < required.length; i++) {
-        if (required[i].value == "") {
-            canInput = false;
-            fAddComponent
-                .find(`input[name="${required[i].name}"]`)
-                .addClass("is-invalid");
-            fAddComponent
-                .find(`select[name="${required[i].name}"]`)
-                .addClass("is-invalid");
-            var form_name = required[i].id.replace("_", " ").toUpperCase();
-            Toastify({
-                text: `Form ${form_name} is Required`,
-                duration: 3000,
-                close: true,
-                gravity: "top",
-                position: "right",
-                style: {
-                    background: "linear-gradient(to right, #ff5f6d, #ffc371)",
+function postSchedule() {
+    prompt("submit", "Meeting Schedule", (confirm) => {
+        if (confirm) {
+            apiCall(
+                "master-data/meeting-schedule/store",
+                "POST",
+                "add-meeting",
+                {
+                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
+                        "content"
+                    ),
                 },
-            }).showToast();
+                null,
+                null,
+                true,
+                (res) => {
+                    console.log(res);
+                    $(".loading").hide();
+                    Toastify({
+                        text: `Berhasil simpan data Meeting Schedule - QR Code dapat dilihat atau di generate di halaman list meeting schedule`,
+                        duration: 2000,
+                        close: true,
+                        gravity: "top",
+                        callback: function () {
+                            renderView(
+                                `${$('meta[name="baseurl"]').attr(
+                                    "content"
+                                )}master-data/meeting-schedule`
+                            );
+                        },
+                        position: "right",
+                        style: {
+                            background:
+                                "linear-gradient(to right, #00b09b, #96c93d)",
+                        },
+                    }).showToast();
+                }
+            );
         }
-    }
+    });
+}
+// $("#add-meeting").on("submit", function () {
+//     const fAddComponent = $("#add-meeting");
+//     var required = fAddComponent.find(".required");
+//     var canInput = true;
 
-    if (canInput == true) {
-        prompt("submit", "Meeting Schedule", (confirm) => {
-            if (confirm) {
-                apiCall(
-                    "master-data/meeting-schedule/store",
-                    "POST",
-                    "add-meeting",
-                    {
-                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
-                            "content"
-                        ),
-                    },
-                    null,
-                    null,
-                    true,
-                    (res) => {
-                        console.log(res);
-                        $(".loading").hide();
-                        Toastify({
-                            text: `Berhasil simpan data Meeting Schedule - QR Code dapat dilihat atau di generate di halaman list meeting schedule`,
-                            duration: 2000,
-                            close: true,
-                            gravity: "top",
-                            callback: function () {
-                                renderView(
-                                    `${$('meta[name="baseurl"]').attr(
-                                        "content"
-                                    )}master-data/meeting-schedule`
-                                );
-                            },
-                            position: "right",
-                            style: {
-                                background:
-                                    "linear-gradient(to right, #00b09b, #96c93d)",
-                            },
-                        }).showToast();
-                    }
-                );
-            }
-        });
-    }
-});
+//     required.removeClass("is-invalid");
+
+//     // Form Validation
+//     for (var i = 0; i < required.length; i++) {
+//         if (required[i].value == "") {
+//             canInput = false;
+//             fAddComponent
+//                 .find(`input[name="${required[i].name}"]`)
+//                 .addClass("is-invalid");
+//             fAddComponent
+//                 .find(`select[name="${required[i].name}"]`)
+//                 .addClass("is-invalid");
+//             var form_name = required[i].id.replace("_", " ").toUpperCase();
+//             Toastify({
+//                 text: `Form ${form_name} is Required`,
+//                 duration: 3000,
+//                 close: true,
+//                 gravity: "top",
+//                 position: "right",
+//                 style: {
+//                     background: "linear-gradient(to right, #ff5f6d, #ffc371)",
+//                 },
+//             }).showToast();
+//         }
+//     }
+
+//     if (canInput == true) {
+//     }
+// });
 
 $("#form-filter").on("submit", function () {
     table.destroy();
     getData();
 });
+
+function getClientDetail(el) {
+    var clientCode = $(el).val();
+    $("#container-client").slideUp();
+    if (clientCode != "") {
+        apiCall(
+            `master-data/client/get-detail/${clientCode}`,
+            "GET",
+            "",
+            null,
+            null,
+            null,
+            true,
+            (res) => {
+                $(".loading").hide();
+                $("#container-client").slideDown();
+                var contClient = $("#container-client").find("input");
+                const dataClient = res.data;
+                for (let i = 0; i < contClient.length; i++) {
+                    let formId = $(contClient[i]).attr("id");
+                    $(`#${formId}`).val(dataClient[formId]);
+                }
+            }
+        );
+    }
+}
 
 function resetFilter() {
     $('input[name="client"]').val("");
@@ -271,14 +341,40 @@ function deleteSchedule(id) {
     console.log(id);
 }
 
-function showQr(el) {
-    let tagMeeting = $(el).data("tag");
-    let pathQr = atob($(el).data("qr_path"));
-    pathQr = decodeURIComponent(pathQr);
+function showQr(el, id) {
+    var tagMeeting = $(el).data("tag");
+    apiCall(
+        `master-data/meeting-schedule/get-qr/${id}`,
+        "GET",
+        "",
+        null,
+        null,
+        null,
+        true,
+        (res) => {
+            $(".loading").hide();
+            $("#container-qr").html("");
+            var elImg = "";
 
-    $("#modal-preview-qr").find("img").attr("src", pathQr);
-    $("#modal-preview-qr").find("#tag-meeting").html(tagMeeting);
-    $("#modal-preview-qr").modal("toggle");
+            for (let i = 0; i < res.data.length; i++) {
+                let pathQr = res.data[i].qr_path;
+                pathQr = decodeURIComponent(pathQr);
+                elImg += `<div class="col text-center">
+                            <img src="${
+                                res.asset_path
+                            }/${pathQr}" alt="QR Path" class="img-fluid">
+                            <p>QR Code - ${i + 1}</p>
+                        </div>`;
+                // var src = $("#modal-preview-qr").find("img").attr("src");
+                // src = src + pathQr;
+                // $("#modal-preview-qr").find("img").attr("src", src);
+            }
+            console.log(tagMeeting);
+            $("#container-qr").html(elImg);
+            $("#tag-meeting").html(tagMeeting);
+            $("#modal-preview-qr").modal("toggle");
+        }
+    );
 }
 
 function generateQr(id) {

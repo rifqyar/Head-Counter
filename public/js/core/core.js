@@ -28,6 +28,7 @@ $(document).ready(function () {
                     $(this).addClass('active')
                     $(this).parent().addClass('active')
                     render.html(res);
+                    $(".loading").hide();
                 },
                 error: (err) => {
                     NProgress.done();
@@ -71,6 +72,7 @@ function renderView(route) {
         success: (res) => {
             NProgress.done();
             render.html(res);
+            $(".loading").hide();
         },
         error: (err) => {
             NProgress.done();
@@ -263,14 +265,14 @@ function prompt(type, data, callback) {
     }
     Swal.fire({
         title: text,
-        icon: icon,
+        type: icon,
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
         cancelButtonText: "Batal",
         confirmButtonText: confirmText,
     }).then((result) => {
-        if (result.isConfirmed) {
+        if (result.value) {
             callback(true);
         } else {
             callback(false);

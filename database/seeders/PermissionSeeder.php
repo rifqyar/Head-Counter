@@ -23,7 +23,9 @@ class PermissionSeeder extends Seeder
         // Child Menu Permission
             // Master Data
         Permission::create(['name' => 'Meeting Schedule']);
+        Permission::create(['name' => 'meeting.add']);
         Permission::create(['name' => 'Client']);
+        Permission::create(['name' => 'client.add']);
 
             // Transaction
         Permission::create(['name' => 'Meeting Trans']);

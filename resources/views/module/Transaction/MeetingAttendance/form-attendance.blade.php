@@ -60,16 +60,16 @@
                                     </div>
                                     <div class="col-md-6 col-12">
                                         <div class="form-group">
-                                            <label for="phone_number">Nomor Telepon</label>
-                                            <input type="text" id="phone_number" class="form-input form-control required"
-                                                name="phone_number" placeholder="Nomor Telepon">
+                                            <label for="jabatan">Jabatan</label>
+                                            <input type="text" id="jabatan" class="form-input form-control required"
+                                                name="jabatan" placeholder="jabatan">
                                         </div>
                                     </div>
                                     <div class="col-md-6 col-12">
                                         <div class="form-group">
-                                            <label for="email">Email</label>
-                                            <input type="email" id="email" class="form-input form-control required"
-                                                name="email" placeholder="Email">
+                                            <label for="phone_number">Nomor Telepon</label>
+                                            <input type="text" id="phone_number" class="form-input form-control required"
+                                                name="phone_number" placeholder="Nomor Telepon">
                                         </div>
                                     </div>
 

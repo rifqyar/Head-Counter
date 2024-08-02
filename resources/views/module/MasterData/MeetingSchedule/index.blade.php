@@ -65,12 +65,14 @@
                         <table class="table mb-0 data-table" id="example" style="width: 100%">
                             <thead class="text-muted table-light">
                                 <tr>
-                                    <th class="text-center">No</th>
+                                    <th class="text-center">#</th>
                                     <th class="text-center">Client</th>
                                     <th class="text-center">Tgl. Meeting</th>
                                     <th class="text-center">Jam Mulai</th>
                                     <th class="text-center">Jam Selesai</th>
                                     <th class="text-center">Kuota</th>
+                                    <th class="text-center">Ruangan</th>
+                                    <th class="text-center">Paket</th>
                                     <th class="text-center" width="200px">Aksi</th>
                                 </tr>
                             </thead>

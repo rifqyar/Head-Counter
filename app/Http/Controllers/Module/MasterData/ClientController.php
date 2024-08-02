@@ -35,17 +35,17 @@ class ClientController extends Controller
         $query = Client::orderBy('code')->get();
 
         return DataTables::of($query)
-                ->addIndexColumn()
-                ->editColumn('action', function($query){
-                    return "<a href='javascript:void(0)' onclick='renderView(`" . route('client.edit', $query->id) . "`)'  class='btn icon btn-sm btn-outline-warning rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Edit Client'>
+            ->addIndexColumn()
+            ->editColumn('action', function ($query) {
+                return "<a href='javascript:void(0)' onclick='renderView(`" . route('client.edit', $query->id) . "`)'  class='btn icon btn-sm btn-outline-warning rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Edit Client'>
                                 <i class='fas fa-edit'></i>
                             </a>
                             <a href='javascript:void(0)' onclick='deleteClient(`$query->id`)'  class='btn icon btn-sm btn-outline-danger rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Delete Client'>
                                 <i class='fas fa-trash'></i>
                             </a>";
-                })
-                ->rawColumns(['action'])
-                ->make(true);
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
 
     /**
@@ -65,7 +65,7 @@ class ClientController extends Controller
             'contact_person' => 'required',
             'company_phone' => 'required',
             'email' => 'required|email|unique:m_client,email',
-        ],[
+        ], [
             'code.unique' => 'Code Client sudah ada',
             'name.unique' => 'Nama Client sudah ada',
             'code.max' => 'Code Client tidak boleh lebih dari :max karakter'
@@ -93,6 +93,18 @@ class ClientController extends Controller
                 'err_detail' => $th,
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public function getDetail($id)
+    {
+        $client = Client::where('code', $id)->first();
+        return response()->json([
+            'status' => [
+                'msg' => 'OK',
+                'code' => JsonResponse::HTTP_OK,
+            ],
+            'data' => $client,
+        ], JsonResponse::HTTP_OK);
     }
 
     /**

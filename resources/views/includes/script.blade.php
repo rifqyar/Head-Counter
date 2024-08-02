@@ -1,3 +1,4 @@
+    <script src="{{asset('assets/plugins/moment/moment.js')}}"></script>
     <script src="{{asset('assets/plugins/jquery/jquery.min.js')}}"></script>
     <!-- Bootstrap tether Core JavaScript -->
     <script src="{{asset('assets/plugins/popper/popper.min.js')}}"></script>
@@ -38,6 +39,14 @@
     <script src="{{asset('assets/js/datatable-config.js')}}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.7/jquery.inputmask.min.js" integrity="sha512-jTgBq4+dMYh73dquskmUFEgMY5mptcbqSw2rmhOZZSJjZbD2wMt0H5nhqWtleVkyBEjmzid5nyERPSNBafG4GQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
+    <script src="{{asset('assets/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js')}}"></script>
+    <script src="{{asset('assets/plugins/clockpicker/dist/jquery-clockpicker.min.js')}}"></script>
+    <script src="{{asset('assets/plugins/select2/dist/js/select2.min.js')}}"></script>
+    <script src="{{ asset('assets/plugins/wizard/jquery.steps.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/wizard/jquery.validate.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/timepicker/bootstrap-timepicker.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/daterangepicker/daterangepicker.js') }}"></script>
+
     <!-- js menu -->
     <script>
         $(function() {

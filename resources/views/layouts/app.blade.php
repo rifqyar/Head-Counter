@@ -33,6 +33,17 @@
         </svg>
     </div>
 
+    <div class="loading">
+        <div class="loading-background text-center py-2 px-4">
+            <div class="spinner-border spinner-border-lg text-warning mb-2" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p>
+                <b class="text-white">Please Wait...</b>
+            </p>
+        </div>
+    </div>
+
     <div id="main-wrapper">
         @include('includes.navbar')
 

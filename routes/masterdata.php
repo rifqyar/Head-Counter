@@ -12,6 +12,7 @@ Route::middleware(['auth', 'ajax'])->group(function(){
         Route::post('/store', [ClientController::class, 'store'])->name('client.store')->middleware('can:client.add');
         Route::post('/data', [ClientController::class, 'data'])->name('client.data');
         Route::get('/edit/{id}', [ClientController::class, 'edit'])->name('client.edit')->middleware('can:client.edit');
+        Route::get('/get-detail/{code}', [ClientController::class, 'getDetail']);
     });
 
     // Meeting Schedule
@@ -22,6 +23,7 @@ Route::middleware(['auth', 'ajax'])->group(function(){
         Route::post('/data', [MeetingScheduleController::class, 'data'])->name('meeting-schedule.data');
         Route::get('/edit/{id}', [MeetingScheduleController::class, 'edit'])->name('meeting-schedule.edit')->middleware('can:meeting.edit');
         Route::get('/generate-qr/{id}', [MeetingScheduleController::class, 'generateQrCode'])->name('meeting-schedule.generate-qr');
+        Route::get('/get-qr/{id}', [MeetingScheduleController::class, 'getQR'])->name('meeting-schedule.get-qr');
     });
 });
 
