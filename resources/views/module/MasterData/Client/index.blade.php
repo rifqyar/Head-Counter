@@ -22,13 +22,13 @@
                         <div class="ml-auto">
                             <div class="float-end">
                                 <!-- Tombol Tambah -->
-                                @can('client.add')
+                                {{-- @can('client.add') --}}
                                     <a href="javascript:void(0)" onclick="renderView(`{!! route('client.add') !!}`)"
                                         class="spa_route btn btn-icon icon-left btn-outline-primary rounded-pill"
                                         style="margin-right: 10px">
                                         <i class="fas fa-plus"></i> Tambah
                                     </a>
-                                @endcan
+                                {{-- @endcan --}}
 
                             </div>
                         </div>
