@@ -4,7 +4,7 @@ use App\Http\Controllers\Module\MasterData\ClientController;
 use App\Http\Controllers\Module\MasterData\MeetingScheduleController;
 use Illuminate\Support\Facades\Route;
 
-Route{
+Route::middleware(['auth', 'ajax'])->group(function(){
     // Client
     Route::prefix('client')->group(function(){
         Route::get('/', [ClientController::class, 'index'])->name('masterdata.client');
