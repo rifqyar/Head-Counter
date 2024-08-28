@@ -264,15 +264,101 @@ class MeetingScheduleController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data = MeetingSchedule::findOrFail($id);
+        $rooms = MeetingRooms::with('status')->get();
+        return view('module.MasterData.MeetingSchedule.edit', compact('data', 'rooms'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
-        //
+        DB::beginTransaction();
+        try {
+            $output_file = null;
+            $currentData = MeetingSchedule::findOrFail($request->id);
+            $package = Package::where('kd_pck', $currentData->package)->first();
+
+            $data = [
+                'tgl_start' => $request->tgl_start,
+                'tgl_end' => $request->tgl_end,
+                'jam_mulai' => $request->jam_mulai,
+                'jam_selesai' => $request->jam_selesai,
+                'room' => $request->rooms[0],
+                'kuota' => $request->kuota * $package->count_qr
+            ];
+
+            // change another room
+            // update meeting room status
+            MeetingRooms::where('kd_room', $request->rooms[0])->update([
+                'room_availability' => RoomStatusEnum::Available
+            ]);
+
+            $schedule = MeetingSchedule::where('id', $request->id)->update($data);
+
+            $insertQR = [];
+            if ($package->count_qr == 1) {
+                $output_file = 'QR Code - Meeting ' . $currentData->code_client . ' - ' . $request->tgl_start . '.png';
+                array_push($insertQR, [
+                    'meeting_id' => $currentData->id,
+                    'qr_path' => $output_file,
+                    'qr_valid_start' => Carbon::createFromFormat('Y-m-d H:i',  $request->tgl_start . ' ' . $request->jam_mulai),
+                    'qr_valid_end' => Carbon::createFromFormat('Y-m-d H:i',  $request->tgl_end . ' ' . $request->jam_selesai),
+                ]);
+            } else {
+                for ($i = 1; $i <= $package->count_qr; $i++) {
+                    $output_file = 'QR Code - Meeting ' . $currentData->code_client . ' - ' . $request->tgl_start . ' - ' . $i . '.png';
+                    array_push($insertQR, [
+                        'meeting_id' => $currentData->id,
+                        'qr_path' => $output_file,
+                        'qr_valid_start' => Carbon::createFromFormat('Y-m-d H:i',  $request->tgl_start . ' ' . $request->jam_mulai),
+                        'qr_valid_end' => Carbon::createFromFormat('Y-m-d H:i',  $request->tgl_end . ' ' . $request->jam_selesai),
+                    ]);
+                }
+            }
+
+            foreach ($insertQR as $val) {
+                $qrCode = QRDetail::where('meeting_id', $currentData->id)->update($val);
+            }
+
+            $currentQR = QRDetail::where('meeting_id', $currentData->id)->get();
+            foreach ($currentQR as $val) {
+                $qrCodeIsi = route('meeting-attendance.form-attendance', ['meeting_id' => base64_encode($currentData->trx_number), 'qr_code' => $val->id]);
+
+                $image = QrCode::format('png')
+                    ->size(200)->errorCorrection('H')
+                    ->generate($qrCodeIsi);
+
+                Storage::disk('qr_meeting_schedule')->put($output_file, $image);
+            }
+
+            // update meeting room status
+            MeetingRooms::where('kd_room', $request->rooms[0])->update([
+                'room_availability' => RoomStatusEnum::Booked
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => [
+                    'msg' => 'OK',
+                    'code' => JsonResponse::HTTP_OK,
+                ],
+                'data' => $schedule
+            ], JsonResponse::HTTP_OK);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => [
+                    'msg' => $th->getMessage() != '' ? $th->getMessage() : 'Err',
+                    'code' => $th->getCode() != '' ? $th->getCode() : JsonResponse::HTTP_INTERNAL_SERVER_ERROR,
+                ],
+                'data' => null,
+                'err_detail' => $th,
+                'message' =>
+                $th->getMessage() != '' ? $th->getMessage() : 'Terjadi Kesalahan Saat Update Data, Harap Coba lagi!',
+            ], 500);
+        }
     }
 
     /**
@@ -280,6 +366,34 @@ class MeetingScheduleController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        DB::beginTransaction();
+        try {
+            $meetingSchedule = MeetingSchedule::findOrFail($id);
+
+            // update meeting room status
+            MeetingRooms::where('kd_room', $meetingSchedule->room)->update([
+                'room_availability' => RoomStatusEnum::Available
+            ]);
+
+            MeetingSchedule::findOrFail($id)->delete();
+
+            DB::commit();
+            return response()->json([
+                'status' => [
+                    'msg' => 'OK',
+                    'code' => JsonResponse::HTTP_OK,
+                ],
+            ], JsonResponse::HTTP_OK);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => [
+                    'msg' => 'Err',
+                    'code' => JsonResponse::HTTP_INTERNAL_SERVER_ERROR,
+                ],
+                'data' => null,
+                'err_detail' => $th,
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }
