@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Yajra\DataTables\DataTables;
 
 class MeetingAttendanceController extends Controller
 {
@@ -20,7 +21,46 @@ class MeetingAttendanceController extends Controller
      */
     public function index()
     {
-        //
+        return view('module.Transaction.MeetingAttendance.index');
+    }
+
+    public function data(Request $request){
+        $schedule = MeetingSchedule::orderBy('tgl_start')->with('ruangan')->with('paket')->with('qr');
+
+        if ($request->client != null) {
+            $schedule = $schedule->where('code_client', 'like', '%' . $request->client . '%');
+        }
+
+        if ($request->tgl != date('Y-m-d')) {
+            $schedule = $schedule->orWhereDate('tgl_start', $request->tgl);
+        }
+
+        return DataTables::of($schedule->get())
+            ->addIndexColumn()
+            ->editColumn('action', function ($query) {
+                return self::renderAction($query);
+            })
+            ->editColumn('tgl_meeting', function ($query) {
+                return $query->tgl_start . ' - ' . $query->tgl_end;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+    private function renderAction($data)
+    {
+        $html = "
+            <a href='javascript:void(0)' onclick='renderView(`" . route('meeting-attendance.attendance-list', $data->id) . "`)'  class='btn icon btn-sm btn-outline-primary rounded-pill'>
+                View Attendance
+            </a>
+        ";
+
+        return $html;
+    }
+
+    public function attendance($meeting_id)
+    {
+
     }
 
     /**

@@ -1,10 +1,10 @@
 <div class="container-fluid">
     <div class="row page-titles">
         <div class="col-md-5 col-8 align-self-center">
-            <h3 class="text-themecolor"> Meeting Schedule <i class="mdi mdi-refresh refresh-page mt-2" onclick="renderView(`{!! route('masterdata.meeting-schedule') !!}`)"></i></h3>
+            <h3 class="text-themecolor"> Meeting Attendance <i class="mdi mdi-refresh refresh-page mt-2" onclick="renderView(`{!! route('transaction.meeting-attendance') !!}`)"></i></h3>
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="javascript:void(0)">Master Data</a></li>
-                <li class="breadcrumb-item active">Meeting Schedule</li>
+                <li class="breadcrumb-item"><a href="javascript:void(0)">Transaction</a></li>
+                <li class="breadcrumb-item active">Meeting Attendance</li>
             </ol>
         </div>
     </div>
@@ -14,6 +14,24 @@
                 {{-- Action --}}
                 <div class="card-header">
                     <div class="d-flex">
+                        {{-- Left Nav --}}
+                        <div class="">
+                        </div>
+
+                        {{-- Right Nav --}}
+                        <div class="ml-auto">
+                            <div class="float-end">
+                                <!-- Tombol Tambah -->
+                                {{-- @can('meeting.add') --}}
+                                    <a href="javascript:void(0)" onclick="renderView(`{!! route('meeting-schedule.add') !!}`)"
+                                        class="spa_route btn btn-icon icon-left btn-outline-primary rounded-pill"
+                                        style="margin-right: 10px">
+                                        <i class="fas fa-plus"></i> Tambah
+                                    </a>
+                                {{-- @endcan --}}
+
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -65,7 +83,9 @@
             </div>
         </div>
     </div>
+
+    @include('module.MasterData.MeetingSchedule.modal')
 </div>
 @prepend('after-script')
-<script type="text/javascript" src="{{ asset('js/module/transaction/attendance.js') }}?2"></script>
+<script type="text/javascript" src="{{ asset('js/module/masterdata/meetingschedule.js') }}?2"></script>
 

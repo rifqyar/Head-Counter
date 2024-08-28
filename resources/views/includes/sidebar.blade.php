@@ -37,7 +37,7 @@
                     <li class='nav-small-cap'>Transaction</li>
                     @can('Meeting Trans')
                         <li>
-                            <a href='#' class='sidebar-link spa_route'>
+                            <a href='{{route('transaction.meeting-attendance')}}' class='sidebar-link spa_route'>
                                 <i class='mdi mdi-account-circle'></i>
                                 <span>Meeting Attendace</span>
                             </a>
