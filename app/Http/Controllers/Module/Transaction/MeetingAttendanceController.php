@@ -124,7 +124,8 @@ class MeetingAttendanceController extends Controller
 
     public function checkAttendance($trx_number, $kuota)
     {
-        $mac = DataAccessHelpers::getMac();
+        // $mac = DataAccessHelpers::getMac();
+        $mac = $_SERVER['REMOTE_ADDR'];
         $attendance = MeetingAttendance::where('trx_metting_number', $trx_number)->where('mac_address', $mac)->first();
         if ($attendance) {
             return 'scanned';
