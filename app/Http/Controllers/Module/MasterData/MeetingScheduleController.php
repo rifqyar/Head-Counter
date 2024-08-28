@@ -189,7 +189,7 @@ class MeetingScheduleController extends Controller
 
             $insertQR = [];
             if ($package->count_qr == 1) {
-                $output_file = 'QR Code - Meeting ' . $client->code . ' - ' . $schedule->tgl_start . '.png';
+                $output_file = 'QR Code - Meeting ' . $encodedTrx . '.png';
                 array_push($insertQR, [
                     'meeting_id' => $schedule->id,
                     'qr_path' => $output_file,
@@ -198,7 +198,7 @@ class MeetingScheduleController extends Controller
                 ]);
             } else {
                 for ($i = 1; $i <= $package->count_qr; $i++) {
-                    $output_file = 'QR Code - Meeting ' . $client->code . ' - ' . $schedule->tgl_start . ' - ' . $i . '.png';
+                    $output_file = 'QR Code - Meeting ' . $encodedTrx . ' - ' . $i . '.png';
                     array_push($insertQR, [
                         'meeting_id' => $schedule->id,
                         'qr_path' => $output_file,
