@@ -154,3 +154,22 @@ $("#add-attendance").on("submit", function () {
         });
     }
 });
+
+$("#form-filter").on("submit", function () {
+    table.destroy();
+    getData();
+});
+
+function resetFilter() {
+    $('input[name="client"]').val("");
+
+    var now = new Date();
+    var day = ("0" + now.getDate()).slice(-2);
+    var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+    var today = now.getFullYear() + "-" + month + "-" + day;
+    $('input[name="tgl"]').val(today);
+
+    table.destroy();
+    getData();
+}

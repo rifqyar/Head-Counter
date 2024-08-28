@@ -2,6 +2,7 @@
 
 namespace App\Models\Module\MasterData;
 
+use App\Models\Module\Transaction\MeetingAttendance;
 use App\Models\Transaction\QRDetail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,5 +25,9 @@ class MeetingSchedule extends Model
 
     public function qr(){
         return $this->hasMany(QRDetail::class, 'meeting_id', 'id');
+    }
+
+    public function attendance(){
+        return $this->hasMany(MeetingAttendance::class, 'trx_metting_number', 'trx_number');
     }
 }

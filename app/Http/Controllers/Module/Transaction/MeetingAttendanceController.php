@@ -25,7 +25,7 @@ class MeetingAttendanceController extends Controller
     }
 
     public function data(Request $request){
-        $schedule = MeetingSchedule::orderBy('tgl_start')->with('ruangan')->with('paket')->with('qr');
+        $schedule = MeetingSchedule::orderBy('tgl_start')->with('attendance')->whereHas('attendance')->with('ruangan')->with('paket')->with('qr');
 
         if ($request->client != null) {
             $schedule = $schedule->where('code_client', 'like', '%' . $request->client . '%');
@@ -50,7 +50,7 @@ class MeetingAttendanceController extends Controller
     private function renderAction($data)
     {
         $html = "
-            <a href='javascript:void(0)' onclick='renderView(`" . route('meeting-attendance.attendance-list', $data->id) . "`)'  class='btn icon btn-sm btn-outline-primary rounded-pill'>
+            <a href='javascript:void(0)' onclick='renderView(`" . route('meeting-attendance.attendance-list', base64_encode($data->trx_number)) . "`)'  class='btn icon btn-sm btn-outline-primary rounded-pill'>
                 View Attendance
             </a>
         ";
@@ -58,9 +58,12 @@ class MeetingAttendanceController extends Controller
         return $html;
     }
 
-    public function attendance($meeting_id)
+    public function attendanceList(Request $request, $meeting_id)
     {
-
+        $trx_meeting = $meeting_id;
+        $meeting_id = base64_decode($meeting_id);
+        $attendance = MeetingAttendance::where('trx_metting_number', $meeting_id)->get();
+        return view('module.Transaction.MeetingAttendance.attendance-list', compact('attendance', 'trx_meeting'));
     }
 
     /**
@@ -125,6 +128,7 @@ class MeetingAttendanceController extends Controller
                     'name' => $request->name,
                     'phone_number' => $request->phone_number,
                     'jabatan' => $request->jabatan,
+                    'company' => $request->company,
                     'mac_address' => DataAccessHelpers::getMac(),
                     'qr_path' => 0,
                     'scanned_qr' => 0,
