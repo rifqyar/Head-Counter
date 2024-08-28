@@ -87,5 +87,5 @@
     @include('module.MasterData.MeetingSchedule.modal')
 </div>
 @prepend('after-script')
-<script type="text/javascript" src="{{ asset('js/module/masterdata/attendance.js') }}?2"></script>
+<script type="text/javascript" src="{{ asset('js/module/transaction/attendance.js') }}?2"></script>
 
