@@ -84,8 +84,8 @@ class MeetingAttendanceController extends Controller
         if ($avail == true) {
             return view('module.Transaction.MeetingAttendance.form-attendance', compact('id'));
         } else {
-            return view('module.Transaction.MeetingAttendance.form-attendance', compact('id'));
-            // return view('module.Transaction.MeetingAttendance.form-invalid');
+            // return view('module.Transaction.MeetingAttendance.form-attendance', compact('id'));
+            return view('module.Transaction.MeetingAttendance.form-invalid');
         }
     }
 
