@@ -19,9 +19,20 @@ class SetTenantScope
             return $next($request);
         }
 
-        if ($user->isSuperAdmin() && $request->session()->has('tenant_hotel_id')) {
+        abort_unless($user->isActive(), 403);
+
+        if ($user->isSuperAdmin() && $request->hasSession() && $request->session()->has('tenant_hotel_id')) {
             $hotel = Hotel::whereKey($request->session()->get('tenant_hotel_id'))->first();
-            $context->set($hotel ?: $user->hotel);
+            abort_unless($hotel && ($hotel->status->value ?? $hotel->status) === 'ACTIVE', 403);
+            $context->set($hotel);
+
+            return $next($request);
+        }
+
+        if (! $user->isSuperAdmin()) {
+            $hotel = Hotel::withoutGlobalScopes()->find($user->hotel_id);
+            abort_unless($hotel && ($hotel->status->value ?? $hotel->status) === 'ACTIVE', 403);
+            $context->set($hotel);
 
             return $next($request);
         }

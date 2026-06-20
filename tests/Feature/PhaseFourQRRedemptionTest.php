@@ -164,7 +164,7 @@ class PhaseFourQRRedemptionTest extends TestCase
         ], $scanner->id, $hotel->id);
 
         $this->assertSame(422, $result['status']);
-        $rejected = Redemption::withoutGlobalScope('hotel')->where('status', RedemptionStatus::REJECTED->value)->firstOrFail();
+        $rejected = Redemption::withoutGlobalScope('hotel')->where('idempotency_key', 'reject-key-1')->firstOrFail();
         $this->assertSame('SESSION_NOT_OPEN', $rejected->rejection_code->value);
 
         $session->update(['status' => MealSessionStatus::OPEN]);
@@ -189,7 +189,7 @@ class PhaseFourQRRedemptionTest extends TestCase
         ], $scanner->id, $hotel->id);
 
         $this->assertSame(422, $result['status']);
-        $this->assertSame(0, Redemption::withoutGlobalScope('hotel')->where('status', RedemptionStatus::REJECTED->value)->count());
+        $this->assertSame(0, Redemption::withoutGlobalScope('hotel')->where('idempotency_key', 'invalid-key-1')->count());
         $this->assertDatabaseHas('audit_logs', ['event' => 'redemption.rejected_audit_only']);
     }
 

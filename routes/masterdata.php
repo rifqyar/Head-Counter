@@ -4,9 +4,9 @@ use App\Http\Controllers\Module\MasterData\ClientController;
 use App\Http\Controllers\Module\MasterData\MeetingScheduleController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'ajax'])->group(function () {
+Route::middleware(['auth', 'tenant', 'ajax'])->group(function () {
     // Client
-    Route::prefix('client')->middleware('can:Client')->group(function () {
+    Route::prefix('client')->middleware('permission:Client|client.view|client.manage')->group(function () {
         Route::get('/', [ClientController::class, 'index'])->name('masterdata.client');
         Route::get('/add', [ClientController::class, 'create'])->name('client.add');
         Route::post('/store', [ClientController::class, 'store'])->name('client.store');
@@ -18,7 +18,7 @@ Route::middleware(['auth', 'ajax'])->group(function () {
     });
 
     // Meeting Schedule
-    Route::prefix('meeting-schedule')->middleware('can:Meeting Schedule')->group(function () {
+    Route::prefix('meeting-schedule')->middleware('permission:Meeting Schedule|meeting.view|meeting.create|meeting.update|meeting.cancel')->group(function () {
         Route::get('/', [MeetingScheduleController::class, 'index'])->name('masterdata.meeting-schedule');
         Route::get('/add', [MeetingScheduleController::class, 'create'])->name('meeting-schedule.add');
         Route::post('/store', [MeetingScheduleController::class, 'store'])->name('meeting-schedule.store');

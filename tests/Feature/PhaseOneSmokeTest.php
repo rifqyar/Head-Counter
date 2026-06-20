@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Hotel\Hotel;
 use App\Models\Module\MasterData\Client;
 use App\Models\Module\MasterData\MeetingRooms;
 use App\Models\Module\MasterData\MeetingSchedule;
@@ -21,9 +22,15 @@ class PhaseOneSmokeTest extends TestCase
 
     private function userWithPermissions(array $permissions): User
     {
+        $hotel = Hotel::firstOrCreate(
+            ['code' => 'P1TEST'],
+            ['name' => 'Phase One Test Hotel']
+        );
+
         $user = User::create([
             'name' => 'Phase One Tester',
             'username' => 'phase_one_'.uniqid(),
+            'hotel_id' => $hotel->id,
             'password' => Hash::make('password'),
         ]);
 

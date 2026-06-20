@@ -9,16 +9,16 @@ class HotelPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isSuperAdmin();
+        return $user->isSuperAdmin() || $user->can('hotel.manage');
     }
 
     public function view(User $user, Hotel $hotel): bool
     {
-        return $user->isSuperAdmin() || (int) $user->hotel_id === (int) $hotel->id;
+        return $user->isSuperAdmin() || ($user->can('hotel.manage') && (int) $user->hotel_id === (int) $hotel->id);
     }
 
     public function manage(User $user): bool
     {
-        return $user->isSuperAdmin();
+        return $user->isSuperAdmin() || $user->can('hotel.manage');
     }
 }

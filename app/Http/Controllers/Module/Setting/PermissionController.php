@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Module\Setting;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePermissionRequest;
+use App\Http\Requests\UpdatePermissionRequest;
+use App\Support\Audit\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 use Yajra\DataTables\DataTables;
 
 class PermissionController extends Controller
@@ -53,14 +57,12 @@ class PermissionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StorePermissionRequest $request, AuditLogger $auditLogger)
     {
-        $this->validate($request, [
-            'name' => ['required', 'max:255', Rule::unique('permissions', 'name')],
-        ]);
-
         try {
-            Permission::create(['name' => $request->name]);
+            $permission = Permission::create(['name' => $request->validated('name'), 'guard_name' => 'web']);
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+            $auditLogger->record('permission.created', null, $request->user()->id, $permission, [], [], ['name' => $permission->name]);
 
             return response()->json([
                 'status' => [
@@ -94,16 +96,15 @@ class PermissionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdatePermissionRequest $request, string $id, AuditLogger $auditLogger)
     {
         $permission = Permission::findOrFail($id);
 
-        $this->validate($request, [
-            'name' => ['required', 'max:255', Rule::unique('permissions', 'name')->ignore($permission->id)],
-        ]);
-
         try {
-            $permission->update(['name' => $request->name]);
+            $before = $permission->only(['name']);
+            $permission->update(['name' => $request->validated('name')]);
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+            $auditLogger->record('permission.updated', null, $request->user()->id, $permission, [], $before, $permission->only(['name']));
 
             return response()->json([
                 'status' => [
@@ -119,10 +120,21 @@ class PermissionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id, AuditLogger $auditLogger)
     {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+        $permission = Permission::findOrFail($id);
+        abort_if(
+            $permission->roles()->exists() || DB::table('model_has_permissions')->where('permission_id', $permission->id)->exists(),
+            422,
+            'Assigned permissions cannot be deleted.'
+        );
+
         try {
-            Permission::findOrFail($id)->delete();
+            $before = $permission->only(['name']);
+            $permission->delete();
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+            $auditLogger->record('permission.deleted_or_deactivated', null, $request->user()->id, null, ['permission_id' => $id], $before, []);
 
             return response()->json([
                 'status' => [

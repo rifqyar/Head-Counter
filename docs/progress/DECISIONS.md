@@ -1,6 +1,6 @@
 # Architectural Decisions
 
-**Last Updated:** 2026-06-20
+**Last Updated:** 2026-06-21
 
 ## AD-001: Phase-Based Implementation Strategy
 
@@ -595,3 +595,157 @@ Booking client selectors and validation use active `client_hotel` associations f
 Tenant switching validates active hotels, preserves the previous context on failure, redirects to the dashboard on success/reset, and displays the current hotel code in the navbar.
 
 **Rationale:** Operators need immediate confirmation of the active hotel context before using tenant-scoped lists and forms.
+
+---
+
+## AD-055: Phase 5 Canonical RBAC Matrix With Legacy Compatibility
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Phase 5 introduces canonical uppercase roles (`SUPER_ADMIN`, `HOTEL_ADMIN`, `SALES_ADMIN`, `BANQUET_ADMIN`, `FRONT_OFFICE`, `MEETING_OPERATOR`, `SCANNER_OPERATOR`, `REPORT_VIEWER`, `AUDITOR`) and dot-delimited permissions. Legacy roles and permissions remain synchronized for existing Blade menus and compatibility routes.
+
+**Rationale:** Phase 5 needs explicit enterprise RBAC, but removing legacy permission names would break active Bootstrap/jQuery screens.
+
+---
+
+## AD-056: Policy And Middleware Responsibilities
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Route middleware provides coarse authentication, tenant, role, permission, and rate-limit gates. Policies provide resource-specific permission plus hotel-scope decisions. Controllers still call policies for resource access.
+
+**Rationale:** Hidden UI checks are insufficient. Defense-in-depth keeps guessed IDs, direct routes, and API calls constrained.
+
+---
+
+## AD-057: Super Admin Tenant Behavior
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+`SUPER_ADMIN` may perform platform operations and can view tenant resources across hotels. When a session tenant context is selected, `SetTenantScope` requires that hotel to exist and be active.
+
+**Rationale:** Platform admins need cross-tenant administration, but selected tenant context must not silently fall back when stale or inactive.
+
+---
+
+## AD-058: Authorization Error Convention
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Missing permissions return `403`. Tenant-scoped route-model binding may produce `404` when the scoped model cannot be resolved. Validation failures remain `422`, throttling returns `429`, and unauthenticated API calls return `401`.
+
+**Rationale:** This preserves Laravel conventions while avoiding unnecessary disclosure of cross-tenant records.
+
+---
+
+## AD-059: Audit Logging Compatibility And Redaction
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+The existing Phase 4 `audit_logs` table is extended rather than replaced. `AuditLogger` writes both legacy `event/auditable` fields and Phase 5 `action/entity` fields, and recursively redacts sensitive keys.
+
+**Rationale:** Phase 4 redemption audit records stay compatible while Phase 5 gains richer metadata and safer logging.
+
+---
+
+## AD-060: Rate Limiter Strategy
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Login uses Laravel's built-in username plus IP throttling. Attendance registration is keyed by meeting-token hash plus IP. Scanner validate/redeem are keyed by authenticated operator, hotel, and device identifier. Sensitive admin actions use authenticated user or IP.
+
+**Rationale:** Operational scanner throughput needs higher limits than public forms, while brute-force and QR abuse still need centralized limits.
+
+---
+
+## AD-061: Session, CSP, And CORS Strategy
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Session security remains environment-driven for secure cookies and SameSite. CSP is configurable through `SECURITY_CSP` and allows only current app assets plus scanner camera support. CORS uses explicit origins from `CORS_ALLOWED_ORIGINS`.
+
+**Rationale:** Local development must keep working, but production can harden settings through environment configuration without code changes.
+
+---
+
+## AD-062: Integration API Key Foundation
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Integration API keys use a public prefix plus one-time raw secret. Only a Laravel hash of the secret is stored. Keys support hotel scope, abilities, expiration, revocation, and last-used tracking.
+
+**Rationale:** Phase 5 must establish secure authentication primitives for Phase 7 without building the full integration workflow.
+
+---
+
+## AD-063: HMAC Deferred
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+HMAC signing is deferred to Phase 7. The intended headers are `X-API-Key`, `X-Timestamp`, `X-Nonce`, and `X-Signature` with canonical method, path, timestamp, nonce, and body hash.
+
+**Rationale:** API key storage and validation are enough for the Phase 5 foundation; replay windows, nonce storage, and canonical signing should be implemented alongside real integration endpoints.
+
+---
+
+## AD-064: Phase 5 Endpoint Security Matrix
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+Endpoint security is documented by active route family in `docs/ENDPOINT_SECURITY_MATRIX.md`, verified against `php artisan route:list --except-vendor`. Resource routes inherit common auth, tenant, permission, policy, validation, and audit controls rather than duplicating identical rows per generated CRUD action.
+
+**Rationale:** Laravel resource routes expand into many endpoints with the same middleware and policy boundaries. A family matrix is easier to maintain while still accounting for all 149 active application routes.
+
+---
+
+## AD-065: Tenant-Scoped User Management
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+Phase 5 user administration is implemented under `/users`. Hotel administrators can manage only users in their own hotel and cannot assign protected platform roles. Super-admins may manage platform users and protected roles, but the final active super-admin account cannot be deactivated.
+
+**Rationale:** User administration is security-critical tenant data. Server-side role authority checks are required even when UI options are hidden.
+
+---
+
+## AD-066: Active User And Token Revocation Rules
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+Users have explicit active/inactive status. Inactive users are blocked by global middleware and tenant middleware. Deactivating a user revokes personal access tokens, and token management actions are audited.
+
+**Rationale:** Removing UI access is not enough; API tokens and remembered sessions must stop working when an account is deactivated.
+
+---
+
+## AD-067: Scanner Token Ability Enforcement
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+Scanner validation requires `redemption.scan` plus a Sanctum token with `scanner:validate`; redemption requires `redemption.scan` plus `scanner:redeem`. Normal token-authenticated users derive hotel scope from `users.hotel_id`; they cannot provide or inherit an arbitrary tenant context.
+
+**Rationale:** Scanner devices should receive least-privilege tokens. Separating validate and redeem abilities allows operators and integrations to issue read-only scanner tokens when needed.
+
+---
+
+## AD-068: Public Registration Disabled
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+Laravel UI public registration routes are disabled through `Auth::routes(['register' => false])`. The existing registration controller remains for framework compatibility but is not route-exposed.
+
+**Rationale:** Enterprise multi-hotel user creation must be tenant-scoped and permission-controlled. Public self-registration would bypass hotel assignment and role review.

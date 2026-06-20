@@ -12,6 +12,8 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(RolePermissionSeeder::class);
+
         // Main Menu Permission
         Permission::firstOrCreate(['name' => 'Dashboard', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'Master Data', 'guard_name' => 'web']);

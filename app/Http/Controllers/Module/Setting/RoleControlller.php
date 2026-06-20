@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Module\Setting;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreRoleRequest;
+use App\Http\Requests\SyncRolePermissionsRequest;
+use App\Support\Audit\AuditLogger;
+use App\Support\Security\RoleAuthority;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Yajra\DataTables\DataTables;
 
 // use Yajra\DataTables\DataTables;
@@ -23,9 +28,9 @@ class RoleControlller extends Controller
     /**
      * Display data as data table
      */
-    public function data()
+    public function data(Request $request, RoleAuthority $authority)
     {
-        $query = Role::latest()->get();
+        $query = $authority->assignableRoles($request->user());
 
         return DataTables::of($query)
             ->addIndexColumn()
@@ -43,12 +48,13 @@ class RoleControlller extends Controller
     /**
      * Manage Permission
      */
-    public function managePermission(string $id)
+    public function managePermission(Request $request, string $id, RoleAuthority $authority)
     {
-        $role = Role::find($id);
+        $role = Role::findOrFail($id);
+        abort_unless($authority->canManageProtectedRole($request->user(), $role), 403);
         $data = [
             'role' => $role,
-            'permissions' => Permission::all(),
+            'permissions' => $authority->manageablePermissions($request->user()),
             'myPermissions' => $role->getAllPermissions()->pluck('name')->toarray(),
         ];
 
@@ -58,11 +64,15 @@ class RoleControlller extends Controller
     /**
      * Save manage permission
      */
-    public function storePermission(Request $request)
+    public function storePermission(SyncRolePermissionsRequest $request, AuditLogger $auditLogger)
     {
         try {
-            $role = Role::find($request->role_id);
-            $role->syncPermissions($request->permissions);
+            $role = Role::findOrFail($request->validated('role_id'));
+            $before = $role->permissions()->pluck('name')->all();
+            $permissions = $request->validated('permissions') ?? [];
+            $role->syncPermissions($permissions);
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+            $auditLogger->record('role.permissions_synced', null, $request->user()->id, $role, [], ['permissions' => $before], ['permissions' => $permissions]);
 
             return response()->json([
                 'status' => 200,
@@ -81,15 +91,22 @@ class RoleControlller extends Controller
      */
     public function create()
     {
-        //
+        return view('module.setting.role.add');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreRoleRequest $request, AuditLogger $auditLogger)
     {
-        //
+        $role = Role::create(['name' => $request->validated('name'), 'guard_name' => 'web']);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $auditLogger->record('role.created', null, $request->user()->id, $role, [], [], ['name' => $role->name]);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Role created.',
+        ]);
     }
 
     /**

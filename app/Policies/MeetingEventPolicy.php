@@ -9,8 +9,19 @@ class MeetingEventPolicy
 {
     use AuthorizesHotelScopedModels;
 
+    protected array $permissions = [
+        'view' => 'meeting.view',
+        'create' => 'meeting.create',
+        'update' => 'meeting.update',
+        'delete' => 'meeting.cancel',
+    ];
+
     public function transition(User $user, $model): bool
     {
-        return $this->update($user, $model);
+        return $this->sameHotel($user, $model)
+            && ($user->isSuperAdmin()
+                || $user->can('meeting.start')
+                || $user->can('meeting.complete')
+                || $user->can('meeting.cancel'));
     }
 }

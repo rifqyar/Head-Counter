@@ -24,8 +24,9 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
-        $role = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
-        $user->assignRole($role->name);
+        $role = Role::firstOrCreate(['name' => 'SUPER_ADMIN', 'guard_name' => 'web']);
+        $legacyRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $user->syncRoles([$role->name, $legacyRole->name]);
 
         $permission = Permission::all();
         foreach ($permission as $value) {

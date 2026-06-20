@@ -44,7 +44,10 @@ class ParticipantQRService
 
     public function validate(string $token): array
     {
-        $credential = ParticipantQRCredential::with('participant.meetingEvent')
+        $credential = ParticipantQRCredential::with([
+            'participant' => fn ($query) => $query->withoutGlobalScopes(),
+            'participant.meetingEvent' => fn ($query) => $query->withoutGlobalScopes(),
+        ])
             ->where('token_hash', $this->hash($token))
             ->first();
 
@@ -59,6 +62,9 @@ class ParticipantQRService
         }
 
         $participant = $credential->participant;
+        if (! $participant) {
+            return [false, $credential, 'INVALID_QR'];
+        }
         if (in_array($participant->status, [ParticipantStatus::BLOCKED, ParticipantStatus::CANCELLED], true)) {
             return [false, $credential, 'PARTICIPANT_BLOCKED'];
         }

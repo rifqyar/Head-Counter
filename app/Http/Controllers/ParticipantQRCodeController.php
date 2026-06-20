@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Participant\Participant;
 use App\Domain\QRCode\ParticipantQRCredential;
 use App\Domain\QRCode\ParticipantQRService;
+use App\Http\Requests\ConfirmParticipantQRRequest;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -13,7 +14,7 @@ class ParticipantQRCodeController extends Controller
 {
     public function show(Request $request, Participant $participant, AuditLogger $auditLogger)
     {
-        $this->authorize('view', $participant);
+        $this->authorize('manageQr', $participant);
         $auditLogger->record('participant_qr.admin_viewed', $participant->hotel_id, $request->user()->id, $participant);
 
         $participant->load(['hotel', 'meetingEvent', 'qrCredentials' => fn ($query) => $query->orderByDesc('issued_at')]);
@@ -29,7 +30,7 @@ class ParticipantQRCodeController extends Controller
 
     public function generate(Request $request, Participant $participant, ParticipantQRService $service)
     {
-        $this->authorize('update', $participant);
+        $this->authorize('manageQr', $participant);
 
         if ($participant->activeQrCredential()->exists()) {
             return back()->withErrors(['qr' => 'This participant already has an active QR credential. Rotate it to issue a new code.']);
@@ -40,20 +41,20 @@ class ParticipantQRCodeController extends Controller
         return $this->redirectWithIssuedQr($participant, $issued, 'Participant QR generated.');
     }
 
-    public function rotate(Request $request, Participant $participant, ParticipantQRService $service)
+    public function rotate(ConfirmParticipantQRRequest $request, Participant $participant, ParticipantQRService $service)
     {
-        $this->authorize('update', $participant);
-        $request->validate(['confirm' => ['accepted']]);
+        $this->authorize('manageQr', $participant);
+        $request->validated();
 
         $issued = $service->generate($participant, $request->user()->id);
 
         return $this->redirectWithIssuedQr($participant, $issued, 'Participant QR rotated. The previous QR is no longer valid.');
     }
 
-    public function revoke(Request $request, Participant $participant, ParticipantQRService $service)
+    public function revoke(ConfirmParticipantQRRequest $request, Participant $participant, ParticipantQRService $service)
     {
-        $this->authorize('update', $participant);
-        $request->validate(['confirm' => ['accepted']]);
+        $this->authorize('manageQr', $participant);
+        $request->validated();
 
         $credential = $participant->activeQrCredential()->first();
         if (! $credential instanceof ParticipantQRCredential) {

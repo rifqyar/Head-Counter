@@ -22,6 +22,6 @@ Route::middleware(['auth:sanctum', 'tenant'])->prefix('v1')->name('api.v1.')->gr
     Route::get('/user', fn (Request $request) => $request->user());
     Route::apiResource('meetings', \App\Http\Controllers\MeetingEventController::class)->only(['index', 'show']);
     Route::apiResource('participants', \App\Http\Controllers\ParticipantController::class)->only(['index', 'show', 'store']);
-    Route::post('/scanner/validate', [\App\Http\Controllers\ScannerController::class, 'validateQr'])->middleware(['permission:redemption.scan', 'throttle:60,1'])->name('scanner.validate');
-    Route::post('/scanner/redeem', [\App\Http\Controllers\ScannerController::class, 'redeem'])->middleware(['permission:redemption.scan', 'throttle:60,1'])->name('scanner.redeem');
+    Route::post('/scanner/validate', [\App\Http\Controllers\ScannerController::class, 'validateQr'])->middleware(['permission.web:redemption.scan', 'token.ability:scanner:validate', 'throttle:scanner-validate'])->name('scanner.validate');
+    Route::post('/scanner/redeem', [\App\Http\Controllers\ScannerController::class, 'redeem'])->middleware(['permission.web:redemption.scan', 'token.ability:scanner:redeem', 'throttle:scanner-redeem'])->name('scanner.redeem');
 });

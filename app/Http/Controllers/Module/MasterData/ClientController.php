@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Module\MasterData;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreLegacyClientRequest;
+use App\Http\Requests\UpdateLegacyClientRequest;
 use App\Models\Module\MasterData\Client;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Yajra\DataTables\DataTables;
 
 class ClientController extends Controller
@@ -51,28 +51,10 @@ class ClientController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreLegacyClientRequest $request)
     {
-        $this->validate($request, [
-            'code' => ['required', 'max:3', Rule::unique('m_client', 'code')],
-            'name' => ['required', Rule::unique('m_client', 'name')],
-            'contact_person' => 'required',
-            'company_phone' => 'required',
-            'email' => 'required|email|unique:m_client,email',
-        ], [
-            'code.unique' => 'Code Client sudah ada',
-            'name.unique' => 'Nama Client sudah ada',
-            'code.max' => 'Code Client tidak boleh lebih dari :max karakter',
-        ]);
-
         try {
-            $client = Client::create($request->only([
-                'code',
-                'name',
-                'contact_person',
-                'company_phone',
-                'email',
-            ]));
+            $client = Client::create($request->validated());
 
             return response()->json([
                 'status' => [
@@ -120,30 +102,12 @@ class ClientController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateLegacyClientRequest $request, string $id)
     {
         $client = Client::findOrFail($id);
 
-        $this->validate($request, [
-            'code' => ['required', 'max:3', Rule::unique('m_client', 'code')->ignore($client->id)],
-            'name' => ['required', Rule::unique('m_client', 'name')->ignore($client->id)],
-            'contact_person' => 'required',
-            'company_phone' => 'required',
-            'email' => ['required', 'email', Rule::unique('m_client', 'email')->ignore($client->id)],
-        ], [
-            'code.unique' => 'Code Client sudah ada',
-            'name.unique' => 'Nama Client sudah ada',
-            'code.max' => 'Code Client tidak boleh lebih dari :max karakter',
-        ]);
-
         try {
-            $client->update($request->only([
-                'code',
-                'name',
-                'contact_person',
-                'company_phone',
-                'email',
-            ]));
+            $client->update($request->validated());
 
             return response()->json([
                 'status' => [

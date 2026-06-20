@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class PhaseThreeDomainTest extends TestCase
@@ -213,6 +214,10 @@ class PhaseThreeDomainTest extends TestCase
             'email' => 'tenant'.uniqid().'@example.test',
             'password' => 'password',
         ]);
+        foreach (['meeting_room.view', 'meeting_room.manage'] as $permission) {
+            Permission::findOrCreate($permission, 'web');
+        }
+        $userA->givePermissionTo(['meeting_room.view', 'meeting_room.manage']);
 
         return [$hotelA, $hotelB, $userA];
     }

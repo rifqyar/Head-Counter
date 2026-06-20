@@ -21,6 +21,8 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        \App\Http\Middleware\AddSecurityHeaders::class,
+        \App\Http\Middleware\EnsureActiveUser::class,
     ];
 
     /**
@@ -67,7 +69,10 @@ class Kernel extends HttpKernel
         'ajax' => \App\Http\Middleware\CheckAjaxRequest::class,
         'tenant' => \App\Http\Middleware\SetTenantScope::class,
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+        'permission.web' => \App\Http\Middleware\EnsureHasWebPermission::class,
         'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        'integration.key' => \App\Http\Middleware\AuthenticateIntegrationApiKey::class,
+        'token.ability' => \App\Http\Middleware\EnsureTokenAbility::class,
     ];
 }

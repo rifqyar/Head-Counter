@@ -8,9 +8,11 @@
 
 ## Scanner API
 
-Both endpoints require Sanctum authentication, tenant middleware, and `redemption.scan`.
+Both endpoints require Sanctum authentication, tenant middleware, web-guard `redemption.scan`, an active user, an active hotel, and the endpoint-specific token ability.
 
 ### POST /api/v1/scanner/validate
+
+Required token ability: `scanner:validate`.
 
 ```json
 {
@@ -20,9 +22,11 @@ Both endpoints require Sanctum authentication, tenant middleware, and `redemptio
 }
 ```
 
-The endpoint is non-mutating. It returns participant, meeting, session, remaining entitlement, and eligibility fields.
+The endpoint is non-mutating. It returns participant, meeting, session, remaining entitlement, and eligibility fields. Ineligible scans return HTTP 422 with `eligible: false`.
 
 ### POST /api/v1/scanner/redeem
+
+Required token ability: `scanner:redeem`.
 
 ```json
 {

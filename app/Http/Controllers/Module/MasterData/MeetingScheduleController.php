@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Module\MasterData;
 use App\Enums\RoomStatusEnum;
 use App\Helpers\DataAccessHelpers;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreLegacyMeetingScheduleRequest;
+use App\Http\Requests\UpdateLegacyMeetingScheduleRequest;
 use App\Models\Module\MasterData\Client;
 use App\Models\Module\MasterData\MeetingRooms;
 use App\Models\Module\MasterData\MeetingSchedule;
@@ -112,7 +114,7 @@ class MeetingScheduleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreLegacyMeetingScheduleRequest $request)
     {
         $trx_number = DataAccessHelpers::generateTransactionNumber($request->code_client);
         $createdFiles = [];
@@ -255,7 +257,7 @@ class MeetingScheduleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request)
+    public function update(UpdateLegacyMeetingScheduleRequest $request)
     {
         $createdFiles = [];
 

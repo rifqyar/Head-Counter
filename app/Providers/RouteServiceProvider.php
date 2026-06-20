@@ -29,7 +29,29 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('attendance', function (Request $request) {
-            return Limit::perMinute(20)->by($request->ip());
+            $token = (string) $request->route('token');
+
+            return Limit::perMinute(30)->by(hash('sha256', $token).'|'.$request->ip());
+        });
+
+        RateLimiter::for('scanner-validate', function (Request $request) {
+            return Limit::perMinute(120)->by(implode('|', [
+                $request->user()?->id ?: 'guest',
+                $request->user()?->hotel_id ?: 'no-hotel',
+                $request->input('device_id', 'no-device'),
+            ]));
+        });
+
+        RateLimiter::for('scanner-redeem', function (Request $request) {
+            return Limit::perMinute(240)->by(implode('|', [
+                $request->user()?->id ?: 'guest',
+                $request->user()?->hotel_id ?: 'no-hotel',
+                $request->input('device_id', 'no-device'),
+            ]));
+        });
+
+        RateLimiter::for('sensitive-admin', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
         });
 
         $this->routes(function () {

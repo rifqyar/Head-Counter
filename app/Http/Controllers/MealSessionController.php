@@ -6,13 +6,15 @@ use App\Domain\Catering\MealSession;
 use App\Domain\Catering\MealSessionService;
 use App\Domain\Meeting\MeetingEvent;
 use App\Enums\EntitlementType;
+use App\Http\Requests\MealSessionRequest;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class MealSessionController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', MealSession::class);
+
         $sessions = MealSession::with('meetingEvent')->orderByDesc('starts_at')->paginate(25);
 
         return $this->viewOrRedirect($request, 'domain.meal-sessions.index', compact('sessions'));
@@ -20,12 +22,16 @@ class MealSessionController extends Controller
 
     public function create(Request $request)
     {
+        $this->authorize('create', MealSession::class);
+
         return $this->viewOrRedirect($request, 'domain.meal-sessions.create', ['session' => new MealSession, 'meetings' => MeetingEvent::orderByDesc('start_at')->get(), 'types' => EntitlementType::cases()]);
     }
 
-    public function store(Request $request)
+    public function store(MealSessionRequest $request)
     {
-        $data = $this->validated($request);
+        $this->authorize('create', MealSession::class);
+
+        $data = $request->validated();
         $meeting = MeetingEvent::findOrFail($data['meeting_event_id']);
         MealSession::create(array_merge($data, ['hotel_id' => $meeting->hotel_id, 'created_by' => $request->user()->id]));
 
@@ -34,18 +40,24 @@ class MealSessionController extends Controller
 
     public function edit(Request $request, MealSession $mealSession)
     {
+        $this->authorize('update', $mealSession);
+
         return $this->viewOrRedirect($request, 'domain.meal-sessions.edit', ['session' => $mealSession, 'meetings' => MeetingEvent::orderByDesc('start_at')->get(), 'types' => EntitlementType::cases()]);
     }
 
-    public function update(Request $request, MealSession $mealSession)
+    public function update(MealSessionRequest $request, MealSession $mealSession)
     {
-        $mealSession->update(array_merge($this->validated($request), ['updated_by' => $request->user()->id]));
+        $this->authorize('update', $mealSession);
+
+        $mealSession->update(array_merge($request->validated(), ['updated_by' => $request->user()->id]));
 
         return redirect()->route('meal-sessions.index')->with('status', 'Meal session updated.');
     }
 
     public function open(MealSession $mealSession, MealSessionService $service)
     {
+        $this->authorize('update', $mealSession);
+
         $service->open($mealSession, auth()->id());
 
         return back()->with('status', 'Meal session opened.');
@@ -53,6 +65,8 @@ class MealSessionController extends Controller
 
     public function close(MealSession $mealSession, MealSessionService $service)
     {
+        $this->authorize('update', $mealSession);
+
         $service->close($mealSession, auth()->id());
 
         return back()->with('status', 'Meal session closed.');
@@ -60,6 +74,8 @@ class MealSessionController extends Controller
 
     public function cancel(MealSession $mealSession, MealSessionService $service)
     {
+        $this->authorize('update', $mealSession);
+
         $service->cancel($mealSession, auth()->id());
 
         return back()->with('status', 'Meal session cancelled.');
@@ -67,22 +83,10 @@ class MealSessionController extends Controller
 
     public function generate(MeetingEvent $meeting, MealSessionService $service)
     {
+        $this->authorize('update', $meeting);
+
         $service->generateFromPackages($meeting, auth()->id());
 
         return back()->with('status', 'Meal sessions generated from package entitlements.');
-    }
-
-    private function validated(Request $request): array
-    {
-        return $request->validate([
-            'meeting_event_id' => ['required', Rule::exists('meeting_events', 'id')],
-            'entitlement_type' => ['required', Rule::enum(EntitlementType::class)],
-            'session_number' => ['required', 'integer', 'min:1'],
-            'name' => ['required', 'string', 'max:255'],
-            'starts_at' => ['nullable', 'date'],
-            'ends_at' => ['nullable', 'date', 'after:starts_at'],
-            'status' => ['required', 'in:DRAFT,OPEN,CLOSED,CANCELLED'],
-            'location' => ['nullable', 'string', 'max:255'],
-        ]);
     }
 }

@@ -225,7 +225,15 @@ class PhaseThreeCompletionTest extends TestCase
     public function test_attendance_duplicate_checkin_is_prevented(): void
     {
         $this->seed();
-        $participant = Participant::firstOrFail();
+        $meeting = MeetingEvent::firstOrFail();
+        $participant = Participant::create([
+            'hotel_id' => $meeting->hotel_id,
+            'meeting_event_id' => $meeting->id,
+            'participant_number' => 'DUP-ATT-'.uniqid(),
+            'full_name' => 'Duplicate Attendance Test',
+            'registered_at' => now(),
+            'status' => 'REGISTERED',
+        ]);
 
         MeetingAttendance::create([
             'meeting_event_id' => $participant->meeting_event_id,

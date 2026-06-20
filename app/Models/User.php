@@ -24,6 +24,10 @@ class User extends Authenticatable
         'email',
         'hotel_id',
         'password',
+        'status',
+        'last_login_at',
+        'deactivated_at',
+        'deactivated_by',
     ];
 
     /**
@@ -43,6 +47,8 @@ class User extends Authenticatable
      */
     protected $casts = [
         'password' => 'hashed',
+        'last_login_at' => 'datetime',
+        'deactivated_at' => 'datetime',
     ];
 
     public function hotel()
@@ -52,6 +58,11 @@ class User extends Authenticatable
 
     public function isSuperAdmin(): bool
     {
-        return $this->hasAnyRole(['Super Admin', 'Administrator']);
+        return $this->hasAnyRole(['SUPER_ADMIN', 'Super Admin', 'Administrator']);
+    }
+
+    public function isActive(): bool
+    {
+        return ($this->status ?? 'ACTIVE') === 'ACTIVE' && $this->deactivated_at === null;
     }
 }

@@ -1,6 +1,6 @@
 # Current Status
 
-**Last Updated:** 2026-06-20
+**Last Updated:** 2026-06-21
 
 ## Phase Progress
 
@@ -10,7 +10,7 @@
 | Phase 2 - PostgreSQL Migration | COMPLETED | 2026-06-20 | 2026-06-20 |
 | Phase 3 - Core Domain Refactor | COMPLETED | 2026-06-20 | 2026-06-20 |
 | Phase 4 - QR and Redemption Engine | COMPLETED | 2026-06-20 | 2026-06-20 |
-| Phase 5 - Security and RBAC | Not Started | - | - |
+| Phase 5 - Security and RBAC | COMPLETED | 2026-06-20 | 2026-06-21 |
 | Phase 6 - Dashboard and Reporting | Not Started | - | - |
 | Phase 7 - Integration and Automation | Not Started | - | - |
 | Phase 8 - Production Readiness | Not Started | - | - |
@@ -120,7 +120,81 @@
 
 ## Next Step
 
-Start Phase 5 only when explicitly instructed.
+Phase 5 is complete. Do not start Phase 6 until explicitly instructed.
+
+## Phase 5 Execution Status
+
+**Current Phase:** Phase 5 - Security and RBAC  
+**Current Status:** COMPLETED
+
+### Completed Work
+
+- COMPLETED: Read `docs/phases/phase-5-security-and-rbac.md` as the authoritative scope.
+- COMPLETED: Verified Phase 4 baseline documents and route/migration/test status before implementation.
+- COMPLETED: Added idempotent `RolePermissionSeeder` with Phase 5 roles, canonical permissions, legacy compatibility permissions, and explicit role-permission matrix.
+- COMPLETED: Updated super-admin detection for canonical `SUPER_ADMIN` while preserving legacy `Super Admin`.
+- COMPLETED: Added and registered policies for meal sessions, redemptions, audit logs, users, reports, and integration API keys; tightened core domain policies to check permission plus hotel scope.
+- COMPLETED: Added participant QR-specific policy authorization through `participant.qr.manage`.
+- COMPLETED: Added tenant fail-closed behavior for inactive or missing hotel context.
+- COMPLETED: Added global security headers middleware with CSP, nosniff, referrer policy, permissions policy, frame denial, and production-only HSTS.
+- COMPLETED: Added scanner validate/redeem and sensitive-admin named rate limiters; attendance limiter now keys by token hash plus IP.
+- COMPLETED: Extended audit logs with Phase 5 columns while preserving Phase 4 compatibility columns.
+- COMPLETED: Hardened `AuditLogger` with recursive sensitive-field redaction and request metadata capture.
+- COMPLETED: Added read-only tenant-scoped audit-log UI with filters and detail view.
+- COMPLETED: Audited login success/failure/logout and tenant switching.
+- COMPLETED: Restricted CORS to environment-driven origins and explicit methods/headers.
+- COMPLETED: Added integration API key foundation with hash-only secret storage, prefix lookup, abilities, expiration, revocation, last-used tracking, and middleware alias.
+- COMPLETED: Added focused Phase 5 tests for RBAC seeding, security headers, audit redaction/UI isolation, scanner authentication, integration keys, and login throttling.
+- COMPLETED: Updated `docs/SECURITY.md`, `docs/AUTHORIZATION_MATRIX.md`, `docs/AUDIT_LOGGING.md`, and `docs/API_AUTHENTICATION.md`.
+- COMPLETED: Added endpoint security matrix review in `docs/ENDPOINT_SECURITY_MATRIX.md` covering all 149 active application routes by endpoint family and controls.
+- COMPLETED: Removed public registration and the unsafe `/test` phpinfo route.
+- COMPLETED: Added global active-user enforcement plus `users.status`, `last_login_at`, `deactivated_at`, and `deactivated_by`.
+- COMPLETED: Added tenant-scoped `/users` management workflows, role sync, user activation/deactivation, personal access token creation/revocation, protected-role filtering, and last-active-super-admin protection.
+- COMPLETED: Added token ability enforcement for scanner API tokens with `scanner:validate` and `scanner:redeem`.
+- COMPLETED: Converted remaining actionable legacy controller inline validation to Form Requests; remaining `Validator::make` is isolated to disabled public registration.
+- COMPLETED: Added authoritative audit placement for booking create/update/cancel, user mutations, token mutations, role changes, and permission changes.
+- COMPLETED: Added Phase 5 completion tests for mutation audit, user-management boundaries, protected super-admin behavior, role/permission audit, Sanctum token abilities/revocation, inactive user/hotel blocking, and cross-hotel scanner isolation.
+
+### Deferred Work
+
+- DEFERRED: HMAC request signing to Phase 7 integration work.
+- DEFERRED: Full external integration endpoints to Phase 7.
+- DEFERRED: Reporting screens and exports to Phase 6.
+- DEFERRED: Any future public registration workflow must be redesigned with explicit tenant invitation controls before re-enabling.
+
+### Blocked Work
+
+- BLOCKED: No Phase 5 blocker remains.
+
+### Tests And Validation Executed
+
+| Command | Result |
+|---|---|
+| `php artisan optimize:clear` | Exit 0 |
+| `php artisan migrate:status` | Exit 0 before Phase 5 edits |
+| `php artisan route:list` | Exit 0; 143 routes after audit-log routes |
+| `./vendor/bin/pint --test` before edits | Exit 0 |
+| `php artisan migrate --force` | Exit 0; Phase 5 migration applied |
+| `php artisan test tests\\Feature\\PhaseFiveSecurityTest.php` | Exit 0; 7 tests passed, 95 assertions |
+| `php artisan test` after fixes | Exit 0; 47 tests passed, 289 assertions |
+| `npm run build` | Exit 0; Vite build completed |
+| `php artisan migrate:fresh --force` | Exit 0 |
+| `php artisan db:seed --force` after fresh migration | Exit 0 |
+| `php artisan migrate:rollback --force` | Exit 0 |
+| `php artisan migrate --force` after rollback | Exit 0 |
+| `php artisan db:seed --force` after rollback/migrate | Exit 0 |
+| `./vendor/bin/pint` | Exit 0; 3 style issues fixed |
+| `./vendor/bin/pint --test` | Exit 0 |
+| `php artisan test` final | Exit 0; 53 tests passed, 323 assertions |
+| `php artisan route:list --except-vendor` final completion pass | Exit 0; 149 application routes |
+| `php artisan test tests\\Feature\\PhaseFiveCompletionTest.php` | Exit 0; 6 tests passed, 34 assertions |
+| `php artisan test tests\\Feature\\PhaseFiveSecurityTest.php` | Exit 0; 7 tests passed, 95 assertions |
+
+### Known Risks
+
+- Legacy settings controllers remain Bootstrap/jQuery compatibility screens, but Phase 5 security controls, Form Requests for write inputs, protected-role checks, and audit logging are in place.
+- HMAC signing is documented as deferred; current integration foundation is API-key based only.
+- `SESSION_SECURE_COOKIE=false` remains the local `.env.example` default and must be true in HTTPS production.
 
 ## UI/UX and Domain Flow Remediation
 
