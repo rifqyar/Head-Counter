@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('m_meeting_rooms', function (Blueprint $table) {
             $table->id();
-            $table->string('kd_room', 10);
+            $table->string('kd_room', 10)->unique();
             $table->string('name');
-            $table->string('room_availability')->default('001');
-            $table->timestamps();
+            $table->string('room_availability')->default('AVAILABLE');
+            $table->timestampsTz();
         });
     }
 

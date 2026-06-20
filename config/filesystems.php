@@ -58,15 +58,15 @@ return [
 
         'qr_meeting_schedule' => [
             'driver' => 'local',
-            'root' => public_path() . '/qrcode/meeting_schedule',
+            'root' => public_path().'/qrcode/meeting_schedule',
             'throw' => false,
         ],
 
         'qr_meeting_attendance' => [
             'driver' => 'local',
-            'root' => public_path() . '/qrcode/meeting_attendance',
+            'root' => public_path().'/qrcode/meeting_attendance',
             'throw' => false,
-        ]
+        ],
 
     ],
 

@@ -60,4 +60,4 @@
 
 @prepend('after-script')
 <script type="text/javascript" src="{{ asset('js/module/masterdata/client.js') }}?2"></script>
-
+@endprepend

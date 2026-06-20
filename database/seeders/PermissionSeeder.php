@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 
@@ -14,29 +13,29 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         // Main Menu Permission
-        Permission::create(['name' => 'Dashboard']);
-        Permission::create(['name' => 'Master Data']);
-        Permission::create(['name' => 'Transaction']);
-        Permission::create(['name' => 'Report']);
-        Permission::create(['name' => 'Setting']);
+        Permission::firstOrCreate(['name' => 'Dashboard', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'Master Data', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'Transaction', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'Report', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'Setting', 'guard_name' => 'web']);
 
         // Child Menu Permission
-            // Master Data
-        Permission::create(['name' => 'Meeting Schedule']);
-        Permission::create(['name' => 'meeting.add']);
-        Permission::create(['name' => 'Client']);
-        Permission::create(['name' => 'client.add']);
+        // Master Data
+        Permission::firstOrCreate(['name' => 'Meeting Schedule', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'meeting.add', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'Client', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'client.add', 'guard_name' => 'web']);
 
-            // Transaction
-        Permission::create(['name' => 'Meeting Trans']);
-        Permission::create(['name' => 'Additional Slot']);
+        // Transaction
+        Permission::firstOrCreate(['name' => 'Meeting Trans', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'Additional Slot', 'guard_name' => 'web']);
 
-            // Report
-        Permission::create(['name' => 'Meeting Report']);
+        // Report
+        Permission::firstOrCreate(['name' => 'Meeting Report', 'guard_name' => 'web']);
 
-            // Setting
-        Permission::create(['name' => 'Manage User']);
-        Permission::create(['name' => 'Manage Role']);
-        Permission::create(['name' => 'Manage Permission']);
+        // Setting
+        Permission::firstOrCreate(['name' => 'Manage User', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'Manage Role', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'Manage Permission', 'guard_name' => 'web']);
     }
 }

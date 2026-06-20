@@ -45,6 +45,19 @@ $( function(){
     });
 })
 
+$('#btn-update-permission').on('click', function(){
+    apiCall($(this).data('url'), 'POST', 'edit-permission', {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+        },
+        null,
+        null,
+        true,
+        () => {
+            $('.loading').hide()
+            renderView(`${$('meta[name="baseurl"]').attr('content')}setting/permission`)
+        })
+})
+
 $('#btn-save').on('click', function(){
     const fAddComponent = $('#add-permission')
     var required = fAddComponent.find('.required')

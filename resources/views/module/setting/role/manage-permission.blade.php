@@ -59,4 +59,5 @@
 
     @prepend('after-script')
     <script type="text/javascript" src="{{ asset('js/module/setting/role.js') }}"></script>
+    @endprepend
 </div>

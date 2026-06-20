@@ -15,6 +15,8 @@ return new class extends Migration
             $table->renameColumn('tgl_meeting', 'tgl_start');
             $table->date('tgl_end')->default(null)->nullable(true);
             $table->string('package')->default(null)->nullable(true);
+            $table->index('code_client');
+            $table->index('tgl_start');
         });
     }
 
@@ -24,7 +26,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('trx_meeting_schedule', function (Blueprint $table) {
-            //
+            $table->dropIndex(['tgl_start']);
+            $table->dropIndex(['code_client']);
+            $table->dropColumn(['tgl_end', 'package']);
+            $table->renameColumn('tgl_start', 'tgl_meeting');
         });
     }
 };

@@ -15,10 +15,11 @@ class CheckAjaxRequest
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->ajax()) {
-            if(str_contains($request->url(), 'print')){
+        if (! $request->ajax()) {
+            if (str_contains($request->url(), 'print')) {
                 return $next($request);
             }
+
             return redirect()->route('redirect')->with(['Redirect' => $request->path()]);
         }
 

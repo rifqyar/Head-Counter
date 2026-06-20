@@ -17,7 +17,7 @@ class DashboardController extends Controller
         if (isset($redirectData)) {
             return view('includes.redirect');
         } else {
-            abort('404');
+            abort(404);
         }
     }
 

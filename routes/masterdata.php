@@ -4,19 +4,21 @@ use App\Http\Controllers\Module\MasterData\ClientController;
 use App\Http\Controllers\Module\MasterData\MeetingScheduleController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'ajax'])->group(function(){
+Route::middleware(['auth', 'ajax'])->group(function () {
     // Client
-    Route::prefix('client')->group(function(){
+    Route::prefix('client')->middleware('can:Client')->group(function () {
         Route::get('/', [ClientController::class, 'index'])->name('masterdata.client');
         Route::get('/add', [ClientController::class, 'create'])->name('client.add');
         Route::post('/store', [ClientController::class, 'store'])->name('client.store');
         Route::post('/data', [ClientController::class, 'data'])->name('client.data');
         Route::get('/edit/{id}', [ClientController::class, 'edit'])->name('client.edit');
+        Route::post('/update/{id}', [ClientController::class, 'update'])->name('client.update');
+        Route::get('/destroy/{id}', [ClientController::class, 'destroy'])->name('client.destroy');
         Route::get('/get-detail/{code}', [ClientController::class, 'getDetail']);
     });
 
     // Meeting Schedule
-    Route::prefix('meeting-schedule')->group(function(){
+    Route::prefix('meeting-schedule')->middleware('can:Meeting Schedule')->group(function () {
         Route::get('/', [MeetingScheduleController::class, 'index'])->name('masterdata.meeting-schedule');
         Route::get('/add', [MeetingScheduleController::class, 'create'])->name('meeting-schedule.add');
         Route::post('/store', [MeetingScheduleController::class, 'store'])->name('meeting-schedule.store');
@@ -28,5 +30,3 @@ Route::middleware(['auth', 'ajax'])->group(function(){
         Route::get('/delete/{id}', [MeetingScheduleController::class, 'destroy'])->name('meeting-schedule.delete');
     });
 });
-
-?>

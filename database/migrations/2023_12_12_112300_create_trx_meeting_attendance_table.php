@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('address');
             $table->string('qr_path');
             $table->integer('scanned_qr');
-            $table->timestamps();
+            $table->timestampsTz();
         });
     }
 

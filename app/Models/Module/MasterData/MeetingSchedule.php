@@ -12,22 +12,47 @@ class MeetingSchedule extends Model
     use HasFactory;
 
     public $table = 'trx_meeting_schedule';
-    protected $guarded = [];
-    public $timestamp = false;
 
-    public function ruangan(){
+    protected $fillable = [
+        'trx_number',
+        'code_client',
+        'tgl_start',
+        'tgl_end',
+        'jam_mulai',
+        'jam_selesai',
+        'kuota',
+        'qr_path',
+        'package',
+        'room',
+    ];
+
+    public function room()
+    {
         return $this->hasOne(MeetingRooms::class, 'kd_room', 'room');
     }
 
-    public function paket(){
+    public function ruangan()
+    {
+        return $this->room();
+    }
+
+    public function package()
+    {
         return $this->hasOne(Package::class, 'kd_pck', 'package');
     }
 
-    public function qr(){
+    public function paket()
+    {
+        return $this->package();
+    }
+
+    public function qr()
+    {
         return $this->hasMany(QRDetail::class, 'meeting_id', 'id');
     }
 
-    public function attendance(){
+    public function attendance()
+    {
         return $this->hasMany(MeetingAttendance::class, 'trx_metting_number', 'trx_number');
     }
 }

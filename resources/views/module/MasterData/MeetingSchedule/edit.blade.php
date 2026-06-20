@@ -122,4 +122,5 @@
 </div>
 
 @prepend('after-script')
-    <script type="text/javascript" src="{{ asset('js/module/masterdata/meetingschedule.js') }}?2"></script>
+<script type="text/javascript" src="{{ asset('js/module/masterdata/meetingschedule.js') }}?2"></script>
+@endprepend

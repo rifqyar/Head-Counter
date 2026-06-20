@@ -41,6 +41,7 @@
                     <div class="card-body">
                         <form class="form form-vertical" action="{{route('meeting-attendance.store')}}" method="POST">
                             <input type="hidden" class="form-input" name="trx_number" value="{{$id}}">
+                            <input type="hidden" class="form-input" name="qr_code" value="{{ $qrCode ?? '' }}">
                             @csrf
                             <div class="form-body">
                                 <div class="row">

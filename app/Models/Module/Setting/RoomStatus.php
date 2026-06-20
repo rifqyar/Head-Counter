@@ -8,7 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class RoomStatus extends Model
 {
     use HasFactory;
+
     public $table = 'r_room_status';
-    protected $guarded = [];
-    public $timestamp = false;
+
+    protected $fillable = [
+        'kd_status',
+        'name',
+        'description',
+    ];
 }

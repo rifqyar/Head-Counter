@@ -124,5 +124,31 @@ $('#add-client').on('submit', function(){
 })
 
 function deleteClient(id){
-    console.log(id)
+    prompt('delete', 'Client', (confirm) => {
+        if (confirm) {
+            apiCall(`master-data/client/destroy/${id}`, 'GET', null, {
+                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+                },
+                null,
+                null,
+                true,
+                () => {
+                    $('.loading').hide()
+                    table.ajax.reload()
+                })
+        }
+    })
 }
+
+$('#btn-update-client').on('click', function(){
+    apiCall($(this).data('url'), 'POST', 'edit-client', {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+        },
+        null,
+        null,
+        true,
+        () => {
+            $('.loading').hide()
+            renderView(`${$('meta[name="baseurl"]').attr('content')}master-data/client`)
+        })
+})

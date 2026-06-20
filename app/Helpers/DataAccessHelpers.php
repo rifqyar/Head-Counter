@@ -3,46 +3,29 @@
 namespace App\Helpers;
 
 use Carbon\Carbon;
-use CurlHandle;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DataAccessHelpers
 {
-
     public static function convertArrayToNumber($value)
     {
-
-        try {
-
-
-            $value = str_replace(',', '', $value);
-
-            // Mengubah string menjadi float/angka
-            $value = floatval($value);
-
-
-
-            return $value;
-        } catch (\Exception $e) {
-            dd($e);
-        }
+        return self::convertToNumber($value);
     }
 
     public static function convertToNumber($value)
     {
-
         try {
-
-
             $value = str_replace(',', '', $value);
 
-            // Mengubah string menjadi float/angka
-            $value = floatval($value);
-
-
-            return $value;
+            return floatval($value);
         } catch (\Exception $e) {
-            dd($e);
+            Log::warning('Unable to convert value to number.', [
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+            ]);
+
+            return 0;
         }
     }
 
@@ -55,7 +38,7 @@ class DataAccessHelpers
             $number = '0001';
         } else {
             // $number = substr($number, 0, $totalMeeting).$totalMeeting;
-            $number = sprintf("%04d", (int)$totalMeeting + 1);
+            $number = sprintf('%04d', (int) $totalMeeting + 1);
         }
 
         $code = $clientCode;
@@ -66,8 +49,8 @@ class DataAccessHelpers
 
     public static function formatValueMoney($number)
     {
-        $val = number_format($number, 2, ".", ",");
-        $setVal = 'Rp. ' . $val;
+        $val = number_format($number, 2, '.', ',');
+        $setVal = 'Rp. '.$val;
 
         return $setVal;
     }
@@ -79,11 +62,15 @@ class DataAccessHelpers
 
     public static function getMac()
     {
-        $cmd = "arp -a " . $_SERVER["REMOTE_ADDR"];
+        $remoteAddress = request()->ip();
+        $cmd = 'arp -a '.escapeshellarg($remoteAddress);
         $status = 0;
         $return = [];
         exec($cmd, $return, $status);
-        if (isset($return[3])) return strtoupper(str_replace("-", ":", substr($return[3], 24, 17)));
+        if (isset($return[3])) {
+            return strtoupper(str_replace('-', ':', substr($return[3], 24, 17)));
+        }
+
         return false;
     }
 }

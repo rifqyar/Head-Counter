@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('trx_meeting_schedule', function (Blueprint $table) {
             $table->string('room')->nullable(true)->default(null);
+            $table->index('room');
         });
     }
 
@@ -22,7 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('trx_meeting_schedule', function (Blueprint $table) {
-            //
+            $table->dropIndex(['room']);
+            $table->dropColumn('room');
         });
     }
 };

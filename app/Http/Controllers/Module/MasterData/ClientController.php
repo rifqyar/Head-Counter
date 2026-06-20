@@ -37,7 +37,7 @@ class ClientController extends Controller
         return DataTables::of($query)
             ->addIndexColumn()
             ->editColumn('action', function ($query) {
-                return "<a href='javascript:void(0)' onclick='renderView(`" . route('client.edit', $query->id) . "`)'  class='btn icon btn-sm btn-outline-warning rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Edit Client'>
+                return "<a href='javascript:void(0)' onclick='renderView(`".route('client.edit', $query->id)."`)'  class='btn icon btn-sm btn-outline-warning rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Edit Client'>
                                 <i class='fas fa-edit'></i>
                             </a>
                             <a href='javascript:void(0)' onclick='deleteClient(`$query->id`)'  class='btn icon btn-sm btn-outline-danger rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Delete Client'>
@@ -54,27 +54,25 @@ class ClientController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            // 'code' => 'required|max:3|unique:m_client,code',
-            'code' => 'required', 'max:3', Rule::unique('m_client')->where(function ($query) use ($request) {
-                return $query->where('code', $request->code)->where('deleted_status', 0);
-            }),
-            // 'name' => 'required|unique:m_client,name',
-            'name' => 'required', Rule::unique('m_client')->where(function ($query) use ($request) {
-                return $query->where('name', $request->name)->where('deleted_status', 0);
-            }),
+            'code' => ['required', 'max:3', Rule::unique('m_client', 'code')],
+            'name' => ['required', Rule::unique('m_client', 'name')],
             'contact_person' => 'required',
             'company_phone' => 'required',
             'email' => 'required|email|unique:m_client,email',
         ], [
             'code.unique' => 'Code Client sudah ada',
             'name.unique' => 'Nama Client sudah ada',
-            'code.max' => 'Code Client tidak boleh lebih dari :max karakter'
+            'code.max' => 'Code Client tidak boleh lebih dari :max karakter',
         ]);
 
         try {
-
-            $client = $request->all();
-            $client = Client::create($client);
+            $client = Client::create($request->only([
+                'code',
+                'name',
+                'contact_person',
+                'company_phone',
+                'email',
+            ]));
 
             return response()->json([
                 'status' => [
@@ -84,20 +82,14 @@ class ClientController extends Controller
                 'data' => $client,
             ], JsonResponse::HTTP_OK);
         } catch (\Throwable $th) {
-            return response()->json([
-                'status' => [
-                    'msg' => 'Err',
-                    'code' => JsonResponse::HTTP_INTERNAL_SERVER_ERROR,
-                ],
-                'data' => null,
-                'err_detail' => $th,
-            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->safeErrorResponse($th, 'Terjadi kesalahan saat menyimpan client.');
         }
     }
 
     public function getDetail($id)
     {
         $client = Client::where('code', $id)->first();
+
         return response()->json([
             'status' => [
                 'msg' => 'OK',
@@ -120,7 +112,9 @@ class ClientController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $client = Client::findOrFail($id);
+
+        return view('module.MasterData.Client.edit', compact('client'));
     }
 
     /**
@@ -128,7 +122,39 @@ class ClientController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $client = Client::findOrFail($id);
+
+        $this->validate($request, [
+            'code' => ['required', 'max:3', Rule::unique('m_client', 'code')->ignore($client->id)],
+            'name' => ['required', Rule::unique('m_client', 'name')->ignore($client->id)],
+            'contact_person' => 'required',
+            'company_phone' => 'required',
+            'email' => ['required', 'email', Rule::unique('m_client', 'email')->ignore($client->id)],
+        ], [
+            'code.unique' => 'Code Client sudah ada',
+            'name.unique' => 'Nama Client sudah ada',
+            'code.max' => 'Code Client tidak boleh lebih dari :max karakter',
+        ]);
+
+        try {
+            $client->update($request->only([
+                'code',
+                'name',
+                'contact_person',
+                'company_phone',
+                'email',
+            ]));
+
+            return response()->json([
+                'status' => [
+                    'msg' => 'OK',
+                    'code' => JsonResponse::HTTP_OK,
+                ],
+                'data' => $client,
+            ], JsonResponse::HTTP_OK);
+        } catch (\Throwable $th) {
+            return $this->safeErrorResponse($th, 'Terjadi kesalahan saat memperbarui client.');
+        }
     }
 
     /**
@@ -136,6 +162,17 @@ class ClientController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            Client::findOrFail($id)->delete();
+
+            return response()->json([
+                'status' => [
+                    'msg' => 'OK',
+                    'code' => JsonResponse::HTTP_OK,
+                ],
+            ], JsonResponse::HTTP_OK);
+        } catch (\Throwable $th) {
+            return $this->safeErrorResponse($th, 'Terjadi kesalahan saat menghapus client.');
+        }
     }
 }

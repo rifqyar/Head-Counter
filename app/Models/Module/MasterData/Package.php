@@ -10,6 +10,16 @@ class Package extends Model
     use HasFactory;
 
     public $table = 'm_packages';
-    protected $guarded = [];
-    public $timestamp = false;
+
+    protected $fillable = [
+        'kd_pck',
+        'name',
+        'price',
+        'details',
+        'count_qr',
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+    ];
 }

@@ -4,7 +4,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Module\Transaction\MeetingAttendanceController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Milon\Barcode\DNS2D;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,7 +22,7 @@ Route::middleware('auth')->get('/', [DashboardController::class, 'index'])->name
 Route::middleware('auth')->get('/redirect', [DashboardController::class, 'redirect'])->name('redirect');
 Route::middleware(['auth', 'ajax'])->get('/home', [DashboardController::class, 'dashboard'])->name('dashboard.index');
 
-Route::get('/form-attendance', [MeetingAttendanceController::class, 'formAttendance'])->name('meeting-attendance.form-attendance');
-Route::get('test', function () {
+Route::middleware('throttle:attendance')->get('/form-attendance', [MeetingAttendanceController::class, 'formAttendance'])->name('meeting-attendance.form-attendance');
+Route::middleware('auth')->get('test', function () {
     phpinfo();
 });

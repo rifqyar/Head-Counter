@@ -58,4 +58,4 @@
 </div>
 @prepend('after-script')
 <script type="text/javascript" src="{{ asset('js/module/setting/permission.js') }}"></script>
-
+@endprepend

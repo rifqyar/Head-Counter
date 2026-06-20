@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::table('qr_detail', function (Blueprint $table) {
             $table->renameColumn('qr_valid', 'qr_valid_start');
-            $table->dateTime('qr_valid_end')->default(null)->nullable(true);
+            $table->dateTimeTz('qr_valid_end')->default(null)->nullable(true);
+            $table->index('meeting_id');
         });
     }
 
@@ -23,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('qr_detail', function (Blueprint $table) {
-            //
+            $table->dropIndex(['meeting_id']);
+            $table->dropColumn('qr_valid_end');
+            $table->renameColumn('qr_valid_start', 'qr_valid');
         });
     }
 };

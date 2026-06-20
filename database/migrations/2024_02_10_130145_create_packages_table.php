@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('m_packages', function (Blueprint $table) {
             $table->id();
-            $table->string('kd_pck', 10);
+            $table->string('kd_pck', 10)->unique();
             $table->string('name');
-            $table->string('price');
+            $table->decimal('price', 15, 2);
             $table->text('details');
             $table->integer('count_qr');
-            $table->timestamps();
+            $table->timestampsTz();
         });
     }
 
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('packages');
+        Schema::dropIfExists('m_packages');
     }
 };

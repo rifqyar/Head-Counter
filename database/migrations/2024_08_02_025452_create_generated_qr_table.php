@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('qr_detail', function (Blueprint $table) {
             $table->id();
-            $table->integer('meeting_id')->nullable(false);
+            $table->foreignId('meeting_id');
             $table->string('qr_path')->nullable(false);
-            $table->dateTime('qr_valid')->nullable(false);
-            $table->timestamps();
+            $table->dateTimeTz('qr_valid')->nullable(false);
+            $table->timestampsTz();
         });
     }
 

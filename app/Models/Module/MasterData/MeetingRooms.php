@@ -11,10 +11,14 @@ class MeetingRooms extends Model
     use HasFactory;
 
     public $table = 'm_meeting_rooms';
-    protected $guarded = [];
-    public $timestamp = false;
 
-    function status()
+    protected $fillable = [
+        'kd_room',
+        'name',
+        'room_availability',
+    ];
+
+    public function status()
     {
         return $this->hasOne(RoomStatus::class, 'kd_status', 'room_availability');
     }

@@ -21,5 +21,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call(\Database\Seeders\PermissionSeeder::class);
         $this->call(\Database\Seeders\AdminUserSeeder::class);
+        $this->call(\Database\Seeders\RoomStatusSeeder::class);
+        $this->call(\Database\Seeders\MasterRoomsSeeder::class);
+        $this->call(\Database\Seeders\PackageSeeder::class);
     }
 }

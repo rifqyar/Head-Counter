@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Module\Transaction;
 
-use App\Helpers\DataAccessHelpers;
 use App\Http\Controllers\Controller;
 use App\Models\Module\MasterData\MeetingSchedule;
 use App\Models\Module\Transaction\MeetingAttendance;
 use App\Models\Transaction\QRDetail;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -24,11 +22,12 @@ class MeetingAttendanceController extends Controller
         return view('module.Transaction.MeetingAttendance.index');
     }
 
-    public function data(Request $request){
+    public function data(Request $request)
+    {
         $schedule = MeetingSchedule::orderBy('tgl_start')->with('attendance')->whereHas('attendance')->with('ruangan')->with('paket')->with('qr');
 
         if ($request->client != null) {
-            $schedule = $schedule->where('code_client', 'like', '%' . $request->client . '%');
+            $schedule = $schedule->where('code_client', 'like', '%'.$request->client.'%');
         }
 
         if ($request->tgl != date('Y-m-d')) {
@@ -41,7 +40,7 @@ class MeetingAttendanceController extends Controller
                 return self::renderAction($query);
             })
             ->editColumn('tgl_meeting', function ($query) {
-                return $query->tgl_start . ' - ' . $query->tgl_end;
+                return $query->tgl_start.' - '.$query->tgl_end;
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -50,7 +49,7 @@ class MeetingAttendanceController extends Controller
     private function renderAction($data)
     {
         $html = "
-            <a href='javascript:void(0)' onclick='renderView(`" . route('meeting-attendance.attendance-list', base64_encode($data->trx_number)) . "`)'  class='btn icon btn-sm btn-outline-primary rounded-pill'>
+            <a href='javascript:void(0)' onclick='renderView(`".route('meeting-attendance.attendance-list', base64_encode($data->trx_number))."`)'  class='btn icon btn-sm btn-outline-primary rounded-pill'>
                 View Attendance
             </a>
         ";
@@ -63,6 +62,7 @@ class MeetingAttendanceController extends Controller
         $trx_meeting = $meeting_id;
         $meeting_id = base64_decode($meeting_id);
         $attendance = MeetingAttendance::where('trx_metting_number', $meeting_id)->get();
+
         return view('module.Transaction.MeetingAttendance.attendance-list', compact('attendance', 'trx_meeting'));
     }
 
@@ -82,7 +82,9 @@ class MeetingAttendanceController extends Controller
         $id = base64_decode($request->meeting_id);
         $avail = self::checkAvail($request);
         if ($avail == true) {
-            return view('module.Transaction.MeetingAttendance.form-attendance', compact('id'));
+            $qrCode = $request->qr_code;
+
+            return view('module.Transaction.MeetingAttendance.form-attendance', compact('id', 'qrCode'));
         } else {
             // return view('module.Transaction.MeetingAttendance.form-attendance', compact('id'));
             return view('module.Transaction.MeetingAttendance.form-invalid');
@@ -94,6 +96,14 @@ class MeetingAttendanceController extends Controller
         $id = base64_decode($request->meeting_id);
         $meeting = MeetingSchedule::where('trx_number', $id)->first();
         $qr = QRDetail::where('id', $request->qr_code)->first();
+        if (! $meeting || ! $qr || (int) $qr->meeting_id !== (int) $meeting->id) {
+            return false;
+        }
+
+        if ($request->filled('qr_token') && ! hash_equals(pathinfo($qr->qr_path, PATHINFO_FILENAME), $request->qr_token)) {
+            return false;
+        }
+
         $now = now();
         $start = $qr->qr_valid_start;
         $end = $qr->qr_valid_end;
@@ -108,7 +118,6 @@ class MeetingAttendanceController extends Controller
         }
     }
 
-
     /**
      * Store a newly created resource in storage.
      */
@@ -118,10 +127,18 @@ class MeetingAttendanceController extends Controller
         try {
 
             $schedule = MeetingSchedule::where('trx_number', $request->trx_number)->first();
-            $checkAttendance = self::checkAttendance($request->trx_number, $schedule->kuota);
+            if (! $schedule) {
+                abort(404);
+            }
+
+            $checkAttendance = self::checkAttendance($request, $schedule->kuota);
             if ($checkAttendance != 'ok') {
-                if ($checkAttendance == 'scanned') return view('module.Transaction.MeetingAttendance.scanned');
-                if ($checkAttendance == 'over') return view('module.Transaction.MeetingAttendance.over');
+                if ($checkAttendance == 'scanned') {
+                    return view('module.Transaction.MeetingAttendance.scanned');
+                }
+                if ($checkAttendance == 'over') {
+                    return view('module.Transaction.MeetingAttendance.over');
+                }
             } else {
                 $data = [
                     'trx_metting_number' => $request->trx_number,
@@ -129,7 +146,7 @@ class MeetingAttendanceController extends Controller
                     'phone_number' => $request->phone_number,
                     'jabatan' => $request->jabatan,
                     'company' => $request->company,
-                    'mac_address' => DataAccessHelpers::getMac(),
+                    'mac_address' => $this->attendanceFingerprint($request),
                     'qr_path' => 0,
                     'scanned_qr' => 0,
                 ];
@@ -142,45 +159,50 @@ class MeetingAttendanceController extends Controller
                     ->size(200)->errorCorrection('H')
                     ->generate($qrCodeIsi);
 
-                $output_file = 'QR Code - Attendance ' . $schedule->code_client . ' - ' . $request->name . '.png';
+                $output_file = 'QR Code - Attendance '.$schedule->code_client.' - '.str()->slug($request->name).' - '.str()->random(12).'.png';
                 Storage::disk('qr_meeting_attendance')->put($output_file, $image);
 
                 $attendance = MeetingAttendance::find($attendance->id);
                 $attendance->update([
-                    'qr_path' => $output_file
+                    'qr_path' => $output_file,
                 ]);
 
                 DB::commit();
-                return response()->download(public_path() . '/qrcode/meeting_attendance/' . $output_file, $output_file);
+
+                return response()->download(public_path().'/qrcode/meeting_attendance/'.$output_file, $output_file);
             }
         } catch (\Throwable $th) {
             DB::rollBack();
-            return response()->json([
-                'status' => [
-                    'msg' => 'Err',
-                    'code' => JsonResponse::HTTP_INTERNAL_SERVER_ERROR,
-                ],
-                'data' => null,
-                'err_detail' => $th,
-            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+
+            return $this->safeErrorResponse($th, 'Terjadi kesalahan saat menyimpan attendance.');
         }
     }
 
-    public function checkAttendance($trx_number, $kuota)
+    public function checkAttendance(Request $request, $kuota)
     {
-        // $mac = DataAccessHelpers::getMac();
-        $mac = $_SERVER['REMOTE_ADDR'];
-        $attendance = MeetingAttendance::where('trx_metting_number', $trx_number)->where('mac_address', $mac)->first();
+        $attendance = MeetingAttendance::where('trx_metting_number', $request->trx_number)
+            ->where('mac_address', $this->attendanceFingerprint($request))
+            ->first();
         if ($attendance) {
             return 'scanned';
         }
 
-        $totalAttendance = MeetingAttendance::where('trx_metting_number', $trx_number)->count();
+        $totalAttendance = MeetingAttendance::where('trx_metting_number', $request->trx_number)->count();
         if ($totalAttendance == $kuota) {
             return 'over';
         }
 
         return 'ok';
+    }
+
+    private function attendanceFingerprint(Request $request): string
+    {
+        return hash('sha256', implode('|', [
+            mb_strtolower(trim((string) $request->trx_number)),
+            mb_strtolower(trim((string) $request->company)),
+            mb_strtolower(trim((string) $request->name)),
+            preg_replace('/\D+/', '', (string) $request->phone_number),
+        ]));
     }
 
     /**

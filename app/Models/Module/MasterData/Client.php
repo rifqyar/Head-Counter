@@ -10,6 +10,13 @@ class Client extends Model
     use HasFactory;
 
     public $table = 'm_client';
-    protected $guarded = [];
-    public $timestamp = false;
+
+    protected $fillable = [
+        'code',
+        'name',
+        'contact_person',
+        'company_phone',
+        'email',
+        'deleted_status',
+    ];
 }

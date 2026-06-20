@@ -28,16 +28,16 @@ class RoleControlller extends Controller
         $query = Role::latest()->get();
 
         return DataTables::of($query)
-                ->addIndexColumn()
-                ->editColumn('action', function($query){
-                    $html = "<a href='javascript:void(0)' onclick='renderView(`" . route('role.manage-permission', $query->id) . "`)'  class='btn icon btn-sm btn-outline-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Manage Permission'>
+            ->addIndexColumn()
+            ->editColumn('action', function ($query) {
+                $html = "<a href='javascript:void(0)' onclick='renderView(`".route('role.manage-permission', $query->id)."`)'  class='btn icon btn-sm btn-outline-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Manage Permission'>
                                 <i class='fas fa-cogs'></i>
                             </a>";
 
-                    return $html;
-                })
-                ->rawColumns(['action'])
-                ->make(true);
+                return $html;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
 
     /**
@@ -63,14 +63,15 @@ class RoleControlller extends Controller
         try {
             $role = Role::find($request->role_id);
             $role->syncPermissions($request->permissions);
+
             return response()->json([
                 'status' => 200,
-                'message' => 'Update Permission Berhasil'
+                'message' => 'Update Permission Berhasil',
             ]);
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => 401,
-                'message' => 'Terjadi Kesalahan Pada Sistem!'
+                'message' => 'Terjadi Kesalahan Pada Sistem!',
             ]);
         }
     }

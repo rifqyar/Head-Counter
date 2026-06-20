@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('trx_meeting_schedule', function (Blueprint $table) {
             $table->id();
-            $table->string('trx_number');
+            $table->string('trx_number')->unique();
             $table->string('code_client', 3);
             $table->date('tgl_meeting');
             $table->time('jam_mulai');
             $table->time('jam_selesai');
             $table->integer('kuota');
             $table->string('qr_path');
-            $table->timestamps();
+            $table->timestampsTz();
         });
     }
 
