@@ -2,7 +2,22 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
+use App\Domain\Attendance\MeetingAttendance;
+use App\Domain\Booking\Booking;
+use App\Domain\Booking\Client;
+use App\Domain\Catering\MeetingPackage;
+use App\Domain\Hotel\Hotel;
+use App\Domain\Meeting\MeetingEvent;
+use App\Domain\Meeting\MeetingRoom;
+use App\Domain\Participant\Participant;
+use App\Policies\BookingPolicy;
+use App\Policies\ClientPolicy;
+use App\Policies\HotelPolicy;
+use App\Policies\MeetingAttendancePolicy;
+use App\Policies\MeetingEventPolicy;
+use App\Policies\MeetingPackagePolicy;
+use App\Policies\MeetingRoomPolicy;
+use App\Policies\ParticipantPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -13,7 +28,14 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        //
+        Hotel::class => HotelPolicy::class,
+        MeetingRoom::class => MeetingRoomPolicy::class,
+        Client::class => ClientPolicy::class,
+        Booking::class => BookingPolicy::class,
+        MeetingEvent::class => MeetingEventPolicy::class,
+        MeetingPackage::class => MeetingPackagePolicy::class,
+        Participant::class => ParticipantPolicy::class,
+        MeetingAttendance::class => MeetingAttendancePolicy::class,
     ];
 
     /**

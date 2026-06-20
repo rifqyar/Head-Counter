@@ -15,20 +15,25 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $user = User::updateOrCreate(
-            ['username' => 'admin'],
+            ['username' => 'superadmin'],
             [
-                'name' => 'Administrator',
-                'email' => 'admin@example.test',
-                'password' => bcrypt('admin123456'),
+                'name' => 'Platform Super Admin',
+                'email' => 'superadmin@headcounter.test',
+                'hotel_id' => null,
+                'password' => bcrypt('superadmin123456'),
             ]
         );
 
-        $role = Role::firstOrCreate(['name' => 'Administrator', 'guard_name' => 'web']);
+        $role = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
         $user->assignRole($role->name);
 
         $permission = Permission::all();
-        foreach ($permission as $key => $value) {
+        foreach ($permission as $value) {
             $role->givePermissionTo($value->name);
         }
+
+        Role::firstOrCreate(['name' => 'General Manager', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'Hotel Admin', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'Front Office', 'guard_name' => 'web']);
     }
 }

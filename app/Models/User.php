@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'username',
         'email',
+        'hotel_id',
         'password',
     ];
 
@@ -43,4 +44,14 @@ class User extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    public function hotel()
+    {
+        return $this->belongsTo(\App\Domain\Hotel\Hotel::class);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasAnyRole(['Super Admin', 'Administrator']);
+    }
 }

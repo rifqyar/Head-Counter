@@ -14,20 +14,52 @@
 
                 @can('Master Data')
                     <li class='nav-small-cap'>Master Data</li>
+                    @can('Hotel')
+                        <li>
+                            <a href='{{ route('hotels.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-domain'></i>
+                                <span>Hotels</span>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('Meeting Room')
+                        <li>
+                            <a href='{{ route('meeting-rooms.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-door'></i>
+                                <span>Meeting Rooms</span>
+                            </a>
+                        </li>
+                    @endcan
                     @can('Client')
                         <li>
-                            <a href='{{route('masterdata.client')}}' class='sidebar-link spa_route'>
+                            <a href='{{ route('clients.index') }}' class='sidebar-link spa_route'>
                                 <i class='mdi mdi-account-multiple'></i>
-                                <span>Client</span>
+                                <span>Clients</span>
                             </a>
                         </li>
                     @endcan
 
                     @can('Meeting Schedule')
                         <li>
-                            <a href='{{route('masterdata.meeting-schedule')}}' class='sidebar-link spa_route'>
+                            <a href='{{ route('meetings.index') }}' class='sidebar-link spa_route'>
                                 <i class='mdi mdi-calendar-range'></i>
-                                <span>Meeting Schedule</span>
+                                <span>Meetings</span>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('Booking')
+                        <li>
+                            <a href='{{ route('bookings.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-book-open'></i>
+                                <span>Bookings</span>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('Meeting Package')
+                        <li>
+                            <a href='{{ route('packages.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-package-variant'></i>
+                                <span>Packages</span>
                             </a>
                         </li>
                     @endcan
@@ -35,6 +67,14 @@
 
                 @can('Transaction')
                     <li class='nav-small-cap'>Transaction</li>
+                    @can('Participant')
+                        <li>
+                            <a href='{{ route('participants.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-account-check'></i>
+                                <span>Participants</span>
+                            </a>
+                        </li>
+                    @endcan
                     @can('Meeting Trans')
                         <li>
                             <a href='{{route('transaction.meeting-attendance')}}' class='sidebar-link spa_route'>

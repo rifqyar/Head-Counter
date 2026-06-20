@@ -1,0 +1,38 @@
+# Operations Manual
+
+## QR Operations
+
+Generate or regenerate a meeting QR from the meeting admin action. The raw URL is shown only at issuance time; the stored printable SVG can be downloaded later while the token remains hashed in the database.
+
+## Scanner Operations
+
+Open the scanner page, select an open meal session, choose validate or redeem mode, then use camera scanning or paste a token manually. Camera scanning requires HTTPS in production. Green means success, red means rejection, and yellow means a network failure. Use Stop camera before leaving shared devices; the page also stops camera tracks on unload.
+
+If camera permission is denied or unsupported, use the manual token fallback. Unsupported QR payloads are rejected; the scanner never navigates to scanned URLs.
+
+## Override Operations
+
+Review rejected redemptions at `/redemptions`. Overrideable persisted codes are `SESSION_NOT_OPEN`, `SESSION_EXPIRED`, `NO_ENTITLEMENT`, `ALREADY_REDEEMED`, `QUOTA_EXHAUSTED`, and `MEETING_COMPLETED`. A reason is required. The original rejected row remains unchanged and the override creates a linked `OVERRIDDEN` redemption.
+
+## Participant QR Operations
+
+Open a participant and choose Manage QR. Generate when no active credential exists, rotate to replace a lost QR, or revoke to invalidate access. The QR image and raw token appear once after generate or rotate. If that page is lost, rotate again; old QR images cannot be reconstructed from hashes.
+
+## Idempotency Cleanup
+
+```bash
+php artisan scanner:idempotency-cleanup --dry-run
+php artisan scanner:idempotency-cleanup
+```
+
+## Concurrency Test
+
+Run the true PostgreSQL race test with:
+
+```bash
+php artisan test tests/Feature/PhaseFourConcurrencyTest.php
+```
+
+The test launches two PHP worker processes and releases them through a file barrier so both attempt the same redemption concurrently.
+
+The scheduler runs cleanup daily at 02:00.

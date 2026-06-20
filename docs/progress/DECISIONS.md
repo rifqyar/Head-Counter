@@ -219,3 +219,324 @@ The existing application database is PostgreSQL `head_counter`, not MySQL. Phase
 The existing PostgreSQL database has one orphan QR row: `qr_detail.id=15` references missing `trx_meeting_schedule.id=5`. The FK migration skips only `qr_detail_meeting_id_foreign` when this dirty data is present. Clean PostgreSQL builds still create the QR foreign key.
 
 **Rationale:** Deleting or remapping existing QR data is a data-owner decision. The migration should not silently discard records, but it should expose the exact blocker and allow the rest of Phase 2 constraints to apply.
+
+---
+
+## AD-021: Phase 3 Canonical Tables Added Beside Legacy Tables
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Phase 3 creates new canonical tables (`hotels`, `meeting_rooms`, `clients`, `bookings`, `meeting_events`, `meeting_packages`, `package_entitlements`, `meeting_package_assignments`, `participants`, `meeting_attendances`) beside the legacy tables instead of renaming or dropping legacy tables immediately.
+
+**Rationale:** The existing Bootstrap/jQuery screens and DataTables still depend on legacy routes and field names. Parallel canonical tables allow the domain model, tenant isolation, and constraints to be introduced while preserving old behavior until the UI is migrated.
+
+---
+
+## AD-022: Default Hotel Migration Context
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Legacy records without hotel context are assigned to a default `DEMO` hotel during Phase 3 seeding. Existing users with `hotel_id = null` are assigned to the same default hotel.
+
+**Rationale:** Legacy data is single-tenant. A deterministic default hotel gives every hotel-scoped canonical row a valid tenant without fabricating multiple hotels.
+
+---
+
+## AD-023: Legacy Schedule Booking Strategy
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Each legacy `trx_meeting_schedule.trx_number` is mirrored as a canonical `bookings.booking_number` with source `LEGACY`, then linked to the corresponding `meeting_events` row.
+
+**Rationale:** Phase 3 requires meeting events to link to bookings. Legacy schedules do not have a separate booking aggregate, so one compatibility booking per legacy transaction preserves the business key and referential integrity.
+
+---
+
+## AD-024: Tenant Scope Bypass Rules
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+`ScopeByHotel` applies a global hotel filter only when `TenantContext` contains a hotel and no explicit bypass is active. CLI work with no tenant context remains unfiltered; HTTP routes use `SetTenantScope` to derive context from the authenticated user or an authorized super-admin session context.
+
+**Rationale:** This prevents accidental cross-tenant access during requests while avoiding broken migrations, seeders, and maintenance commands when no tenant exists.
+
+---
+
+## AD-025: Room Conflict Constraint Design
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Room conflicts are prevented at application level by `MeetingRoomConflictService` and at database level by a PostgreSQL `btree_gist` exclusion constraint on `meeting_room_id` and `tstzrange(start_at, end_at, '[)')`, filtered to statuses other than `CANCELLED` and `NO_SHOW`.
+
+**Rationale:** The application needs friendly validation errors, but the database must still protect against concurrent overlapping inserts. The half-open range allows adjacent meetings where one ends exactly when the next starts.
+
+---
+
+## AD-026: Package Count QR Compatibility
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Legacy `m_packages.count_qr` is mirrored into a `CUSTOM` package entitlement quantity and retained in `meeting_packages.metadata.legacy_count_qr`.
+
+**Rationale:** Phase 3 can define package entitlements, but participant entitlement balances and redemption are Phase 4. The compatibility mapping preserves legacy package meaning without implementing redemption behavior early.
+
+---
+
+## AD-027: Participant Duplicate Detection
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Participant duplicates are detected within the same meeting by normalized email, normalized phone, or `identity_reference`. Empty values are ignored. PostgreSQL partial unique indexes enforce each non-null identity key per meeting.
+
+**Rationale:** This replaces the old IP/fingerprint-based attendance identity with tenant-safe participant identity rules while allowing incomplete participant records.
+
+---
+
+## AD-028: Attendance Check-In Constraint
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Canonical `meeting_attendances` stores separate attendance events and uses a partial unique index to prevent more than one `MEETING_CHECKIN` row per participant.
+
+**Rationale:** Phase 3 separates participants from attendance events and prevents duplicate check-ins without implementing Phase 4 scanner/redemption flows.
+
+---
+
+## AD-029: Real Jakarta Hotel Tenant Seed Data
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Phase 3 seed data uses real Central Jakarta hotel tenants around Jl. K.H. Wahid Hasyim: Oria Hotel Jakarta, Ashley Hotel Wahid Hasyim, AONE Hotel Jakarta, and Morrissey Hotel Residences. Oria Hotel Jakarta is the default legacy migration hotel context.
+
+**Rationale:** Phase 3 is a multi-hotel domain refactor, so realistic tenant data is more useful than a generic `DEMO` hotel. The seed data remains development-safe by using test emails and passwords while preserving real hotel names and addresses.
+
+---
+
+## AD-030: Platform Super Admin Role
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+The old generic admin seed is replaced by a platform-level `superadmin` user with the `Super Admin` role and `hotel_id = null`. Super admin can access all tenant data by default or switch into a specific tenant context through the session-backed `tenant_hotel_id`.
+
+**Rationale:** A platform administrator should not belong to one hotel. Keeping `hotel_id` null and using an explicit super-admin role separates platform access from hotel-scoped user access.
+
+---
+
+## AD-031: Seeded Hotel Operations Roles
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Every seeded hotel receives `General Manager`, `Hotel Admin`, and `Front Office` users. These users are scoped to their hotel through `users.hotel_id` and assigned Spatie roles with hotel-operation permissions.
+
+**Rationale:** Tenant isolation and role behavior are easier to validate with realistic hotel users per tenant instead of a single global administrator.
+
+---
+
+## AD-032: Phase 3 Safe Delete Behavior
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Phase 3 uses safe operational state changes instead of destructive deletes for hotels, meeting rooms, bookings, meetings, packages, and participants. Hotels and rooms are marked inactive, bookings and meetings are cancelled, packages are deactivated, and participants are cancelled. Clients may still be deleted when no dependent operational records block the delete.
+
+**Rationale:** Operational and historical records should not disappear from a hotel meeting system. Safe status changes preserve auditability until Phase 5 adds a broader audit trail.
+
+---
+
+## AD-033: Canonical UI Migration Completed With Compatibility Routes Preserved
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Canonical Phase 3 screens now use `/hotels`, `/meeting-rooms`, `/clients`, `/bookings`, `/meetings`, `/participants`, and `/packages` with canonical attributes and Bootstrap 4 partials. Legacy `master-data/*` and `transaction/*` routes remain as compatibility routes.
+
+**Rationale:** Phase 3 needs canonical domain workflows, but legacy QR/attendance behavior still depends on legacy routes until Phase 4. Preserving compatibility avoids breaking existing bookmarks and QR flows.
+
+---
+
+## AD-034: Phase 3 Legacy Migration Command
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Production-oriented Phase 3 migration and validation use `php artisan headcounter:migrate-phase-three-domain`. The command supports `--dry-run`, `--validate-only`, `--batch`, and `--resume`, and reports row counts, skipped rows, duplicates, orphans, null required fields, unmapped statuses, invalid foreign keys, business-key mismatches, and failed rows.
+
+**Rationale:** Seeders are useful for development, but production migration needs an explicit command with validation output and rerun-safe behavior.
+
+---
+
+## AD-035: Meeting Recovery Rules
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Normal Phase 3 lifecycle transitions forbid recovery from `COMPLETED`, `CANCELLED`, and `NO_SHOW`. Recovery scenarios such as `CANCELLED -> SCHEDULED`, `NO_SHOW -> SCHEDULED`, `COMPLETED -> OCCUPIED`, and `COMPLETED -> SCHEDULED` require a future dedicated administrative recovery action, permission, reason, audit trail, room conflict revalidation, and room status recalculation.
+
+**Rationale:** Terminal-state recovery is operationally sensitive and should not be available through ordinary edit forms. The normal lifecycle is complete without recovery.
+
+---
+
+## AD-036: Room Status Recalculation
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Meeting cancellation and no-show transitions recalculate room status from other active meetings in the same hotel and room. Another occupied meeting keeps the room `OCCUPIED`; another scheduled or check-in-open meeting keeps it `RESERVED`; otherwise the room becomes `AVAILABLE`.
+
+**Rationale:** A room must not be marked available while another active meeting reserves or occupies it.
+
+---
+
+## AD-037: Compatibility Removal Plan
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Legacy tables, models, routes, and JavaScript remain during Phase 3 for backward compatibility. Removal is deferred until QR/redemption work no longer depends on legacy QR and attendance flows, and after production data migration reports are reviewed.
+
+**Rationale:** Deleting compatibility code in Phase 3 would risk breaking public attendance forms and existing QR behavior, which are explicitly deferred to Phase 4.
+
+---
+
+## AD-038: Phase 4 QR Hash Storage
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Meeting and participant QR tokens are generated from 32 random bytes, URL-safe encoded, and stored only as SHA-256 hashes plus last-four identifiers. Meeting QR SVG output is stored at issuance time in `meeting_events.meeting_qr_path` because raw tokens cannot be reconstructed from hashes.
+
+**Rationale:** This preserves printable QR operations without weakening the no-raw-token storage rule.
+
+---
+
+## AD-039: Phase 4 Entitlement And Session Strategy
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Participant entitlements aggregate all assigned package entitlements by entitlement type. Meal sessions are generated as `DRAFT` from package entitlement quantities unless explicitly scheduled/opened by an administrator.
+
+**Rationale:** Package definitions determine available benefit quantities, while session timing still requires human operational control.
+
+---
+
+## AD-040: Phase 4 Redemption Integrity
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Redemption uses the lock order: idempotency key scope, participant entitlement row, then active redemption lookup/insert. PostgreSQL partial unique index `redemptions_one_active_success` prevents more than one `SUCCESS` or `OVERRIDDEN` redemption for the same participant and meal session.
+
+**Rationale:** Application checks provide friendly responses; row locks and the partial unique index provide database-backed integrity under race conditions.
+
+---
+
+## AD-041: Phase 4 Idempotency And Reversal
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Scanner idempotency responses are retained for one day and cleaned by `scanner:idempotency-cleanup`. Reversal marks the original redemption `REVERSED`, restores entitlement counters, and allows a later valid redemption because the partial index excludes reversed rows.
+
+**Rationale:** Scanners need retry safety without indefinite storage. Reversal must preserve history while correcting entitlement balances.
+
+---
+
+## AD-042: Phase 4 Override Boundaries
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Override is action-backed only for operational rejection codes such as `SESSION_EXPIRED`, `QUOTA_EXHAUSTED`, `ALREADY_REDEEMED`, and `NO_ENTITLEMENT`. Invalid QR and cross-hotel failures are not overrideable.
+
+**Rationale:** Overrides should handle controlled service recovery, not bypass identity or tenant boundaries.
+
+---
+
+## AD-043: Phase 4 True Concurrency Test Method
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+True redemption concurrency is tested with two separate PHP processes launched by Symfony Process. Each process runs `scanner:concurrent-redemption-worker`, waits at a filesystem barrier, and then calls the scanner action against the same PostgreSQL participant, meal session, and entitlement.
+
+**Rationale:** This verifies overlapping transactions, PostgreSQL row locks, and the partial unique redemption index. Sequential duplicate tests remain useful but are not a true race.
+
+---
+
+## AD-044: Persisted Rejected Scan Strategy
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Persist `REJECTED` redemption rows only when participant QR, participant, meeting, meal session, and tenant context are safely resolved and the rejection is operationally overrideable. Keep invalid QR, wrong-hotel, unresolved, malformed, authentication, and authorization failures audit-only.
+
+**Rationale:** Override needs a stable auditable record, but tenant and identity boundaries must not be bypassed by fabricating cross-tenant or unresolved redemption rows.
+
+---
+
+## AD-045: Overrideable And Non-Overrideable Rejection Codes
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Overrideable persisted codes are `SESSION_NOT_OPEN`, `SESSION_EXPIRED`, `NO_ENTITLEMENT`, `ALREADY_REDEEMED`, `QUOTA_EXHAUSTED`, and `MEETING_COMPLETED`.
+
+Non-overrideable or audit-only codes include `INVALID_QR`, `QR_EXPIRED`, `QR_REVOKED`, `WRONG_HOTEL`, `WRONG_MEETING`, `PARTICIPANT_BLOCKED`, `MEETING_CANCELLED`, authentication failure, authorization failure, and malformed requests.
+
+**Rationale:** Operations may recover service-window and entitlement exceptions. Identity, tenant, revoked credential, blocked participant, and security failures require a separate administrative process.
+
+---
+
+## AD-046: Append-Only Override Design
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Override creates a new `OVERRIDDEN` redemption linked to the original `REJECTED` row through `original_redemption_id`. The original rejected row is never converted into success. The transaction locks the rejected row and entitlement, rechecks active success, decrements entitlement once, and writes audit logs.
+
+**Rationale:** Append-only history preserves scanner evidence while allowing controlled operational recovery.
+
+---
+
+## AD-047: Scanner Camera Library And Payload Parsing
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+The scanner UI uses `html5-qrcode` 2.3.8 under Apache-2.0. Decoding happens locally in the browser. Supported payloads are raw opaque participant tokens and same-origin `/scan/participant/{token}` URLs. Arbitrary URLs and script-like payloads are rejected.
+
+**Rationale:** The library is lightweight, browser-native, Vite-compatible, and avoids introducing a frontend framework or external frame upload.
+
+---
+
+## AD-048: Scanner Browser Support And Manual Fallback
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Camera scanning targets modern desktop browsers, Android Chrome, and iOS Safari where camera APIs are available. HTTPS is required in production. Manual token input remains the guaranteed fallback.
+
+**Rationale:** Camera APIs vary by device and permission context; operations must remain functional without camera access.
+
+---
+
+## AD-049: Participant QR One-Time Display
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Participant QR generate and rotate show the raw token and QR image only in the immediate flash response. Old QR images cannot be reconstructed; lost QR recovery is rotation.
+
+**Rationale:** Raw participant QR tokens are not stored. Flash-only display avoids query-string exposure while giving operators one chance to print or download.

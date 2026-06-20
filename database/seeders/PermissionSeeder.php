@@ -37,5 +37,27 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'Manage User', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'Manage Role', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'Manage Permission', 'guard_name' => 'web']);
+
+        // Phase 3 domain permissions.
+        foreach ([
+            'Hotel',
+            'Meeting Room',
+            'Booking',
+            'Meeting Event',
+            'Meeting Package',
+            'Participant',
+            'Meeting Attendance',
+            'Tenant Switch',
+            'meeting.qr.manage',
+            'participant.qr.manage',
+            'meal_session.view',
+            'meal_session.manage',
+            'redemption.view',
+            'redemption.scan',
+            'redemption.override',
+            'redemption.reverse',
+        ] as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        }
     }
 }

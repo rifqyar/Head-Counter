@@ -24,5 +24,6 @@ class DatabaseSeeder extends Seeder
         $this->call(\Database\Seeders\RoomStatusSeeder::class);
         $this->call(\Database\Seeders\MasterRoomsSeeder::class);
         $this->call(\Database\Seeders\PackageSeeder::class);
+        $this->call(\Database\Seeders\PhaseThreeDomainSeeder::class);
     }
 }

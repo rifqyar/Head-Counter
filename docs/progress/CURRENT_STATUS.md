@@ -8,8 +8,8 @@
 |-------|--------|------------|-----------------|
 | Phase 1 - Audit and Stabilization | COMPLETED | 2026-06-20 | 2026-06-20 |
 | Phase 2 - PostgreSQL Migration | COMPLETED | 2026-06-20 | 2026-06-20 |
-| Phase 3 - Core Domain Refactor | Not Started | - | - |
-| Phase 4 - QR and Redemption Engine | Not Started | - | - |
+| Phase 3 - Core Domain Refactor | COMPLETED | 2026-06-20 | 2026-06-20 |
+| Phase 4 - QR and Redemption Engine | COMPLETED | 2026-06-20 | 2026-06-20 |
 | Phase 5 - Security and RBAC | Not Started | - | - |
 | Phase 6 - Dashboard and Reporting | Not Started | - | - |
 | Phase 7 - Integration and Automation | Not Started | - | - |
@@ -120,7 +120,71 @@
 
 ## Next Step
 
-Phase 2 is complete. Review Phase 2 artifacts, then explicitly start Phase 3 - Core Domain Refactor when ready.
+Start Phase 5 only when explicitly instructed.
+
+## Phase 4 Execution Status
+
+**Current Phase:** Phase 4 - QR and Redemption Engine  
+**Current Status:** COMPLETED
+
+### Completed Work
+
+- COMPLETED: Added hash-only meeting QR lifecycle service with generation, validation, revocation, regeneration, last-four tracking, expiration, check-in window checks, and printable SVG storage.
+- COMPLETED: Added public meeting QR registration routes.
+- COMPLETED: Extended participant registration to create check-in attendance, participant entitlements, and active participant QR credentials inside transactions.
+- COMPLETED: Added participant QR credential table, model, enum, and service with hash-only generation, rotation-by-replacement, revocation, and validation.
+- COMPLETED: Added meal sessions table/model/service and Bootstrap 4 administration pages for list, create, edit, open, close, and cancel.
+- COMPLETED: Added participant entitlement table/model/service with aggregate package entitlement generation and PostgreSQL quantity consistency check.
+- COMPLETED: Added entitlement synchronization action that preserves redeemed quantities.
+- COMPLETED: Added redemptions table/model/enums with PostgreSQL partial unique index for active successful participant-session redemption.
+- COMPLETED: Added scanner validation and redemption API endpoints with Sanctum auth, tenant middleware, `redemption.scan`, request validation, idempotency cache, row locking, duplicate checks, and standardized JSON responses.
+- COMPLETED: Added scanner UI with manual token fallback, meal-session selector, success/failure/warning colors, disabled pending state, and vibration feedback where supported.
+- COMPLETED: Added reversal action and admin route that restores entitlement counters while preserving redemption history.
+- COMPLETED: Added override action and admin route with non-overrideable tenant/identity boundary decisions.
+- COMPLETED: Added Phase 4 permissions to seeders.
+- COMPLETED: Added audit log table and audit records for QR, registration, entitlements, meal sessions, redemption success/reject, idempotency conflict, override, and reversal.
+- COMPLETED: Added development seed data for meal sessions, participant entitlements, active participant QR credentials, scanner-capable roles, and override/reversal-capable administrators.
+- COMPLETED: Added `scanner:idempotency-cleanup` and scheduled daily cleanup.
+- COMPLETED: Added `docs/QR_AND_REDEMPTION.md`, `docs/API_DOCUMENTATION.md`, `docs/SECURITY.md`, and `docs/OPERATIONS_MANUAL.md`; updated architecture, business flow, and schema docs.
+- COMPLETED: Added focused Phase 4 feature tests covering QR lifecycle, registration issuance, scanner validation, idempotency, duplicate prevention, cross-hotel rejection, reversal, and the partial unique index.
+- COMPLETED: Added a true PostgreSQL concurrency test using two separate PHP worker processes, a filesystem synchronization barrier, row locks, and the partial unique success index.
+- COMPLETED: Persisted safe operational scanner rejections as idempotent `REJECTED` redemption rows while keeping invalid, unresolved, malformed, and cross-tenant failures audit-only.
+- COMPLETED: Reworked override to append a linked `OVERRIDDEN` redemption through `original_redemption_id`, preserve the original rejection, decrement entitlement once, and audit outcomes.
+- COMPLETED: Added redemption filters, detail page, reason-required override/reversal forms, and original/override record links.
+- COMPLETED: Added browser camera scanning with `html5-qrcode` 2.3.8, camera selector, start/stop lifecycle, local payload parsing, duplicate callback debounce, permission/unsupported feedback, and manual fallback.
+- COMPLETED: Added participant QR administration UI and routes for view, generate, rotate, revoke, one-time QR display, and lifecycle history.
+- COMPLETED: Added scanner payload unit tests and expanded Phase 4 feature tests for persisted rejection, audit-only invalid QR, append-only override, participant QR administration, and scanner UI controls.
+
+### Tests And Validation Executed
+
+| Command | Result |
+|---|---|
+| `php artisan optimize:clear` | Exit 0 |
+| `php artisan migrate:status` | Exit 0 before Phase 4 edits |
+| `php artisan route:list` | Exit 0; 133 routes after Phase 4 routes |
+| `php artisan test` before Phase 4 edits | Exit 0; 27 tests passed, 88 assertions |
+| `php artisan migrate --force` | Exit 0; Phase 4 migration applied |
+| `php artisan migrate:fresh --force` | Exit 0 |
+| `php artisan db:seed --force` | Exit 0 |
+| `php artisan scanner:idempotency-cleanup --dry-run` | Exit 0 |
+| `php artisan test tests\\Feature\\PhaseFourQRRedemptionTest.php` | Exit 0; 6 tests passed, 32 assertions |
+| `php artisan test tests\\Feature\\PhaseFourQRRedemptionTest.php` after final remediation | Exit 0; 10 tests passed, 59 assertions |
+| `php artisan test tests\\Feature\\PhaseFourConcurrencyTest.php` | Exit 0; 1 true process-based concurrency test passed, 15 assertions |
+| `php artisan test` after final remediation | Exit 0; 38 tests passed, 162 assertions |
+| `npm run test:scanner` | Exit 0; scanner payload and debounce tests passed |
+| `npm run build` after camera integration | Exit 0; Vite build completed |
+| `php artisan migrate:fresh --force` after final remediation | Exit 0 |
+| `php artisan db:seed --force` after final remediation | Exit 0 |
+| `php artisan migrate:rollback --force` then `php artisan migrate --force` after final remediation | Exit 0 |
+| `./vendor/bin/pint` after final remediation | Exit 0; formatting applied |
+| `./vendor/bin/pint --test` after final remediation | Exit 0 |
+
+### Known Risks
+
+- Raw participant QR tokens are intentionally available only at issuance time; operators must regenerate credentials if a token page is lost.
+- Super-admin scanner API use requires an active tenant context strategy; normal hotel users are fully hotel-scoped.
+- Rejected scans without a resolvable participant/session remain audit-only by design because creating redemption rows without safe tenant/identity context would weaken isolation.
+- Camera hardware behavior still depends on browser/device permission support; payload parsing, debouncing, and build are automated, with hardware verification documented in operations docs.
 
 ## Phase 2 Execution Status
 
@@ -214,3 +278,108 @@ Phase 2 is complete. Review Phase 2 artifacts, then explicitly start Phase 3 - C
 - Restrictive delete foreign keys may surface legacy orphan or deletion behavior that was previously allowed by the database.
 - PostgreSQL 12.2 was validated locally; production should use a maintained PostgreSQL version where possible.
 - Phase 3 still needs the planned domain refactor, sequence-safe transaction numbering, and broader business modeling.
+
+## Phase 3 Execution Status
+
+**Current Phase:** Phase 3 - Core Domain Refactor  
+**Current Status:** COMPLETED
+
+### Completed Work
+
+- COMPLETED: Verified Phase 2 PostgreSQL baseline; fixed the PHPUnit password override so tests connect to PostgreSQL.
+- COMPLETED: Added canonical Phase 3 domain tables: `hotels`, `meeting_rooms`, `clients`, `bookings`, `meeting_events`, `meeting_packages`, `package_entitlements`, `meeting_package_assignments`, `participants`, and `meeting_attendances`.
+- COMPLETED: Added `users.hotel_id` and a default `DEMO` hotel context.
+- COMPLETED: Added PostgreSQL constraints and indexes, including `btree_gist` and a partial exclusion constraint for active meeting room overlaps.
+- COMPLETED: Added domain models under `app/Domain/*`.
+- COMPLETED: Added Phase 3 enums for hotel, room, booking, meeting, entitlement, participant, and attendance states.
+- COMPLETED: Added tenant context support with `SetTenantScope` middleware and `ScopeByHotel` trait.
+- COMPLETED: Added policies for hotels and hotel-scoped domain resources.
+- COMPLETED: Added Form Requests for Phase 3 create/update/status/registration inputs.
+- COMPLETED: Added Actions and Services for client creation, meeting create/update, room assignment/conflict checks, meeting status transitions, and participant registration.
+- COMPLETED: Added Phase 3 seeder to synchronize legacy seed data into canonical domain tables without dropping legacy tables.
+- COMPLETED: Added new web routes for `/hotels`, `/meeting-rooms`, `/clients`, `/bookings`, `/meetings`, `/participants`, and `/packages`.
+- COMPLETED: Added `/api/v1/user`, `/api/v1/meetings`, and `/api/v1/participants` routes.
+- COMPLETED: Preserved existing legacy routes under `master-data/*` and `transaction/*`.
+- COMPLETED: Added minimal Bootstrap-compatible domain Blade views so new domain endpoints render.
+- COMPLETED: Added focused Phase 3 feature tests for cross-hotel room isolation, room conflict checks, PostgreSQL exclusion constraint, meeting lifecycle transitions, and participant duplicate detection.
+- COMPLETED: Replaced demo-only tenant seed data with real Central Jakarta hotel tenants: Oria Hotel Jakarta, Ashley Hotel Wahid Hasyim, AONE Hotel Jakarta, and Morrissey Hotel Residences.
+- COMPLETED: Changed the platform admin seed to `superadmin` with the `Super Admin` role and no forced hotel tenant.
+- COMPLETED: Added hotel users for every seeded hotel with `General Manager`, `Hotel Admin`, and `Front Office` roles.
+- COMPLETED: Added seeded hotel rooms, clients, bookings, meeting events, packages, entitlements, package assignments, and participants for every seeded hotel.
+- COMPLETED: Added tests proving the real hotel seed data, hotel users, platform super-admin role, and super-admin tenant switching.
+- COMPLETED: Replaced placeholder canonical views with Bootstrap 4 CRUD workflows for hotels, meeting rooms, clients, bookings, meetings, packages, and participants.
+- COMPLETED: Added canonical DataTables-ready table markup and AJAX-safe validation/flash feedback in domain partial views.
+- COMPLETED: Added super-admin tenant switching UI in the navbar and `/tenant-switch` page.
+- COMPLETED: Added production-oriented `php artisan headcounter:migrate-phase-three-domain` with `--dry-run`, `--validate-only`, `--batch`, and `--resume` options.
+- COMPLETED: Added Phase 3 migration reports for source rows, target rows, migrated rows, skipped rows, duplicates, orphans, null required fields, unmapped statuses, invalid foreign keys, business-key mismatches, and failed rows.
+- COMPLETED: Finalized meeting lifecycle rules. Terminal recovery from `COMPLETED`, `CANCELLED`, and `NO_SHOW` is forbidden through normal forms and requires a future dedicated administrative recovery action if the business later approves it.
+- COMPLETED: Finalized room status synchronization, including recalculation on cancelled/no-show meetings so another active meeting can keep the room reserved or occupied.
+- COMPLETED: Expanded Phase 3 feature tests for canonical CRUD UI paths, cross-hotel relation validation, attendance duplicate check-in prevention, super-admin switcher UI, and migration command modes.
+- COMPLETED: Added `docs/ARCHITECTURE.md`, `docs/BUSINESS_FLOW.md`, `docs/DATABASE_SCHEMA.md`, and `docs/PHASE_3_LEGACY_MIGRATION.md` with Mermaid diagrams.
+
+### Deferred Work
+
+- DEFERRED: Phase 4 QR credentials, scanner endpoints, redemption, meal sessions, participant entitlement balances, and idempotent scanner processing.
+- DEFERRED: Phase 5 audit trail and dedicated administrative recovery workflow for terminal meeting states, if the business approves recovery semantics later.
+
+### Tests And Validation Executed
+
+| Command | Result |
+|---|---|
+| `php artisan optimize:clear` | Exit 0 |
+| `php artisan migrate:status` | Exit 0 before Phase 3 edits |
+| `php artisan route:list` | Exit 0; 115 routes registered after final Phase 3 routes |
+| `php artisan test` before Phase 3 edits | Exit 1 due missing PostgreSQL test password |
+| `php artisan test` after PHPUnit fix | Exit 0; 13 tests passed, 18 assertions |
+| `php artisan migrate:fresh --force` | Exit 0; Phase 3 schema and exclusion constraint created |
+| `php artisan db:seed --force` | Exit 0; Phase 3 seeder completed |
+| `php artisan migrate:rollback --force` | Exit 0; clean-batch rollback validated |
+| `php artisan migrate --force` | Exit 0; schema restored after rollback |
+| `php artisan test` after Phase 3 implementation | Exit 0; 20 tests passed, 33 assertions |
+| `./vendor/bin/pint` | Exit 0; formatting applied |
+| `php artisan test` after Pint | Exit 0; 20 tests passed, 33 assertions |
+| `npm run build` | Exit 0; Vite build completed |
+| `php artisan test --filter=PhaseThreeDomainTest` after real hotel seed update | Exit 0; 9 tests passed, 39 assertions |
+| `php artisan db:seed --force` after real hotel seed update | Exit 0; real hotel/user/domain seed data completed |
+| `php artisan test` after final Phase 3 remediation | Exit 0; 27 tests passed, 88 assertions |
+| `php artisan headcounter:migrate-phase-three-domain --dry-run` | Exit 0 |
+| `php artisan headcounter:migrate-phase-three-domain --validate-only` | Exit 0 |
+| `php artisan headcounter:migrate-phase-three-domain --resume` | Exit 0 |
+| `php artisan migrate:fresh --force` after final remediation | Exit 0 |
+| `php artisan db:seed --force` after final remediation | Exit 0 |
+| `php artisan migrate:rollback --force` after final remediation | Exit 0 |
+| `php artisan migrate --force` after rollback | Exit 0 |
+| `npm run build` after final remediation | Exit 0 |
+
+### Files Changed In Phase 3
+
+- `app/Actions/*`
+- `app/Domain/*`
+- `app/Enums/*`
+- `app/Exceptions/DomainException.php`
+- `app/Http/Controllers/*`
+- `app/Http/Middleware/SetTenantScope.php`
+- `app/Http/Requests/*`
+- `app/Policies/*`
+- `app/Services/*`
+- `app/Support/Tenancy/*`
+- `database/migrations/2026_06_20_020000_create_phase_three_domain_tables.php`
+- `database/seeders/PhaseThreeDomainSeeder.php`
+- `resources/views/domain/*`
+- `routes/api.php`
+- `routes/web.php`
+- `tests/Feature/PhaseThreeDomainTest.php`
+- `tests/Feature/PhaseThreeCompletionTest.php`
+- `app/Console/Commands/MigratePhaseThreeDomain.php`
+- `docs/ARCHITECTURE.md`
+- `docs/BUSINESS_FLOW.md`
+- `docs/DATABASE_SCHEMA.md`
+- `docs/PHASE_3_LEGACY_MIGRATION.md`
+- `phpunit.xml`
+
+### Known Risks
+
+- Legacy routes and tables remain for backward compatibility. Canonical routes are active; compatibility code should be removed only after a later deprecation phase.
+- The development rollback validation rolled back a full clean batch, then `migrate --force` restored the schema; production rollback should be planned per deployment batch.
+- The exclusion constraint depends on PostgreSQL `btree_gist`; production roles must be allowed to create or have this extension pre-installed.
+- Platform login seed is now `superadmin` / `superadmin123456`; hotel users use `password123456` for local development seed data only.

@@ -28,6 +28,34 @@
                 <li class="nav-item"> <a class="nav-link sidebartoggler hidden-sm-down text-muted waves-effect waves-dark" href="javascript:void(0)"><i class="ti-menu"></i></a> </li>
             </ul>
             <ul class="navbar-nav my-lg-0">
+                @if (Auth::user()?->isSuperAdmin())
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="mdi mdi-domain"></i>
+                            {{ session('tenant_hotel_id') ? \App\Domain\Hotel\Hotel::find(session('tenant_hotel_id'))?->code : 'All Hotels' }}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right scale-up p-3" style="min-width: 320px;">
+                            <strong>Tenant Context</strong>
+                            <p class="text-muted mb-2">Switch the current hotel context for hotel-scoped screens.</p>
+                            <form method="POST" action="{{ route('tenant-switch.switch') }}">
+                                @csrf
+                                <select name="hotel_id" class="form-control mb-2" required>
+                                    <option value="">Choose hotel</option>
+                                    @foreach (\App\Domain\Hotel\Hotel::where('status', 'ACTIVE')->orderBy('name')->get() as $hotel)
+                                        <option value="{{ $hotel->id }}" @selected((int) session('tenant_hotel_id') === $hotel->id)>{{ $hotel->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button class="btn btn-sm btn-primary btn-block">Switch Hotel</button>
+                            </form>
+                            <form method="POST" action="{{ route('tenant-switch.reset') }}" class="mt-2">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-sm btn-outline-secondary btn-block">View All Hotels</button>
+                            </form>
+                            <a href="{{ route('tenant-switch.index') }}" class="dropdown-item mt-2 px-0 spa_route">Open switcher page</a>
+                        </div>
+                    </li>
+                @endif
                 <!-- ============================================================== -->
                 <!-- Profile -->
                 <!-- ============================================================== -->
