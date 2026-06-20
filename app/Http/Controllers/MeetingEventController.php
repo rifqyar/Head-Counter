@@ -22,12 +22,12 @@ class MeetingEventController extends Controller
     {
         $meetings = MeetingEvent::with('meetingRoom')->orderByDesc('start_at')->paginate(25);
 
-        return $request->wantsJson() ? response()->json($meetings) : view('domain.meetings.index', compact('meetings'));
+        return $request->wantsJson() ? response()->json($meetings) : $this->viewOrRedirect($request, 'domain.meetings.index', compact('meetings'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('domain.meetings.create', [
+        return $this->viewOrRedirect($request, 'domain.meetings.create', [
             'meeting' => new MeetingEvent,
             'bookings' => Booking::orderByDesc('booking_date')->get(),
             'rooms' => MeetingRoom::orderBy('code')->get(),
@@ -45,18 +45,18 @@ class MeetingEventController extends Controller
         return redirect()->route('meetings.show', $meeting)->with('status', 'Meeting created.');
     }
 
-    public function show(MeetingEvent $meeting)
+    public function show(Request $request, MeetingEvent $meeting)
     {
         $this->authorize('view', $meeting);
 
-        return view('domain.meetings.show', compact('meeting'));
+        return $this->viewOrRedirect($request, 'domain.meetings.show', compact('meeting'));
     }
 
-    public function edit(MeetingEvent $meeting)
+    public function edit(Request $request, MeetingEvent $meeting)
     {
         $this->authorize('update', $meeting);
 
-        return view('domain.meetings.edit', [
+        return $this->viewOrRedirect($request, 'domain.meetings.edit', [
             'meeting' => $meeting,
             'bookings' => Booking::orderByDesc('booking_date')->get(),
             'rooms' => MeetingRoom::orderBy('code')->get(),

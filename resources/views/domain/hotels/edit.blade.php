@@ -1,11 +1,14 @@
 <div class="container-fluid">
     @include('domain._alerts')
-    <h4>Edit Hotel: {{ $hotel->name }}</h4>
+    @include('domain._page_header', ['title' => 'Edit Hotel: '.$hotel->name, 'breadcrumbs' => ['Master Data' => null, 'Hotels' => route('hotels.index'), $hotel->name => route('hotels.show', $hotel), 'Edit' => null]])
+    @include('domain._validation_summary')
+    @component('domain._card')
     <form method="POST" action="{{ route('hotels.update', $hotel) }}">
         @csrf
         @method('PUT')
         @include('domain.hotels.form', ['hotel' => $hotel])
-        <button class="btn btn-primary">Update</button>
-        <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-secondary">Back</a>
+        @include('domain._form_actions', ['cancelUrl' => route('hotels.show', $hotel), 'submitLabel' => 'Update Hotel'])
     </form>
+    @endcomponent
 </div>
+@include('domain._datatable')

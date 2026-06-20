@@ -7,15 +7,26 @@ flowchart TD
     ClientForm[Client form] --> ValidateClient[StoreClientRequest]
     ValidateClient --> CreateClient[CreateClientAction]
     CreateClient --> Client[clients]
+    CreateClient --> Association[client_hotel]
+    Association --> Hotel[Active hotel or selected hotels]
     BookingForm[Booking form] --> ValidateBooking[StoreBookingRequest]
-    ValidateBooking --> Booking[bookings]
+    ValidateBooking --> ScopedClient{Client associated with active hotel?}
+    ScopedClient -->|No| Reject[Validation error]
+    ScopedClient -->|Yes| Booking[bookings]
     Client --> Booking
 ```
+
+Clients can be associated with multiple hotels. Normal hotel users create or view only clients associated with their active hotel. Super-admins may associate a client with multiple active hotels.
 
 ## Meeting Creation And Room Conflict
 
 ```mermaid
 flowchart TD
+    RoomForm[Meeting room form] --> Tenant{Super-admin?}
+    Tenant -->|Yes| SelectHotel[Select active hotel]
+    Tenant -->|No| CurrentHotel[Use tenant context]
+    SelectHotel --> Room[meeting_rooms.hotel_id]
+    CurrentHotel --> Room
     MeetingForm[Meeting form] --> Validate[StoreMeetingEventRequest]
     Validate --> Conflict[MeetingRoomConflictService]
     Conflict -->|Overlap| Error[Validation/domain error]

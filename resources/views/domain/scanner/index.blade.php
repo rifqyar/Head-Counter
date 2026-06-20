@@ -1,11 +1,5 @@
-@extends('layouts.app')
-
-@push('after-script')
-    @vite('resources/js/app.js')
-@endpush
-
-@section('content')
 <div class="container-fluid">
+    @include('domain._page_header', ['title' => 'QR Scanner', 'breadcrumbs' => ['Operations' => null, 'Scanner' => null]])
     <div class="row justify-content-center">
         <div class="col-lg-7">
             <div id="scanner-app" data-redeem-endpoint="{{ route('api.v1.scanner.redeem') }}" data-validate-endpoint="{{ route('api.v1.scanner.validate') }}" data-csrf="{{ csrf_token() }}"></div>
@@ -44,4 +38,4 @@
         </div>
     </div>
 </div>
-@endsection
+@vite('resources/js/app.js')

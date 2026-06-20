@@ -29,4 +29,16 @@ class Hotel extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function meetingRooms()
+    {
+        return $this->hasMany(\App\Domain\Meeting\MeetingRoom::class);
+    }
+
+    public function clients()
+    {
+        return $this->belongsToMany(\App\Domain\Booking\Client::class, 'client_hotel')
+            ->withPivot(['hotel_specific_code', 'status', 'notes', 'metadata'])
+            ->withTimestamps();
+    }
 }

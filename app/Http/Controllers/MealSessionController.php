@@ -15,12 +15,12 @@ class MealSessionController extends Controller
     {
         $sessions = MealSession::with('meetingEvent')->orderByDesc('starts_at')->paginate(25);
 
-        return view('domain.meal-sessions.index', compact('sessions'));
+        return $this->viewOrRedirect($request, 'domain.meal-sessions.index', compact('sessions'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('domain.meal-sessions.create', ['session' => new MealSession, 'meetings' => MeetingEvent::orderByDesc('start_at')->get(), 'types' => EntitlementType::cases()]);
+        return $this->viewOrRedirect($request, 'domain.meal-sessions.create', ['session' => new MealSession, 'meetings' => MeetingEvent::orderByDesc('start_at')->get(), 'types' => EntitlementType::cases()]);
     }
 
     public function store(Request $request)
@@ -32,9 +32,9 @@ class MealSessionController extends Controller
         return redirect()->route('meal-sessions.index')->with('status', 'Meal session created.');
     }
 
-    public function edit(MealSession $mealSession)
+    public function edit(Request $request, MealSession $mealSession)
     {
-        return view('domain.meal-sessions.edit', ['session' => $mealSession, 'meetings' => MeetingEvent::orderByDesc('start_at')->get(), 'types' => EntitlementType::cases()]);
+        return $this->viewOrRedirect($request, 'domain.meal-sessions.edit', ['session' => $mealSession, 'meetings' => MeetingEvent::orderByDesc('start_at')->get(), 'types' => EntitlementType::cases()]);
     }
 
     public function update(Request $request, MealSession $mealSession)

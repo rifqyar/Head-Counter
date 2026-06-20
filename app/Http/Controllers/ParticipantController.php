@@ -15,12 +15,12 @@ class ParticipantController extends Controller
     {
         $participants = Participant::with('meetingEvent')->orderByDesc('registered_at')->paginate(25);
 
-        return $request->wantsJson() ? response()->json($participants) : view('domain.participants.index', compact('participants'));
+        return $request->wantsJson() ? response()->json($participants) : $this->viewOrRedirect($request, 'domain.participants.index', compact('participants'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('domain.participants.create', [
+        return $this->viewOrRedirect($request, 'domain.participants.create', [
             'participant' => new Participant,
             'meetings' => MeetingEvent::orderByDesc('start_at')->get(),
         ]);
@@ -34,18 +34,18 @@ class ParticipantController extends Controller
         return redirect()->route('participants.show', $participant);
     }
 
-    public function show(Participant $participant)
+    public function show(Request $request, Participant $participant)
     {
         $this->authorize('view', $participant);
 
-        return view('domain.participants.show', compact('participant'));
+        return $this->viewOrRedirect($request, 'domain.participants.show', compact('participant'));
     }
 
-    public function edit(Participant $participant)
+    public function edit(Request $request, Participant $participant)
     {
         $this->authorize('update', $participant);
 
-        return view('domain.participants.edit', compact('participant'));
+        return $this->viewOrRedirect($request, 'domain.participants.edit', compact('participant'));
     }
 
     public function update(UpdateParticipantRequest $request, Participant $participant)

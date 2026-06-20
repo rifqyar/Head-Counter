@@ -24,7 +24,7 @@ class ParticipantQRCodeController extends Controller
             $issuedSvg = QrCode::format('svg')->size(260)->generate($issued['url']);
         }
 
-        return view('domain.participants.qr', compact('participant', 'issued', 'issuedSvg'));
+        return $this->viewOrRedirect($request, 'domain.participants.qr', compact('participant', 'issued', 'issuedSvg'));
     }
 
     public function generate(Request $request, Participant $participant, ParticipantQRService $service)

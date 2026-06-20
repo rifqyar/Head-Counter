@@ -8,4 +8,3 @@
     <div class="form-group col-md-4"><label>Ends At</label><input type="datetime-local" name="ends_at" class="form-control" value="{{ old('ends_at', $session->ends_at?->format('Y-m-d\\TH:i')) }}"></div>
     <div class="form-group col-md-4"><label>Location</label><input name="location" class="form-control" value="{{ old('location', $session->location) }}"></div>
 </div>
-<button class="btn btn-primary">Save</button>

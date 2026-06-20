@@ -13,6 +13,7 @@ use App\Domain\Participant\Participant;
 use App\Enums\AttendanceType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PhaseThreeCompletionTest extends TestCase
@@ -24,7 +25,8 @@ class PhaseThreeCompletionTest extends TestCase
         $this->seed();
         [$hotel, $user] = $this->hotelUser();
 
-        $this->actingAs($user)->get('/meeting-rooms/create')->assertOk()->assertSee('Create Meeting Room');
+        $this->actingAs($user)->get('/meeting-rooms/create')->assertRedirect('/redirect')->assertSessionHas('Redirect', 'meeting-rooms/create');
+        $this->ajaxGet($user, '/meeting-rooms/create')->assertOk()->assertSee('Create Meeting Room');
         $this->actingAs($user)->post('/meeting-rooms', [
             'code' => 'QA-ROOM',
             'name' => 'QA Room',
@@ -33,7 +35,7 @@ class PhaseThreeCompletionTest extends TestCase
             'operational_status' => 'AVAILABLE',
         ])->assertRedirect();
         $room = MeetingRoom::where('code', 'QA-ROOM')->firstOrFail();
-        $this->actingAs($user)->get('/meeting-rooms/'.$room->id)->assertOk()->assertSee('QA Room');
+        $this->ajaxGet($user, '/meeting-rooms/'.$room->id)->assertOk()->assertSee('QA Room');
         $this->actingAs($user)->put('/meeting-rooms/'.$room->id, [
             'code' => 'QA-ROOM',
             'name' => 'QA Room Updated',
@@ -122,7 +124,7 @@ class PhaseThreeCompletionTest extends TestCase
         $foreignRoom = MeetingRoom::withoutGlobalScope('hotel')->where('hotel_id', $hotelB->id)->firstOrFail();
         $localBooking = Booking::where('hotel_id', $hotelA->id)->firstOrFail();
 
-        $this->actingAs($userA)->get('/clients/'.$foreignClient->id)->assertForbidden();
+        $this->ajaxGet($userA, '/clients/'.$foreignClient->id)->assertForbidden();
         $this->actingAs($userA)->put('/bookings/'.$localBooking->id, [
             'client_id' => $foreignClient->id,
             'booking_number' => $localBooking->booking_number,
@@ -141,6 +143,83 @@ class PhaseThreeCompletionTest extends TestCase
             'actual_participants' => 0,
             'status' => 'SCHEDULED',
         ])->assertSessionHasErrors('meeting_room_id');
+    }
+
+    public function test_meeting_room_hotel_assignment_is_tenant_safe(): void
+    {
+        $this->seed();
+        [$hotelA, $userA] = $this->hotelUser('ORIA');
+        [$hotelB] = $this->hotelUser('AONE-WH');
+        $superAdmin = User::where('username', 'superadmin')->firstOrFail();
+
+        $this->actingAs($userA)->post('/meeting-rooms', [
+            'hotel_id' => $hotelB->id,
+            'code' => 'ILLEGAL-ROOM',
+            'name' => 'Illegal Room',
+            'capacity' => 10,
+            'operational_status' => 'AVAILABLE',
+        ])->assertSessionHasErrors('hotel_id');
+
+        $this->actingAs($userA)->post('/meeting-rooms', [
+            'code' => 'OWN-ROOM',
+            'name' => 'Own Room',
+            'capacity' => 10,
+            'operational_status' => 'AVAILABLE',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('meeting_rooms', ['hotel_id' => $hotelA->id, 'code' => 'OWN-ROOM']);
+
+        $this->actingAs($superAdmin)->post('/meeting-rooms', [
+            'hotel_id' => $hotelB->id,
+            'code' => 'SUPER-ROOM',
+            'name' => 'Super Room',
+            'capacity' => 20,
+            'operational_status' => 'AVAILABLE',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('meeting_rooms', ['hotel_id' => $hotelB->id, 'code' => 'SUPER-ROOM']);
+    }
+
+    public function test_client_hotel_associations_scope_booking_selection(): void
+    {
+        $this->seed();
+        [$hotelA, $userA] = $this->hotelUser('ORIA');
+        [$hotelB, $userB] = $this->hotelUser('AONE-WH');
+        $shared = Client::where('hotel_id', $hotelA->id)->firstOrFail();
+        $hotelBOnly = Client::create([
+            'hotel_id' => $hotelB->id,
+            'external_id' => 'AONE-ONLY',
+            'company_name' => 'AONE Only Client',
+        ]);
+        $hotelBOnly->hotels()->syncWithoutDetaching([
+            $hotelB->id => ['status' => 'ACTIVE', 'metadata' => json_encode(['source' => 'test'])],
+        ]);
+
+        $shared->hotels()->syncWithoutDetaching([
+            $hotelA->id => ['status' => 'ACTIVE', 'metadata' => json_encode(['source' => 'test'])],
+            $hotelB->id => ['status' => 'ACTIVE', 'metadata' => json_encode(['source' => 'test'])],
+        ]);
+
+        $this->actingAs($userA)->get('/clients')->assertRedirect('/redirect')->assertSessionHas('Redirect', 'clients');
+        $this->ajaxGet($userA, '/clients')->assertOk()->assertSee($shared->company_name)->assertDontSee($hotelBOnly->company_name);
+        $this->ajaxGet($userB, '/clients')->assertOk()->assertSee($shared->company_name)->assertSee($hotelBOnly->company_name);
+
+        $this->actingAs($userA)->post('/bookings', [
+            'client_id' => $hotelBOnly->id,
+            'booking_number' => 'BAD-CLIENT-BKG',
+            'booking_source' => 'DIRECT',
+            'booking_date' => '2026-08-01',
+            'status' => 'CONFIRMED',
+        ])->assertSessionHasErrors('client_id');
+
+        $this->actingAs($userB)->post('/bookings', [
+            'client_id' => $shared->id,
+            'booking_number' => 'SHARED-CLIENT-BKG',
+            'booking_source' => 'DIRECT',
+            'booking_date' => '2026-08-01',
+            'status' => 'CONFIRMED',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('bookings', ['hotel_id' => $hotelB->id, 'client_id' => $shared->id, 'booking_number' => 'SHARED-CLIENT-BKG']);
+
+        $this->assertSame(1, DB::table('client_hotel')->where('client_id', $shared->id)->where('hotel_id', $hotelB->id)->count());
     }
 
     public function test_attendance_duplicate_checkin_is_prevented(): void
@@ -170,9 +249,19 @@ class PhaseThreeCompletionTest extends TestCase
         $superAdmin = User::where('username', 'superadmin')->firstOrFail();
         [, $normalUser] = $this->hotelUser();
 
-        $this->actingAs($superAdmin)->get('/tenant-switch')->assertOk()->assertSee('Tenant Context');
+        $this->actingAs($superAdmin)->get('/tenant-switch')->assertRedirect('/redirect')->assertSessionHas('Redirect', 'tenant-switch');
+        $this->ajaxGet($superAdmin, '/tenant-switch')->assertOk()->assertSee('Tenant Context');
         $this->actingAs($normalUser)->get('/tenant-switch')->assertForbidden();
         $this->actingAs($superAdmin)->post('/tenant-switch', ['hotel_id' => 999999])->assertSessionHasErrors('hotel_id');
+
+        $inactive = Hotel::where('status', 'ACTIVE')->firstOrFail();
+        $active = Hotel::where('status', 'ACTIVE')->whereKeyNot($inactive->id)->firstOrFail();
+        $inactive->update(['status' => 'INACTIVE']);
+        $this->actingAs($superAdmin)
+            ->withSession(['tenant_hotel_id' => $active->id])
+            ->post('/tenant-switch', ['hotel_id' => $inactive->id])
+            ->assertSessionHasErrors('hotel_id')
+            ->assertSessionHas('tenant_hotel_id', $active->id);
     }
 
     public function test_phase_three_migration_command_modes(): void
@@ -190,5 +279,10 @@ class PhaseThreeCompletionTest extends TestCase
         $user = User::where('hotel_id', $hotel->id)->where('username', strtolower(str_replace('-', '', $hotelCode)).'.admin')->firstOrFail();
 
         return [$hotel, $user];
+    }
+
+    private function ajaxGet(User $user, string $uri)
+    {
+        return $this->actingAs($user)->withHeader('X-Requested-With', 'XMLHttpRequest')->get($uri);
     }
 }

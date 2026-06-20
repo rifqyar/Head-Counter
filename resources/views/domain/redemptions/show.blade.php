@@ -1,14 +1,13 @@
-@extends('layouts.app')
-
-@section('content')
 <div class="container-fluid">
     @include('domain._alerts')
     @php($status = $redemption->status->value ?? $redemption->status)
     @php($code = $redemption->rejection_code?->value ?? $redemption->rejection_code)
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>Redemption {{ $redemption->redemption_number }}</h4>
-        <a href="{{ route('redemptions.index') }}" class="btn btn-outline-secondary">Back</a>
-    </div>
+    @include('domain._page_header', [
+        'title' => 'Redemption '.$redemption->redemption_number,
+        'breadcrumbs' => ['Operations' => null, 'Redemptions' => route('redemptions.index'), $redemption->redemption_number => null],
+        'actions' => new \Illuminate\Support\HtmlString('<a href="'.route('redemptions.index').'" class="btn btn-outline-secondary spa_route">Back</a>'),
+    ])
+    @component('domain._card')
     <div class="row">
         <div class="col-lg-6">
             <table class="table table-sm">
@@ -49,5 +48,6 @@
         @endforelse
         </tbody>
     </table>
+    @endcomponent
 </div>
-@endsection
+@include('domain._datatable')

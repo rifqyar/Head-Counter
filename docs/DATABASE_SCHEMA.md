@@ -7,7 +7,8 @@
 | `hotels` | Tenant/hotel master data |
 | `users.hotel_id` | Normal user tenant assignment |
 | `meeting_rooms` | Hotel-scoped rooms |
-| `clients` | Hotel-scoped customer/client records |
+| `clients` | Client identity records with transitional primary hotel |
+| `client_hotel` | Many-to-many client hotel associations |
 | `bookings` | Booking aggregate linked to client |
 | `meeting_events` | Scheduled meeting/event records |
 | `meeting_packages` | Hotel-scoped package definitions |
@@ -28,7 +29,8 @@
 erDiagram
     HOTELS ||--o{ USERS : has
     HOTELS ||--o{ MEETING_ROOMS : owns
-    HOTELS ||--o{ CLIENTS : owns
+    HOTELS ||--o{ CLIENT_HOTEL : associates
+    CLIENTS ||--o{ CLIENT_HOTEL : associates
     HOTELS ||--o{ BOOKINGS : owns
     HOTELS ||--o{ MEETING_EVENTS : owns
     HOTELS ||--o{ MEETING_PACKAGES : owns
@@ -47,6 +49,7 @@ erDiagram
 
 - `meeting_rooms`: unique `hotel_id + code`.
 - `clients`: unique `hotel_id + external_id`.
+- `client_hotel`: unique `client_id + hotel_id`; active associations drive tenant-scoped client lists and booking selectors.
 - `bookings`: unique `hotel_id + booking_number`; partial unique external reference for non-null external IDs.
 - `meeting_events`: check `end_at > start_at`.
 - `meeting_events`: partial exclusion constraint on active room time ranges using `btree_gist` and `tstzrange(start_at, end_at, '[)')`.

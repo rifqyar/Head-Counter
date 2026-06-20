@@ -1,5 +1,17 @@
 # Operations Manual
 
+## Tenant Context
+
+The active hotel appears in the top navbar. Normal hotel users see their assigned hotel. Super-admins can switch to an active hotel from the navbar dropdown or `/tenant-switch`, or reset to all hotels. Invalid and inactive hotel switches keep the previous context and show a validation message.
+
+## Client Operations
+
+Clients are global identities associated with one or more hotels. Normal hotel users create clients for their current hotel. Super-admins can associate a client with multiple active hotels from the client form. Booking forms only list clients associated with the active hotel.
+
+## Meeting Room Operations
+
+Meeting rooms belong to one hotel. Normal hotel users create rooms in their active hotel automatically. Super-admins select the hotel explicitly when no tenant context is selected. A room hotel cannot be changed after meetings exist for that room.
+
 ## QR Operations
 
 Generate or regenerate a meeting QR from the meeting admin action. The raw URL is shown only at issuance time; the stored printable SVG can be downloaded later while the token remains hashed in the database.

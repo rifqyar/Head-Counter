@@ -15,14 +15,16 @@ class BookingController extends Controller
     {
         $bookings = Booking::with('client')->orderByDesc('booking_date')->paginate(25);
 
-        return $request->wantsJson() ? response()->json($bookings) : view('domain.bookings.index', compact('bookings'));
+        return $request->wantsJson() ? response()->json($bookings) : $this->viewOrRedirect($request, 'domain.bookings.index', compact('bookings'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('domain.bookings.create', [
+        $hotelId = app(TenantContext::class)->hotelId() ?: request()->user()->hotel_id;
+
+        return $this->viewOrRedirect($request, 'domain.bookings.create', [
             'booking' => new Booking,
-            'clients' => Client::orderBy('company_name')->get(),
+            'clients' => Client::when($hotelId, fn ($query) => $query->associatedWithHotel((int) $hotelId))->orderBy('company_name')->get(),
         ]);
     }
 
@@ -40,20 +42,20 @@ class BookingController extends Controller
         return redirect()->route('bookings.show', $booking)->with('status', 'Booking created.');
     }
 
-    public function show(Booking $booking)
+    public function show(Request $request, Booking $booking)
     {
         $this->authorize('view', $booking);
 
-        return view('domain.bookings.show', compact('booking'));
+        return $this->viewOrRedirect($request, 'domain.bookings.show', compact('booking'));
     }
 
-    public function edit(Booking $booking)
+    public function edit(Request $request, Booking $booking)
     {
         $this->authorize('update', $booking);
 
-        return view('domain.bookings.edit', [
+        return $this->viewOrRedirect($request, 'domain.bookings.edit', [
             'booking' => $booking,
-            'clients' => Client::orderBy('company_name')->get(),
+            'clients' => Client::when($booking->hotel_id, fn ($query) => $query->associatedWithHotel((int) $booking->hotel_id))->orderBy('company_name')->get(),
         ]);
     }
 

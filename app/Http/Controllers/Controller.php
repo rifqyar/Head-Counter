@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -28,5 +29,14 @@ class Controller extends BaseController
             'data' => null,
             'message' => $message,
         ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    protected function viewOrRedirect(Request $request, string $view, array $data = [])
+    {
+        if ($request->ajax()) {
+            return view($view, $data);
+        }
+
+        return redirect()->route('redirect')->with('Redirect', $request->path());
     }
 }

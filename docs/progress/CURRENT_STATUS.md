@@ -122,6 +122,68 @@
 
 Start Phase 5 only when explicitly instructed.
 
+## UI/UX and Domain Flow Remediation
+
+**Current Status:** PARTIALLY COMPLETED
+
+### Completed Work
+
+- COMPLETED: Created `docs/UI_UX_REMEDIATION_AUDIT.md` covering active dashboard, domain, QR/redemption, tenant, and legacy settings flows.
+- COMPLETED: Added shared canonical Blade partials for page headers, cards, validation summaries, form actions, and DataTables/Select2 behavior.
+- COMPLETED: Standardized Hotels index, Meeting Rooms, Clients, Bookings, Meetings index, Packages index, Participants index, and Tenant Switcher with dashboard-style page titles, breadcrumbs, cards, action areas, table wrappers, badges, and empty states.
+- COMPLETED: Fixed the Meeting Room sidebar icon by replacing the missing `mdi-door` class with loaded Font Awesome `fa fa-building`.
+- COMPLETED: Made active hotel context visible in the main navbar for super-admin and normal hotel users.
+- COMPLETED: Improved tenant switching to validate active hotels, keep previous context after invalid/inactive switch attempts, clear stale tenant filters, redirect to dashboard after success/reset, and show success feedback.
+- COMPLETED: Added explicit meeting-room hotel selection for super-admins and tenant-derived hotel assignment for normal users.
+- COMPLETED: Blocked meeting-room hotel reassignment when dependent meetings exist.
+- COMPLETED: Added `client_hotel` many-to-many association table and backfilled from existing `clients.hotel_id` relationships.
+- COMPLETED: Updated client model, client policy, client list/detail/forms, booking selectors, and booking validation to use active hotel associations.
+- COMPLETED: Added regression tests for tenant-safe meeting-room assignment, shared client associations, hotel-scoped booking client selection, and failed tenant switch context preservation.
+- COMPLETED: Fixed direct browser, form-redirect, and back-button navigation for canonical domain pages by routing non-AJAX GET requests through the existing `/redirect` full-layout wrapper while preserving AJAX partial responses for `core.js`.
+- COMPLETED: Removed remaining full-layout wrappers from domain partials and added the shared page header/card pattern to Hotels, Meetings, Packages, Participants, Meal Sessions, Scanner, Participant QR Administration, and Redemptions secondary pages.
+- COMPLETED: Updated architecture, business flow, database schema, operations manual, and decision records.
+
+### Partially Completed Work
+
+- PARTIALLY COMPLETED: Layout remediation is complete for the highest-traffic canonical domain pages; some legacy `module/*` pages and secondary canonical create/edit/detail pages still retain older structure for compatibility.
+- PARTIALLY COMPLETED: Client-to-hotel association creation and non-destructive association syncing are implemented; explicit association removal UI is deferred until active-booking safety semantics are completed.
+- PARTIALLY COMPLETED: DataTables remain client-side for canonical pages; server-side DataTables migration was not introduced in this remediation pass.
+- PARTIALLY COMPLETED: Dashboard integration still contains legacy template/demo widgets and should be addressed in the dashboard/reporting phase.
+
+### Blocked Work
+
+- BLOCKED: No technical blocker remains for the implemented remediation scope.
+
+### Tests And Validation Executed
+
+| Command | Result |
+|---|---|
+| `php artisan optimize:clear` | Exit 0 |
+| `php artisan route:list` | Exit 0; 141 routes registered |
+| `php artisan test tests\\Feature\\PhaseThreeCompletionTest.php` | Exit 0; 7 tests passed, 51 assertions |
+| `php artisan migrate:fresh --force` | Exit 0 |
+| `php artisan db:seed --force` after fresh migration | Exit 0 |
+| `php artisan test` before final formatting | Exit 0; 40 tests passed, 182 assertions |
+| `./vendor/bin/pint` | Exit 0; 3 style issues fixed |
+| `php artisan test` after Pint | Exit 0; 40 tests passed, 182 assertions |
+| `npm install` | Exit 0; dependencies already up to date; npm audit reported 9 existing vulnerabilities |
+| `npm run build` | Exit 0; Vite build completed |
+| `php artisan migrate:rollback --force` | Exit 0 |
+| `php artisan migrate --force` | Exit 0 |
+| `php artisan db:seed --force` after rollback/migrate | Exit 0 |
+| `php artisan test` after navigation wrapper fix | Exit 0; 40 tests passed, 194 assertions |
+| `./vendor/bin/pint` after navigation wrapper fix | Exit 0 |
+| `php artisan test tests\\Feature\\PhaseThreeCompletionTest.php tests\\Feature\\PhaseFourQRRedemptionTest.php` | Exit 0; 17 tests passed, 122 assertions |
+| `php artisan test` after final header-layout sweep | Exit 0; 40 tests passed, 194 assertions |
+| `./vendor/bin/pint` after final header-layout sweep | Exit 0 |
+
+### Known Risks
+
+- Legacy settings and legacy attendance screens still use older Ample partial conventions and are intentionally preserved.
+- `clients.hotel_id` remains as a transitional compatibility field; future deprecation requires a planned migration after all references are association-aware.
+- Association removal is not exposed yet because bookings and historical meetings need safe behavior before detaching a hotel from a client.
+- Dashboard metrics still need a separate tenant-scoped operational pass before Phase 6.
+
 ## Phase 4 Execution Status
 
 **Current Phase:** Phase 4 - QR and Redemption Engine  

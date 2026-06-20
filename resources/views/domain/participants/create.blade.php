@@ -1,9 +1,13 @@
 <div class="container-fluid">
     @include('domain._alerts')
-    <h4>Register Participant</h4>
+    @include('domain._page_header', ['title' => 'Register Participant', 'breadcrumbs' => ['Operations' => null, 'Participants' => route('participants.index'), 'Register' => null]])
+    @include('domain._validation_summary')
+    @component('domain._card')
     <form method="POST" action="{{ route('participants.store') }}">
         @csrf
         @include('domain.participants.form', ['participant' => $participant])
-        <button class="btn btn-primary">Save</button>
+        @include('domain._form_actions', ['cancelUrl' => route('participants.index'), 'submitLabel' => 'Save Participant'])
     </form>
+    @endcomponent
 </div>
+@include('domain._datatable')

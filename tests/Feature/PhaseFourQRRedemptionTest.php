@@ -206,7 +206,11 @@ class PhaseFourQRRedemptionTest extends TestCase
         Permission::findOrCreate('participant.qr.manage', 'web');
         $user->givePermissionTo('participant.qr.manage');
 
-        $this->actingAs($user)->get(route('participants.qr.show', $participant))->assertOk()->assertSee('Participant QR Administration');
+        $this->actingAs($user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->get(route('participants.qr.show', $participant))
+            ->assertOk()
+            ->assertSee('Participant QR Administration');
         $this->actingAs($user)->post(route('participants.qr.generate', $participant))->assertSessionHasErrors('qr');
 
         $oldCredential = $participant->activeQrCredential()->firstOrFail();
@@ -226,7 +230,9 @@ class PhaseFourQRRedemptionTest extends TestCase
         [$hotel] = $this->meetingFixture();
         $user = $this->scannerUser($hotel);
 
-        $this->actingAs($user)->get(route('scanner.index'))
+        $this->actingAs($user)->get(route('scanner.index'))->assertRedirect(route('redirect'))->assertSessionHas('Redirect', 'scanner');
+
+        $this->actingAs($user)->withHeader('X-Requested-With', 'XMLHttpRequest')->get(route('scanner.index'))
             ->assertOk()
             ->assertSee('Start camera')
             ->assertSee('Stop camera')

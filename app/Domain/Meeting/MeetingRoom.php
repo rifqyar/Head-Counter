@@ -33,4 +33,9 @@ class MeetingRoom extends Model
     {
         return $this->belongsTo(Hotel::class);
     }
+
+    public function meetings()
+    {
+        return $this->hasMany(MeetingEvent::class);
+    }
 }

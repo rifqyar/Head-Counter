@@ -1,15 +1,10 @@
-@extends('layouts.app')
-
-@section('content')
 <div class="container-fluid">
     @include('domain._alerts')
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h4 class="mb-1">Participant QR Administration</h4>
-            <div class="text-muted">{{ $participant->full_name }} - {{ $participant->participant_number }}</div>
-        </div>
-        <a href="{{ route('participants.show', $participant) }}" class="btn btn-outline-secondary">Back</a>
-    </div>
+    @include('domain._page_header', [
+        'title' => 'Participant QR Administration',
+        'breadcrumbs' => ['Operations' => null, 'Participants' => route('participants.index'), $participant->full_name => route('participants.show', $participant), 'QR Administration' => null],
+        'actions' => new \Illuminate\Support\HtmlString('<a href="'.route('participants.show', $participant).'" class="btn btn-outline-secondary spa_route">Back</a>'),
+    ])
 
     @if ($issued && $issuedSvg)
         <div class="alert alert-warning">
@@ -27,6 +22,7 @@
         </div>
     @endif
 
+    @component('domain._card')
     <div class="row">
         <div class="col-lg-5">
             <h5>Participant</h5>
@@ -76,5 +72,6 @@
             </table>
         </div>
     </div>
+    @endcomponent
 </div>
-@endsection
+@include('domain._datatable')

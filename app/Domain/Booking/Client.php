@@ -3,14 +3,13 @@
 namespace App\Domain\Booking;
 
 use App\Domain\Hotel\Hotel;
-use App\Support\Tenancy\ScopeByHotel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Client extends Model
 {
     use HasFactory;
-    use ScopeByHotel;
 
     protected $fillable = [
         'hotel_id',
@@ -31,5 +30,17 @@ class Client extends Model
     public function hotel()
     {
         return $this->belongsTo(Hotel::class);
+    }
+
+    public function hotels()
+    {
+        return $this->belongsToMany(Hotel::class, 'client_hotel')
+            ->withPivot(['hotel_specific_code', 'status', 'notes', 'metadata'])
+            ->withTimestamps();
+    }
+
+    public function scopeAssociatedWithHotel(Builder $query, int $hotelId): Builder
+    {
+        return $query->whereHas('hotels', fn (Builder $hotels) => $hotels->where('hotels.id', $hotelId));
     }
 }

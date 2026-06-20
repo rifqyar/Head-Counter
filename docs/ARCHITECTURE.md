@@ -64,6 +64,30 @@ flowchart LR
     Reset --> Platform[Platform all-hotels view]
 ```
 
+## UI/UX Remediation Layer
+
+Canonical domain pages continue to render as `core.js` partials inside `layouts.app`. Shared partials now provide the dashboard-style shell:
+
+- `domain._page_header`
+- `domain._card`
+- `domain._validation_summary`
+- `domain._form_actions`
+- `domain._datatable`
+
+The navbar displays the active hotel code for all authenticated users. Super-admins can switch or reset tenant context from the header or `/tenant-switch`; failed switches keep the previous context.
+
+## Client Hotel Associations
+
+Clients now use a compatibility model: `clients` stores the global client identity and legacy primary hotel, while `client_hotel` stores hotel associations. `clients.hotel_id` remains for backward compatibility during migration, but booking selectors and normal hotel lists use `client_hotel`.
+
+```mermaid
+flowchart TD
+    Client[clients global identity] --> Association[client_hotel]
+    Hotel[hotels] --> Association
+    Association --> BookingSelector[Hotel-scoped booking selector]
+    BookingSelector --> Booking[bookings.client_id]
+```
+
 ## Compatibility Layer
 
 Legacy tables and routes remain for backward compatibility:

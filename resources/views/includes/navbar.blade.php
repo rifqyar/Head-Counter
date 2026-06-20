@@ -28,11 +28,14 @@
                 <li class="nav-item"> <a class="nav-link sidebartoggler hidden-sm-down text-muted waves-effect waves-dark" href="javascript:void(0)"><i class="ti-menu"></i></a> </li>
             </ul>
             <ul class="navbar-nav my-lg-0">
+                @php
+                    $activeHotel = app(\App\Support\Tenancy\TenantContext::class)->hotel();
+                @endphp
                 @if (Auth::user()?->isSuperAdmin())
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="mdi mdi-domain"></i>
-                            {{ session('tenant_hotel_id') ? \App\Domain\Hotel\Hotel::find(session('tenant_hotel_id'))?->code : 'All Hotels' }}
+                            {{ $activeHotel ? $activeHotel->code : 'All Hotels' }}
                         </a>
                         <div class="dropdown-menu dropdown-menu-right scale-up p-3" style="min-width: 320px;">
                             <strong>Tenant Context</strong>
@@ -54,6 +57,13 @@
                             </form>
                             <a href="{{ route('tenant-switch.index') }}" class="dropdown-item mt-2 px-0 spa_route">Open switcher page</a>
                         </div>
+                    </li>
+                @else
+                    <li class="nav-item">
+                        <span class="nav-link text-muted">
+                            <i class="mdi mdi-domain"></i>
+                            {{ $activeHotel?->code ?? Auth::user()?->hotel?->code ?? 'No Hotel' }}
+                        </span>
                     </li>
                 @endif
                 <!-- ============================================================== -->

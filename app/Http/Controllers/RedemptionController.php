@@ -30,15 +30,15 @@ class RedemptionController extends Controller
         $redemptions = $query->paginate(25)->withQueryString();
         $overrideableCodes = RedeemParticipantAction::OVERRIDEABLE_REJECTION_CODES;
 
-        return view('domain.redemptions.index', compact('redemptions', 'overrideableCodes'));
+        return $this->viewOrRedirect($request, 'domain.redemptions.index', compact('redemptions', 'overrideableCodes'));
     }
 
-    public function show(Redemption $redemption)
+    public function show(Request $request, Redemption $redemption)
     {
         $redemption->load(['participant', 'meetingEvent', 'mealSession', 'participantEntitlement', 'originalRedemption', 'overrideRedemptions']);
         $overrideableCodes = RedeemParticipantAction::OVERRIDEABLE_REJECTION_CODES;
 
-        return view('domain.redemptions.show', compact('redemption', 'overrideableCodes'));
+        return $this->viewOrRedirect($request, 'domain.redemptions.show', compact('redemption', 'overrideableCodes'));
     }
 
     public function override(Request $request, Redemption $redemption, OverrideRedemptionAction $action)

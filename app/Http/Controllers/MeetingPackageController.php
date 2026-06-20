@@ -17,12 +17,12 @@ class MeetingPackageController extends Controller
     {
         $packages = MeetingPackage::with('entitlements')->orderBy('code')->paginate(25);
 
-        return $request->wantsJson() ? response()->json($packages) : view('domain.packages.index', compact('packages'));
+        return $request->wantsJson() ? response()->json($packages) : $this->viewOrRedirect($request, 'domain.packages.index', compact('packages'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('domain.packages.create', ['package' => new MeetingPackage]);
+        return $this->viewOrRedirect($request, 'domain.packages.create', ['package' => new MeetingPackage]);
     }
 
     public function store(StoreMeetingPackageRequest $request)
@@ -41,18 +41,18 @@ class MeetingPackageController extends Controller
         return redirect()->route('packages.show', $package)->with('status', 'Package created.');
     }
 
-    public function show(MeetingPackage $package)
+    public function show(Request $request, MeetingPackage $package)
     {
         $this->authorize('view', $package);
 
-        return view('domain.packages.show', compact('package'));
+        return $this->viewOrRedirect($request, 'domain.packages.show', compact('package'));
     }
 
-    public function edit(MeetingPackage $package)
+    public function edit(Request $request, MeetingPackage $package)
     {
         $this->authorize('update', $package);
 
-        return view('domain.packages.edit', compact('package'));
+        return $this->viewOrRedirect($request, 'domain.packages.edit', compact('package'));
     }
 
     public function update(UpdateMeetingPackageRequest $request, MeetingPackage $package)

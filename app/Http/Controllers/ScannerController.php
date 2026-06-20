@@ -16,7 +16,7 @@ class ScannerController extends Controller
         $hotelId = app(TenantContext::class)->hotelId() ?: $request->user()->hotel_id;
         $sessions = MealSession::where('hotel_id', $hotelId)->orderByDesc('starts_at')->orderBy('name')->get();
 
-        return view('domain.scanner.index', compact('sessions'));
+        return $this->viewOrRedirect($request, 'domain.scanner.index', compact('sessions'));
     }
 
     public function validateQr(ValidateParticipantQRRequest $request, RedeemParticipantAction $action)

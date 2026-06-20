@@ -25,7 +25,7 @@
                     @can('Meeting Room')
                         <li>
                             <a href='{{ route('meeting-rooms.index') }}' class='sidebar-link spa_route'>
-                                <i class='mdi mdi-door'></i>
+                                <i class='fa fa-building'></i>
                                 <span>Meeting Rooms</span>
                             </a>
                         </li>

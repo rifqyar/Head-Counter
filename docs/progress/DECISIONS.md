@@ -540,3 +540,58 @@ Camera scanning targets modern desktop browsers, Android Chrome, and iOS Safari 
 Participant QR generate and rotate show the raw token and QR image only in the immediate flash response. Old QR images cannot be reconstructed; lost QR recovery is rotation.
 
 **Rationale:** Raw participant QR tokens are not stored. Flash-only display avoids query-string exposure while giving operators one chance to print or download.
+
+---
+
+## AD-050: Shared Canonical UI Shell For Remediation
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Canonical admin pages remain `core.js` partials inside `layouts.app`, but shared Blade partials now provide page title, breadcrumbs, cards, validation summary, form actions, Select2 initialization, and duplicate-submit disabling.
+
+**Rationale:** This preserves Bootstrap 4, jQuery, Ample Admin, and the existing AJAX loader while removing the plain/basic look of Phase 3 and Phase 4 screens.
+
+---
+
+## AD-051: Meeting Room Hotel Assignment
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Meeting rooms remain strictly hotel-owned. Normal hotel users cannot submit `hotel_id`; the active tenant context supplies it. Super-admins may select an active hotel. Room hotel reassignment is blocked once dependent meetings exist.
+
+**Rationale:** This keeps tenant isolation server-side and prevents unsafe reassignment of operational meeting history.
+
+---
+
+## AD-052: Client Hotel Association Compatibility Model
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+`client_hotel` is introduced as the many-to-many association table. Existing `clients.hotel_id` is retained as a transitional primary hotel for compatibility and is backfilled into `client_hotel`.
+
+**Rationale:** Client companies may work with multiple hotels, but removing `clients.hotel_id` immediately would break existing Phase 3/4 code and data assumptions.
+
+---
+
+## AD-053: Booking Client Selector Uses Associations
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Booking client selectors and validation use active `client_hotel` associations for the active hotel context rather than trusting `clients.hotel_id` alone.
+
+**Rationale:** Shared clients must appear in every associated hotel while hotel-only clients remain isolated.
+
+---
+
+## AD-054: Tenant Switch Feedback And Active Context Indicator
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+Tenant switching validates active hotels, preserves the previous context on failure, redirects to the dashboard on success/reset, and displays the current hotel code in the navbar.
+
+**Rationale:** Operators need immediate confirmation of the active hotel context before using tenant-scoped lists and forms.
