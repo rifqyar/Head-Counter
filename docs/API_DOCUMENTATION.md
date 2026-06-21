@@ -57,3 +57,16 @@ Generate and rotate show the raw participant QR token only in the immediate resp
 ## Redemption Administration
 
 `GET /redemptions` supports filters for hotel, meeting, participant, session, rejection code, status, and date range. `GET /redemptions/{redemption}` shows original/override linkage. `POST /redemptions/{redemption}/override` requires `redemption.override` and a reason. `POST /redemptions/{redemption}/reverse` requires `redemption.reverse` and a reason.
+# Phase 6 Reporting Web Endpoints
+
+Report pages are authenticated web endpoints protected by tenant middleware.
+
+| Method | Path | Permission | Purpose |
+|---|---|---|---|
+| GET | `/reports` | `report.view` | Report landing page |
+| GET | `/reports/{report}` | `report.view` | Filterable report view |
+| POST | `/reports/{report}/export` | `report.export` | Request Excel, CSV, or PDF export |
+| GET | `/reports/exports` | `report.export` | Export Center |
+| GET | `/reports/exports/{export}/download` | `report.export` | Authenticated private export download |
+
+Supported report slugs: `meetings`, `participants`, `redemptions`, `package-consumption`, `room-utilization`.

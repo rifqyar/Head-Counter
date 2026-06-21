@@ -56,3 +56,11 @@ php artisan test tests/Feature/PhaseFourConcurrencyTest.php
 The test launches two PHP worker processes and releases them through a file barrier so both attempt the same redemption concurrently.
 
 The scheduler runs cleanup daily at 02:00.
+# Phase 6 Dashboard And Reporting Operations
+
+- Use `/home` for the operational dashboard. Hotel users see only their active hotel; super admins may filter by hotel.
+- Use `/reports` for reporting and `/reports/exports` to monitor queued exports.
+- Run queued exports with the normal Laravel worker: `php artisan queue:work --once` for validation or a long-running worker in production.
+- Expired export cleanup is scheduled daily at 02:30 through `reports:cleanup-expired`.
+- Manual dry run: `php artisan reports:cleanup-expired --dry-run`.
+- Export files are private local storage files and must not be served through public storage URLs.

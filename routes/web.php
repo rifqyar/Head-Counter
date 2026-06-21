@@ -14,6 +14,8 @@ use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\ParticipantQRCodeController;
 use App\Http\Controllers\PublicMeetingAttendanceController;
 use App\Http\Controllers\RedemptionController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportExportController;
 use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\TenantSwitchController;
 use Illuminate\Support\Facades\Auth;
@@ -34,7 +36,7 @@ Auth::routes(['register' => false]);
 
 Route::middleware('auth')->get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::middleware('auth')->get('/redirect', [DashboardController::class, 'redirect'])->name('redirect');
-Route::middleware(['auth', 'ajax'])->get('/home', [DashboardController::class, 'dashboard'])->name('dashboard.index');
+Route::middleware(['auth', 'tenant', 'ajax'])->get('/home', [DashboardController::class, 'dashboard'])->name('dashboard.index');
 
 Route::middleware('throttle:attendance')->get('/form-attendance', [MeetingAttendanceController::class, 'formAttendance'])->name('meeting-attendance.form-attendance');
 Route::middleware('throttle:attendance')->group(function () {
@@ -80,4 +82,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('tenant-switch', [TenantSwitchController::class, 'index'])->middleware('role:SUPER_ADMIN|Super Admin')->name('tenant-switch.index');
     Route::post('tenant-switch', [TenantSwitchController::class, 'switch'])->middleware(['role:SUPER_ADMIN|Super Admin', 'throttle:sensitive-admin'])->name('tenant-switch.switch');
     Route::delete('tenant-switch', [TenantSwitchController::class, 'reset'])->middleware(['role:SUPER_ADMIN|Super Admin', 'throttle:sensitive-admin'])->name('tenant-switch.reset');
+    Route::get('reports', [ReportController::class, 'index'])->middleware('permission:report.view')->name('reports.index');
+    Route::get('reports/exports', [ReportExportController::class, 'index'])->middleware('permission:report.export')->name('reports.exports.index');
+    Route::get('reports/exports/{export}/download', [ReportExportController::class, 'download'])->middleware('permission:report.export')->name('reports.exports.download');
+    Route::get('reports/{report}', [ReportController::class, 'show'])->middleware('permission:report.view')->name('reports.show');
+    Route::post('reports/{report}/export', [ReportExportController::class, 'store'])->middleware(['permission:report.export', 'throttle:sensitive-admin'])->name('reports.export');
 });

@@ -98,9 +98,25 @@
                     <li class='nav-small-cap'>Report</li>
                     @can('Meeting Report')
                         <li>
-                            <a href='#' class='sidebar-link spa_route'>
+                            <a href='{{ route('reports.show', 'meetings') }}' class='sidebar-link spa_route'>
                                 <i class='mdi mdi-file-chart'></i>
                                 <span>Meeting Report</span>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('report.view')
+                        <li>
+                            <a href='{{ route('reports.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-chart-box'></i>
+                                <span>All Reports</span>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('report.export')
+                        <li>
+                            <a href='{{ route('reports.exports.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-download'></i>
+                                <span>Export Center</span>
                             </a>
                         </li>
                     @endcan

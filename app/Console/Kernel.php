@@ -13,6 +13,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('scanner:idempotency-cleanup')->dailyAt('02:00');
+        $schedule->command('reports:cleanup-expired')->dailyAt('02:30');
     }
 
     /**

@@ -105,3 +105,8 @@ Canonical Phase 3 routes use domain models and canonical attributes. Legacy rout
 Phase 4 adds `App\Domain\QRCode`, `App\Domain\Redemption`, and catering `MealSession` workflows. Controllers delegate token lifecycle, entitlement generation, idempotency, and redemption mutation to services/actions. Scanner mutation uses PostgreSQL row locks and a partial unique redemption index.
 
 Final Phase 4 remediation adds safe persisted rejected attempts, append-only override records linked by `redemptions.original_redemption_id`, a browser camera scanner module using `html5-qrcode`, and `ParticipantQRCodeController` for operational participant QR lifecycle management. The true concurrency test uses two independent Artisan worker processes and PostgreSQL locks rather than sequential duplicate checks.
+# Phase 6 Dashboard And Reporting Architecture
+
+Dashboard controllers remain thin and delegate operational queries to `DashboardMetricsService`, `DashboardAlertService`, and `DashboardFilterData`. Reports use `ReportFilter`, `HotelTimezoneService`, `ReportQueryService`, and `ReportExportService` so web views and exports share the same tenant-safe query definitions.
+
+Queued exports store only a `report_exports` ID in the job payload. The job reconstructs validated filters from the export record and writes files to private local storage.

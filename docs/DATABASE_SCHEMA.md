@@ -74,3 +74,23 @@ Legacy tables remain for compatibility and rollback:
 - `trx_meeting_schedule`
 - `trx_meeting_attendance`
 - `qr_detail`
+# Phase 6 Reporting Tables
+
+## `report_exports`
+
+Tracks synchronous-threshold-exceeding report exports.
+
+| Column | Notes |
+|---|---|
+| `hotel_id` | Nullable for super-admin all-hotel exports |
+| `requested_by` | Requesting user |
+| `report_type` | Report slug |
+| `format` | `xlsx`, `csv`, or `pdf` |
+| `filters` | JSONB validated filter snapshot |
+| `status` | `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`, `EXPIRED` |
+| `progress` | 0-100 |
+| `file_disk`, `file_path`, `file_name` | Private storage metadata |
+| `row_count` | Generated or estimated row count |
+| `expires_at` | Download expiration |
+
+Phase 6 also adds indexes for report-heavy meeting, participant, attendance, meal-session, redemption, and entitlement lookups.

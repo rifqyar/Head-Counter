@@ -49,3 +49,11 @@ The executable matrix is in `database/seeders/RolePermissionSeeder.php`.
 ## Endpoint Matrix
 
 The expanded endpoint family review is maintained in `docs/ENDPOINT_SECURITY_MATRIX.md` and was last verified against 149 application routes on 2026-06-21.
+# Phase 6 Reporting Permissions
+
+| Permission | Grants |
+|---|---|
+| `report.view` | Access `/reports` and individual report pages |
+| `report.export` | Request exports, view Export Center, and download completed exports |
+
+Hotel users are constrained to their active hotel. Super admins may view all hotels or filter to one active hotel. Export downloads require ownership unless the user is a super admin.
