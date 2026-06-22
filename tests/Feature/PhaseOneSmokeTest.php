@@ -8,6 +8,7 @@ use App\Models\Module\MasterData\MeetingRooms;
 use App\Models\Module\MasterData\MeetingSchedule;
 use App\Models\Module\MasterData\Package;
 use App\Models\Module\Setting\RoomStatus;
+use App\Models\Module\Transaction\MeetingAttendance;
 use App\Models\Transaction\QRDetail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -140,7 +141,88 @@ class PhaseOneSmokeTest extends TestCase
             'qr_code' => $qr->id,
             'qr_token' => 'phase-one-valid-token',
         ]))->assertOk()
-            ->assertSee('Form Meeting Attendance');
+            ->assertSee('Form Meeting Attendance')
+            ->assertSee('attendance-wizard', false)
+            ->assertSee('Please confirm your attendance information');
+    }
+
+    public function test_legacy_meeting_schedule_add_redirects_to_booking_led_meeting_create(): void
+    {
+        $user = $this->userWithPermissions(['Meeting Schedule', 'meeting.view', 'meeting.create']);
+
+        $this->actingAs($user)
+            ->get(route('meeting-schedule.add'), ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertRedirect(route('meetings.create'));
+    }
+
+    public function test_meeting_attendance_date_filter_uses_selected_date(): void
+    {
+        $user = $this->userWithPermissions(['attendance.view']);
+
+        Client::create([
+            'code' => 'FTR',
+            'name' => 'Filter Client',
+            'contact_person' => 'Tester',
+            'company_phone' => '08123456789',
+            'email' => 'filter-client@example.test',
+        ]);
+
+        RoomStatus::firstOrCreate(
+            ['kd_status' => 'AVAILABLE'],
+            [
+                'name' => 'Available',
+                'description' => 'Available',
+            ]
+        );
+
+        MeetingRooms::create([
+            'kd_room' => 'FTR-ROOM',
+            'name' => 'Filter Room',
+            'room_availability' => 'AVAILABLE',
+        ]);
+
+        Package::create([
+            'kd_pck' => 'FTR-PKG',
+            'name' => 'Filter Package',
+            'price' => 100000,
+            'details' => 'Test package',
+            'count_qr' => 1,
+        ]);
+
+        foreach (['2026-08-01', '2026-08-02'] as $index => $date) {
+            $schedule = MeetingSchedule::create([
+                'trx_number' => 'TRX/MT-SCHD/FTR/2026/000'.$index,
+                'code_client' => 'FTR',
+                'tgl_start' => $date,
+                'tgl_end' => $date,
+                'jam_mulai' => '09:00:00',
+                'jam_selesai' => '10:00:00',
+                'kuota' => 10,
+                'qr_path' => '0',
+                'package' => 'FTR-PKG',
+                'room' => 'FTR-ROOM',
+            ]);
+
+            MeetingAttendance::create([
+                'trx_metting_number' => $schedule->trx_number,
+                'name' => 'Attendance '.$index,
+                'phone_number' => '0812345678'.$index,
+                'jabatan' => 'Tester',
+                'company' => 'Filter Client',
+                'mac_address' => 'filter-'.$index,
+                'qr_path' => '0',
+                'scanned_qr' => 0,
+            ]);
+        }
+
+        $this->actingAs($user)
+            ->post(route('meeting-attendance.data'), [
+                'client' => 'FTR',
+                'tgl' => '2026-08-02',
+            ], ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()
+            ->assertJsonFragment(['trx_number' => 'TRX/MT-SCHD/FTR/2026/0001'])
+            ->assertJsonMissing(['trx_number' => 'TRX/MT-SCHD/FTR/2026/0000']);
     }
 
     public function test_invalid_qr_does_not_return_server_error(): void

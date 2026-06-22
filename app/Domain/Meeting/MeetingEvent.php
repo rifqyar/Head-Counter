@@ -2,6 +2,7 @@
 
 namespace App\Domain\Meeting;
 
+use App\Domain\Attendance\MeetingAttendance;
 use App\Domain\Booking\Booking;
 use App\Domain\Catering\MealSession;
 use App\Domain\Catering\MeetingPackageAssignment;
@@ -90,6 +91,11 @@ class MeetingEvent extends Model
     public function participants()
     {
         return $this->hasMany(Participant::class);
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(MeetingAttendance::class);
     }
 
     public function mealSessions()

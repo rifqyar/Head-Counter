@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\RegisterParticipantAction;
+use App\Domain\Booking\Client;
 use App\Domain\Meeting\MeetingEvent;
 use App\Domain\Participant\Participant;
 use App\Http\Requests\RegisterParticipantRequest;
@@ -13,9 +14,28 @@ class ParticipantController extends Controller
 {
     public function index(Request $request)
     {
-        $participants = Participant::with('meetingEvent')->orderByDesc('registered_at')->paginate(25);
+        $filters = $request->only(['meeting_event_id', 'client_id', 'meeting_date']);
+        $participants = Participant::with(['meetingEvent.booking.client'])
+            ->when($request->filled('meeting_event_id'), fn ($query) => $query->where('meeting_event_id', $request->integer('meeting_event_id')))
+            ->when($request->filled('client_id'), function ($query) use ($request) {
+                $query->whereHas('meetingEvent.booking', fn ($bookingQuery) => $bookingQuery->where('client_id', $request->integer('client_id')));
+            })
+            ->when($request->filled('meeting_date'), function ($query) use ($request) {
+                $query->whereHas('meetingEvent', fn ($meetingQuery) => $meetingQuery->whereDate('event_date', $request->date('meeting_date')->toDateString()));
+            })
+            ->orderByDesc(
+                MeetingEvent::select('start_at')
+                    ->whereColumn('meeting_events.id', 'participants.meeting_event_id')
+                    ->limit(1)
+            )
+            ->orderBy('full_name')
+            ->paginate(25)
+            ->withQueryString();
 
-        return $request->wantsJson() ? response()->json($participants) : $this->viewOrRedirect($request, 'domain.participants.index', compact('participants'));
+        $meetings = MeetingEvent::with('booking.client')->orderByDesc('start_at')->get();
+        $clients = Client::orderBy('company_name')->get();
+
+        return $request->wantsJson() ? response()->json($participants) : $this->viewOrRedirect($request, 'domain.participants.index', compact('participants', 'meetings', 'clients', 'filters'));
     }
 
     public function create(Request $request)

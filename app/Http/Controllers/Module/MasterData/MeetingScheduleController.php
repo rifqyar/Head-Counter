@@ -104,11 +104,7 @@ class MeetingScheduleController extends Controller
      */
     public function create()
     {
-        $data['client'] = Client::orderBy('code')->get();
-        $data['package'] = Package::get();
-        $data['rooms'] = MeetingRooms::with('status')->get();
-
-        return view('module.MasterData.MeetingSchedule.add', $data);
+        return redirect()->route('meetings.create');
     }
 
     /**

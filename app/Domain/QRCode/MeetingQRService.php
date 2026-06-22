@@ -5,13 +5,13 @@ namespace App\Domain\QRCode;
 use App\Domain\Meeting\MeetingEvent;
 use App\Enums\MeetingStatus;
 use App\Support\Audit\AuditLogger;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class MeetingQRService
 {
-    public function __construct(private readonly AuditLogger $auditLogger) {}
+    public function __construct(
+        private readonly AuditLogger $auditLogger,
+        private readonly QrPdfService $qrPdfService
+    ) {}
 
     public function generate(MeetingEvent $meeting, ?int $actorId = null, ?\DateTimeInterface $expiresAt = null): array
     {
@@ -93,9 +93,6 @@ class MeetingQRService
 
     private function writeQr(MeetingEvent $meeting, string $token): string
     {
-        $path = 'qrcodes/meeting-'.$meeting->id.'-'.Str::uuid().'.svg';
-        Storage::disk('public')->put($path, QrCode::format('svg')->size(300)->generate($this->url($token)));
-
-        return $path;
+        return $this->qrPdfService->storeMeetingPdf($meeting, $this->url($token));
     }
 }

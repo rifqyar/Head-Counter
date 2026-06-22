@@ -793,3 +793,124 @@ Package consumption uses participant entitlement totals, active redeemed quantit
 Report downloads require `report.export`, completed status, unexpired records, and requester ownership unless the user is a super admin. Files are kept on the private local disk under non-public paths and expire after seven days. Notifications are deferred; export availability is shown in the Export Center.
 
 **Rationale:** Phase 6 requires secure downloads and progress visibility, but not a new notification subsystem.
+
+---
+
+## AD-073: Booking-Centered Meeting QR Issuance
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+Canonical booking create/edit can capture the primary meeting schedule, room, package, quota, source, and client in one step-style workflow. Booking numbers are generated server-side when left blank. Confirming a booking generates the meeting registration QR through `MeetingQRService`; cancelling a booking cancels linked meetings and revokes active meeting QR tokens.
+
+**Rationale:** Hotel users expect booking creation to assign the operational package and room immediately, while Phase 4 QR security requires QR issuance to stay on hashed opaque meeting tokens rather than legacy predictable QR payloads. Legacy booking-only payloads remain accepted for compatibility.
+
+---
+
+## AD-074: Package Entitlements Are Repeatable Rows
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+Package CRUD now treats entitlements as repeatable rows of type, quantity, and notes. Legacy single entitlement fields are still accepted and mapped into the same table.
+
+**Rationale:** Real hotel packages such as Oria pilot packages may include more than one benefit, for example coffee breaks plus lunch. Repeatable rows align package setup with redemption entitlements without adding a separate package-template subsystem.
+
+---
+
+## AD-075: Participant Self-Registration Requires Identity Signal
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+Meeting QR participant registration requires at least one of email, phone, or identity reference. Duplicate prevention still uses normalized email, normalized phone, or identity reference within the same meeting.
+
+**Rationale:** Without at least one stable identity signal, the system cannot reliably prevent the same person from registering multiple times from the same or different devices.
+
+---
+
+## AD-076: Booking Wizard Uses Existing jQuery Steps Stack
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+The canonical booking form uses the existing Bootstrap 4, jQuery, and jQuery Steps assets already loaded by the application. A booking-specific initializer is used instead of reusing the legacy meeting-schedule script.
+
+**Rationale:** The project already ships and styles jQuery Steps for the original meeting schedule wizard. Reusing that stack fixes the booking form rendering without adding another frontend dependency or coupling canonical booking behavior to legacy meeting schedule JavaScript.
+
+---
+
+## AD-077: Meeting Schedule Creation Is Booking-Led
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+Meeting schedule creation now starts from a selected booking. The canonical meeting create screen processes one booking and reuses the primary meeting generated during booking creation. The legacy meeting-schedule add route redirects to the canonical booking-led flow.
+
+**Rationale:** Booking creation now captures package, room, schedule, and quota. Keeping a second full meeting-schedule wizard would duplicate the same operational inputs and increase the risk of mismatched booking and meeting data.
+
+---
+
+## AD-078: Legacy Tables Are Compatibility Views
+
+**Date:** 2026-06-21
+**Status:** Accepted
+
+Legacy same-purpose tables `m_meeting_rooms`, `m_client`, `m_packages`, `r_room_status`, `trx_meeting_schedule`, and `trx_meeting_attendance` are consolidated into canonical Phase 3 tables. The legacy names remain as PostgreSQL views with `INSTEAD OF` triggers so old Eloquent models and compatibility screens continue to work while canonical tables hold the data.
+
+**Rationale:** Dropping the names outright would break active legacy controllers, tests, QR detail relationships, and public attendance flows. Views remove duplicate storage and resource usage while preserving backward compatibility during the remaining legacy route retirement.
+
+---
+
+## AD-079: Meeting Attendance Operations Use Canonical Meetings
+
+**Date:** 2026-06-22
+**Status:** Accepted
+
+The front-end Meeting Attendance menu opens the canonical `/meetings` operations list for GM, Hotel Admin, and Front Office users. The legacy attendance list remains available for compatibility, but status changes, booking processing, and attendance operation edits are handled through canonical meeting events.
+
+**Rationale:** Booking creation now owns package, room, and schedule details, so attendance operations need to work from `meeting_events` instead of the old `transaction/meeting-attendance` list. Keeping the legacy list as a compatibility view avoids breaking old attendance lookups while making the active workflow clear.
+
+---
+
+## AD-080: QR Documents Are Branded PDF Tickets
+
+**Date:** 2026-06-22
+**Status:** Accepted
+
+Generated meeting attendance QR and participant QR outputs are printable PDF tickets instead of bare SVG/PNG image files. The QR payload remains the secure opaque URL or credential token, while the PDF includes human-readable hotel, client, meeting schedule, room, booking, participant, validity, and hotel-logo context.
+
+**Rationale:** Operators and participants need a printable document that can be verified visually before scanning. Keeping the QR payload opaque preserves the Phase 4 hash-only security model, and resolving logos from tenant settings with a default fallback avoids hard-coding ORIA branding for every hotel.
+
+---
+
+## AD-081: Participant QR Redemption Confirms Attendance
+
+**Date:** 2026-06-22
+**Status:** Accepted
+
+Scanning a participant QR for an open lunch, coffee break, or other package entitlement session uses the Phase 4 redemption engine. When the redemption succeeds, the participant is moved from `REGISTERED` to `CHECKED_IN` and `checked_in_at` is set in the same database transaction. Duplicate scans for the same participant and meal session remain blocked by the redemption pre-check and PostgreSQL unique partial index.
+
+**Rationale:** The existing participant status model uses `CHECKED_IN` as the confirmed attendance state. Reusing it avoids adding a parallel `CONFIRMED` status while making entitlement service scans update the participant’s operational status immediately and safely.
+
+---
+
+## AD-082: Scanner Is A Transaction Operation
+
+**Date:** 2026-06-22
+**Status:** Accepted
+
+The QR Scanner screen is exposed in the Transaction sidebar for users with `redemption.scan`, even if they do not have the broader `Transaction` menu permission. Participant operations list filters by meeting, client, and meeting date so front-office and operations users can find attendee records by the same business context used for scanning and reporting.
+
+**Rationale:** Scanning participant QR codes is an active operational workflow, not a hidden administration page. Scanner-only staff should be able to reach `/scanner` from the menu, and participant lookup needs meeting/client/date filters to support real service desk workflows.
+
+---
+
+## AD-083: Scanner Prepares Entitlement Sessions And Participant QR Reprints
+
+**Date:** 2026-06-22
+**Status:** Accepted
+
+The scanner page auto-generates open meal/entitlement sessions for package-backed meetings that do not yet have any meal sessions. Participant QR credentials store a printable PDF path at issuance/rotation time, allowing authorized operators to reprint the active QR PDF without storing or revealing the raw token.
+
+**Rationale:** Scanner operators need every eligible booking/meeting to appear without knowing the separate meal-session generation step. Reprint support reduces operational risk after accidental QR rotation while preserving hash-only token storage; the application stores only the generated QR document, not the raw credential token.

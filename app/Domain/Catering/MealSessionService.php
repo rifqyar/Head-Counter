@@ -11,7 +11,7 @@ class MealSessionService
 {
     public function __construct(private readonly AuditLogger $auditLogger) {}
 
-    public function generateFromPackages(MeetingEvent $meeting, ?int $actorId = null): Collection
+    public function generateFromPackages(MeetingEvent $meeting, ?int $actorId = null, MealSessionStatus $defaultStatus = MealSessionStatus::DRAFT): Collection
     {
         $meeting->loadMissing('packageAssignments.package.entitlements');
         $created = collect();
@@ -32,7 +32,7 @@ class MealSessionService
                         [
                             'hotel_id' => $meeting->hotel_id,
                             'name' => $this->defaultName($type, $sessionNumber),
-                            'status' => MealSessionStatus::DRAFT,
+                            'status' => $defaultStatus,
                             'created_by' => $actorId,
                         ]
                     ));

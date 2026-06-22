@@ -1,6 +1,6 @@
 # Current Status
 
-**Last Updated:** 2026-06-21
+**Last Updated:** 2026-06-22
 
 ## Phase Progress
 
@@ -121,6 +121,118 @@
 ## Next Step
 
 Phase 6 is complete. Recommended next step: start Phase 7 only after review.
+
+## Booking, Package, QR, and GM Menu Enhancement
+
+**Current Status:** COMPLETED
+
+### Completed Work
+
+- COMPLETED: Enhanced canonical booking create/edit to support a step-style booking flow with package selection, meeting room assignment, meeting schedule, expected participant quota, booking source select options, and auto-generated booking numbers when blank.
+- COMPLETED: Fixed booking wizard rendering by adding a booking-specific jQuery Steps initializer, hiding fallback submit buttons after wizard initialization, and keeping a cancel action inside the wizard controls.
+- COMPLETED: Moved the booking wizard initializer into the AJAX-returned booking partial so the stepped form works when loaded through the app's `core.js` partial renderer.
+- COMPLETED: Booking creation now transactionally creates the primary meeting event and package assignment when meeting details are supplied, while preserving legacy booking-only submissions.
+- COMPLETED: Added booking list/detail quick actions to confirm or cancel without opening edit; confirming issues the secure meeting QR through the existing hashed-token `MeetingQRService`, and cancelling revokes active meeting QR tokens.
+- COMPLETED: Changed generated meeting attendance QR output from standalone SVG/PNG files to branded PDF tickets with hotel logo, hotel, client, schedule, room, booking, participant, and validity details as applicable.
+- COMPLETED: Added participant QR ticket information and one-time PDF download output for public self-registration and participant QR administration while preserving hash-only token storage.
+- COMPLETED: Added tenant-aware hotel logo resolution so authenticated pages and QR PDFs show the active hotel logo, with `public/images/logo-full.png` as the default fallback.
+- COMPLETED: Fixed authenticated navbar logo rendering by removing Blade `@php` blocks from the header and clearing compiled views.
+- COMPLETED: Rebuilt the public meeting participant registration page as a local Bootstrap/jQuery Steps wizard with hotel logo, meeting summary, identity step, confirmation step, validation feedback, and non-JavaScript fallback submit.
+- COMPLETED: Added the missing participant QR scan flow for lunch, coffee break, and package entitlement sessions: successful redemption now changes a `REGISTERED` participant to `CHECKED_IN` in the same transaction, while duplicate scans for the same participant/session remain rejected.
+- COMPLETED: Clarified the scanner UI as a participant entitlement scanner and expanded scan feedback with participant status, session, remaining entitlement, and redemption number.
+- COMPLETED: Exposed the QR Scanner screen in the Transaction sidebar for users with `redemption.scan`, including scanner-only users who do not have the broader Transaction permission.
+- COMPLETED: Added participant list filters by meeting, client, and meeting date, with client/date columns and query-string-preserving pagination.
+- COMPLETED: Fixed scanner session visibility by auto-generating open entitlement sessions for package-backed meetings that do not yet have meal sessions, so every booking/meeting with package entitlements can appear in the scanner.
+- COMPLETED: Fixed scanner camera startup for AJAX-rendered pages by loading the Vite scanner bundle from the app layout and exposing a reusable `HeadCounterScanner.init()` initializer called by the scanner partial.
+- COMPLETED: Added participant QR reprint support after generate/rotate by storing a printable active QR PDF path on the credential and exposing a secure "Reprint QR PDF" download action.
+- COMPLETED: Rebuilt the public participant QR issued page with the same local Bootstrap/styled card approach as the registration page, including hotel logo, QR frame, participant details, and PDF download action.
+- COMPLETED: Changed meeting schedule creation to a booking-led process: canonical meeting create now selects one booking to process, legacy meeting-schedule add redirects to that booking-led flow, and booking-only processing reuses the existing primary meeting instead of duplicating schedule/package fields.
+- COMPLETED: Reworked the legacy public meeting attendance form into a jQuery Steps wizard with company, participant, and confirmation steps.
+- COMPLETED: Strengthened public participant registration from meeting QR by requiring at least email, phone, or identity reference so duplicate registration protections have a stable identity key.
+- COMPLETED: Reworked package CRUD to support multiple entitlement rows per package while preserving legacy single-entitlement payload compatibility.
+- COMPLETED: Restored report menu permissions for seeded General Manager and Hotel Admin roles so both can access meeting reports, all reports, and the export center.
+- COMPLETED: Reworked the Meeting Attendance menu to open canonical `/meetings` operations for GM, Hotel Admin, and Front Office users instead of the legacy `transaction/meeting-attendance` list.
+- COMPLETED: Added filters to the canonical meeting attendance operations list for meeting date, client, and status, and fixed the legacy attendance DataTable date filter to use the selected date without leaking rows through `orWhereDate`.
+- COMPLETED: Limited booking-led meeting processing to unprocessed draft booking meetings so already scheduled attendance meetings do not keep appearing as selectable booking data.
+- COMPLETED: Allowed Front Office and other attendance-authorized hotel users to edit meeting attendance operation data and transition meeting status such as `CHECKIN_OPEN`.
+- COMPLETED: Fixed meeting attendance detail tabs by converting the meeting detail screen to Bootstrap tab panes with working Overview, Schedule, Participants, Attendance, and Packages sections.
+- COMPLETED: Refreshed dashboard UI into a stronger operations view with a gradient context header, compact filter bar, KPI cards, attendance/redemption progress, room status pills, timeline meeting lists, and alert panels.
+- COMPLETED: Added regression coverage for booking wizard creation plus QR issuance, booking wizard UI hooks, multi-entitlement packages, GM report access, and dashboard UI hooks.
+
+### Tests And Validation Executed
+
+| Command | Result |
+|---|---|
+| `php artisan test tests\\Feature\\PhaseThreeCompletionTest.php tests\\Feature\\PhaseFiveCompletionTest.php tests\\Feature\\PhaseFourQRRedemptionTest.php --stop-on-failure` | Exit 0; 23 tests passed, 156 assertions |
+| `php artisan test` before formatting | Exit 0; 60 tests passed, 363 assertions |
+| `./vendor/bin/pint` | Exit 0 |
+| `php artisan test` final | Exit 0; 60 tests passed, 363 assertions |
+| `./vendor/bin/pint --test` final | Exit 0 |
+| `php artisan test` after wizard/dashboard UI pass | Exit 0; 60 tests passed, 369 assertions |
+| `./vendor/bin/pint` after wizard/dashboard UI pass | Exit 0 |
+| `php artisan test` after meeting/attendance wizard pass | Exit 0; 61 tests passed, 380 assertions |
+| `./vendor/bin/pint --test` after meeting/attendance wizard pass | Exit 0 |
+| `php artisan test tests\\Feature\\PhaseOneSmokeTest.php tests\\Feature\\PhaseThreeCompletionTest.php --stop-on-failure` after attendance operations pass | Exit 0; 20 tests passed, 117 assertions |
+| `php artisan test` after attendance operations pass | Exit 0; 64 tests passed, 393 assertions |
+| `./vendor/bin/pint` after attendance operations pass | Exit 0 |
+| `php artisan test tests\\Feature\\PhaseThreeCompletionTest.php --stop-on-failure` after attendance detail tab fix | Exit 0; 10 tests passed, 101 assertions |
+| `php artisan test tests\\Feature\\PhaseFourQRRedemptionTest.php --stop-on-failure` after QR PDF/logo pass | Exit 0; 10 tests passed, 68 assertions |
+| `./vendor/bin/pint` after QR PDF/logo pass | Exit 0; 279 files checked, 1 style issue fixed |
+| `./vendor/bin/pint --test` after QR PDF/logo pass | Exit 0; 279 files passed |
+| `php artisan test` after QR PDF/logo pass | Exit 0; 64 tests passed, 403 assertions |
+| `php artisan test tests\\Feature\\PhaseFourQRRedemptionTest.php tests\\Feature\\PhaseSixDashboardReportingTest.php --stop-on-failure` after logo/form fix | Exit 0; 16 tests passed, 103 assertions |
+| `php artisan optimize:clear` after logo/form fix | Exit 0; compiled views and caches cleared |
+| `./vendor/bin/pint` after logo/form fix | Exit 0; 279 files passed |
+| `php artisan test` after logo/form fix | Exit 0; 65 tests passed, 414 assertions |
+| `php artisan test tests\\Feature\\PhaseFourQRRedemptionTest.php --stop-on-failure` after participant QR scan flow fix | Exit 0; 10 tests passed, 79 assertions |
+| `npm run test:scanner` after participant QR scan flow fix | Exit 0; scanner payload tests passed |
+| `npm run build` after participant QR scan flow fix | Exit 0; Vite production build completed |
+| `./vendor/bin/pint` after participant QR scan flow fix | Exit 0; 279 files passed |
+| `php artisan test` after participant QR scan flow fix | Exit 0; 65 tests passed, 420 assertions |
+| `php artisan test tests\\Feature\\PhaseThreeCompletionTest.php tests\\Feature\\PhaseFourQRRedemptionTest.php --stop-on-failure` after scanner menu and participant filters | Exit 0; 21 tests passed, 192 assertions |
+| `./vendor/bin/pint` after scanner menu and participant filters | Exit 0; 279 files passed |
+| `php artisan test` after scanner menu and participant filters | Exit 0; 66 tests passed, 432 assertions |
+| `php artisan test tests\\Feature\\PhaseFourQRRedemptionTest.php --stop-on-failure` after scanner session/camera/reprint fix | Exit 0; 11 tests passed, 92 assertions |
+| `npm run test:scanner` after scanner session/camera/reprint fix | Exit 0; scanner payload tests passed |
+| `npm run build` after scanner session/camera/reprint fix | Exit 0; Vite production build completed |
+| `php artisan migrate --force` after scanner session/camera/reprint fix | Exit 0; local database already had `participant_qr_credentials.printable_path` |
+| `./vendor/bin/pint` after scanner session/camera/reprint fix | Exit 0; 280 files checked, 1 style issue fixed |
+| `php artisan test` after scanner session/camera/reprint fix | Exit 0; 67 tests passed, 442 assertions |
+| `php artisan test tests\\Feature\\PhaseFourQRRedemptionTest.php --stop-on-failure` after participant QR issued page fix | Exit 0; 11 tests passed, 94 assertions |
+| `./vendor/bin/pint` after participant QR issued page fix | Exit 0; 280 files passed |
+| `php artisan test` after participant QR issued page fix | Exit 0; 67 tests passed, 444 assertions |
+
+### Known Risks
+
+- Booking create/edit currently manages the primary meeting event for the booking; multi-meeting booking workflows remain available through the Meetings screen.
+- Package entitlement edits replace package entitlement rows; participant entitlement synchronization remains the existing explicit Phase 4 action when historical participants already exist.
+
+## Legacy Table Consolidation
+
+**Current Status:** COMPLETED
+
+### Completed Work
+
+- COMPLETED: Added a PostgreSQL migration that copies same-purpose legacy data into canonical Phase 3 tables before removing duplicate physical legacy storage.
+- COMPLETED: Replaced `m_meeting_rooms`, `m_client`, `m_packages`, `r_room_status`, `trx_meeting_schedule`, and `trx_meeting_attendance` physical tables with PostgreSQL compatibility views backed by `meeting_rooms`, `clients`, `meeting_packages`, `meeting_events`, `participants`, and `meeting_attendances`.
+- COMPLETED: Added `INSTEAD OF` triggers so legacy Eloquent models and old QR/attendance flows can still write through the legacy names while canonical tables remain the source of truth.
+- COMPLETED: Remapped legacy `qr_detail.meeting_id` values from old schedule IDs to canonical `meeting_events.id` before dropping the physical `trx_meeting_schedule` table.
+- COMPLETED: Hardened legacy create migrations to drop leftover same-named PostgreSQL views before recreating old tables during `migrate:fresh`.
+- COMPLETED: Updated `PhaseThreeDomainSeeder` to import only from physical legacy tables, avoiding feedback loops when legacy names are compatibility views.
+- COMPLETED: Added regression coverage proving legacy names are PostgreSQL views and legacy model writes land in canonical tables.
+
+### Tests And Validation Executed
+
+| Command | Result |
+|---|---|
+| `php artisan migrate --force` | Exit 0; legacy table consolidation migration applied |
+| `php artisan test tests\\Feature\\PostgresqlMigrationTest.php --stop-on-failure` | Exit 0; 5 tests passed, 6 assertions |
+| `php artisan test tests\\Feature\\PhaseThreeCompletionTest.php --stop-on-failure` | Exit 0; 9 tests passed, 89 assertions |
+
+### Known Risks
+
+- Legacy relation names remain as compatibility views until old controllers and QR/attendance screens are fully retired.
+- PostgreSQL view triggers preserve old write paths, but complex multi-hotel legacy writes still default to the Oria hotel context by design.
 
 ## Phase 6 Execution Status
 

@@ -39,7 +39,7 @@
                         </li>
                     @endcan
 
-                    @can('Meeting Schedule')
+                    @can('meeting.view')
                         <li>
                             <a href='{{ route('meetings.index') }}' class='sidebar-link spa_route'>
                                 <i class='mdi mdi-calendar-range'></i>
@@ -65,7 +65,7 @@
                     @endcan
                 @endcan
 
-                @can('Transaction')
+                @if (auth()->user()?->can('Transaction') || auth()->user()?->can('redemption.scan'))
                     <li class='nav-small-cap'>Transaction</li>
                     @can('Participant')
                         <li>
@@ -75,11 +75,19 @@
                             </a>
                         </li>
                     @endcan
-                    @can('Meeting Trans')
+                    @can('meeting.view')
                         <li>
-                            <a href='{{route('transaction.meeting-attendance')}}' class='sidebar-link spa_route'>
+                            <a href='{{ route('meetings.index') }}' class='sidebar-link spa_route'>
                                 <i class='mdi mdi-account-circle'></i>
-                                <span>Meeting Attendace</span>
+                                <span>Meeting Attendance</span>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('redemption.scan')
+                        <li>
+                            <a href='{{ route('scanner.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-qrcode-scan'></i>
+                                <span>QR Scanner</span>
                             </a>
                         </li>
                     @endcan
@@ -92,7 +100,7 @@
                             </a>
                         </li>
                     @endcan --}}
-                @endcan
+                @endif
 
                 @can('Report')
                     <li class='nav-small-cap'>Report</li>

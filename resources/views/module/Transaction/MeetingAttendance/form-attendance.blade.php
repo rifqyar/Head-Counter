@@ -39,19 +39,26 @@
                         <h2>Form Meeting Attendance</h2>
                     </div>
                     <div class="card-body">
-                        <form class="form form-vertical" action="{{route('meeting-attendance.store')}}" method="POST">
+                        <form class="form form-vertical attendance-wizard wizard-circle" id="meeting-attendance-form" action="{{route('meeting-attendance.store')}}" method="POST">
                             <input type="hidden" class="form-input" name="trx_number" value="{{$id}}">
                             <input type="hidden" class="form-input" name="qr_code" value="{{ $qrCode ?? '' }}">
                             @csrf
-                            <div class="form-body">
+                            <h6>Company</h6>
+                            <section>
                                 <div class="row">
-                                    <div class="col-md-6 col-12">
+                                    <div class="col-md-12 col-12">
                                         <div class="form-group">
                                             <label for="company">Nama Perusahaan</label>
                                             <input type="text" id="companyName" class="form-input form-control required"
                                                 name="company" placeholder="Company Name">
                                         </div>
                                     </div>
+                                </div>
+                            </section>
+
+                            <h6>Participant</h6>
+                            <section>
+                                <div class="row">
                                     <div class="col-md-6 col-12">
                                         <div class="form-group">
                                             <label for="name">Nama Lengkap</label>
@@ -73,11 +80,28 @@
                                                 name="phone_number" placeholder="Nomor Telepon">
                                         </div>
                                     </div>
+                                </div>
+                            </section>
 
-                                    <div class="col-12 d-flex justify-content-end">
-                                        <button type="submit" id="btn-save" class="btn btn-primary me-1 mb-1">Submit</button>
+                            <h6>Confirmation</h6>
+                            <section>
+                                <div class="alert alert-info">
+                                    Please confirm your attendance information. A personal QR code will be downloaded after submission.
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Meeting:</strong> {{ $id }}</p>
+                                        <p><strong>Company:</strong> <span id="attendance-preview-company">-</span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Name:</strong> <span id="attendance-preview-name">-</span></p>
+                                        <p><strong>Phone:</strong> <span id="attendance-preview-phone">-</span></p>
                                     </div>
                                 </div>
+                            </section>
+
+                            <div class="attendance-form-actions">
+                                <button type="submit" class="btn btn-primary">Submit Attendance</button>
                             </div>
                         </form>
                     </div>
@@ -90,7 +114,68 @@
     </div>
 
     @include('includes.script')
-    <script type="text/javascript" src="{{ asset('js/module/transaction/attendance.js') }}"></script>
+    <script>
+        (function () {
+            var form = $('#meeting-attendance-form');
+
+            function updatePreview() {
+                $('#attendance-preview-company').text($('input[name="company"]').val() || '-');
+                $('#attendance-preview-name').text($('input[name="name"]').val() || '-');
+                $('#attendance-preview-phone').text($('input[name="phone_number"]').val() || '-');
+            }
+
+            if (form.length && typeof $.fn.steps === 'function') {
+                form.show().steps({
+                    headerTag: 'h6',
+                    bodyTag: 'section',
+                    transitionEffect: 'fade',
+                    autoFocus: true,
+                    titleTemplate: '<span class="step">#index#</span> #title#',
+                    labels: {
+                        finish: 'Submit',
+                        next: 'Next',
+                        previous: 'Back'
+                    },
+                    onStepChanging: function (event, currentIndex, newIndex) {
+                        updatePreview();
+                        if (currentIndex > newIndex || typeof form.validate !== 'function') {
+                            return true;
+                        }
+
+                        form.validate().settings.ignore = ':disabled,:hidden';
+                        return form.valid();
+                    },
+                    onFinishing: function () {
+                        updatePreview();
+                        if (typeof form.validate === 'function') {
+                            form.validate().settings.ignore = ':disabled';
+                            return form.valid();
+                        }
+
+                        return true;
+                    },
+                    onFinished: function () {
+                        form.get(0).submit();
+                    }
+                });
+
+                if (typeof form.validate === 'function') {
+                    form.validate({
+                        ignore: '',
+                        errorClass: 'text-danger',
+                        errorPlacement: function (error, element) {
+                            error.insertAfter(element);
+                        }
+                    });
+                }
+
+                form.find('.attendance-form-actions').hide();
+            }
+
+            form.on('input', 'input', updatePreview);
+            updatePreview();
+        })();
+    </script>
 </body>
 
 </html>

@@ -20,16 +20,41 @@ class MeetingEventController extends Controller
 {
     public function index(Request $request)
     {
-        $meetings = MeetingEvent::with('meetingRoom')->orderByDesc('start_at')->paginate(25);
+        $query = MeetingEvent::with(['meetingRoom', 'booking.client'])
+            ->orderByDesc('start_at');
 
-        return $request->wantsJson() ? response()->json($meetings) : $this->viewOrRedirect($request, 'domain.meetings.index', compact('meetings'));
+        if ($request->filled('date')) {
+            $query->whereDate('event_date', $request->date('date')->toDateString());
+        }
+
+        if ($request->filled('client')) {
+            $client = trim((string) $request->input('client'));
+            $query->whereHas('booking.client', function ($clientQuery) use ($client) {
+                $clientQuery
+                    ->where('company_name', 'like', '%'.$client.'%')
+                    ->orWhere('external_id', 'like', '%'.$client.'%')
+                    ->orWhere('contact_name', 'like', '%'.$client.'%');
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        $meetings = $query->paginate(25)->withQueryString();
+        $filters = $request->only(['date', 'client', 'status']);
+
+        return $request->wantsJson() ? response()->json($meetings) : $this->viewOrRedirect($request, 'domain.meetings.index', compact('meetings', 'filters'));
     }
 
     public function create(Request $request)
     {
         return $this->viewOrRedirect($request, 'domain.meetings.create', [
             'meeting' => new MeetingEvent,
-            'bookings' => Booking::orderByDesc('booking_date')->get(),
+            'bookings' => Booking::with(['client', 'meetingEvents.meetingRoom', 'meetingEvents.packageAssignments.package'])
+                ->whereHas('meetingEvents', fn ($query) => $query->where('status', 'DRAFT'))
+                ->orderByDesc('booking_date')
+                ->get(),
             'rooms' => MeetingRoom::orderBy('code')->get(),
             'packages' => MeetingPackage::where('is_active', true)->orderBy('code')->get(),
         ]);
@@ -48,6 +73,13 @@ class MeetingEventController extends Controller
     public function show(Request $request, MeetingEvent $meeting)
     {
         $this->authorize('view', $meeting);
+        $meeting->load([
+            'booking.client',
+            'meetingRoom',
+            'participants.activeQrCredential',
+            'attendances.participant',
+            'packageAssignments.package.entitlements',
+        ]);
 
         return $this->viewOrRedirect($request, 'domain.meetings.show', compact('meeting'));
     }

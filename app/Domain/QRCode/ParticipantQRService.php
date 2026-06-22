@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class ParticipantQRService
 {
-    public function __construct(private readonly AuditLogger $auditLogger) {}
+    public function __construct(
+        private readonly AuditLogger $auditLogger,
+        private readonly QrPdfService $qrPdfService
+    ) {}
 
     public function generate(Participant $participant, ?int $actorId = null, ?\DateTimeInterface $expiresAt = null): array
     {
@@ -28,6 +31,9 @@ class ParticipantQRService
                 'status' => QRCredentialStatus::ACTIVE,
                 'issued_at' => now(),
                 'expires_at' => $expiresAt ?? $participant->meetingEvent?->end_at?->copy()->addDay(),
+            ]);
+            $credential->update([
+                'printable_path' => $this->qrPdfService->storeParticipantPdf($participant->fresh(['hotel', 'meetingEvent.booking.client', 'meetingEvent.meetingRoom', 'activeQrCredential']), $this->url($token)),
             ]);
 
             $this->auditLogger->record('participant_qr.generated', $participant->hotel_id, $actorId, $credential, ['participant_id' => $participant->id, 'last_four' => substr($token, -4)]);

@@ -58,6 +58,7 @@
 
     @stack('before-script')
     @include('includes.script')
+    @vite('resources/js/app.js')
     @stack('after-script')
 
     @if (session()->has('Redirect'))

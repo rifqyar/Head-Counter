@@ -8,9 +8,9 @@
                 <!-- Logo icon --><b>
                     <!--You can put here icon as well // <i class="wi wi-sunset"></i> //-->
                     <!-- Dark Logo icon -->
-                    <img src="{{asset('assets/images/logo-oria-wide.png')}}" width="50%" alt="homepage" class="dark-logo" />
+                    <img src="{{ app(\App\Support\Branding\HotelLogo::class)->currentAsset() }}" width="50%" alt="Hotel logo" class="dark-logo" />
                     <!-- Light Logo icon -->
-                    <img src="{{asset('assets/images/logo-oria-wide.png')}}" width="50%" alt="homepage" class="light-logo" />
+                    <img src="{{ app(\App\Support\Branding\HotelLogo::class)->currentAsset() }}" width="50%" alt="Hotel logo" class="light-logo" />
                 </b>
                 <span></span>
             </a>
@@ -28,14 +28,11 @@
                 <li class="nav-item"> <a class="nav-link sidebartoggler hidden-sm-down text-muted waves-effect waves-dark" href="javascript:void(0)"><i class="ti-menu"></i></a> </li>
             </ul>
             <ul class="navbar-nav my-lg-0">
-                @php
-                    $activeHotel = app(\App\Support\Tenancy\TenantContext::class)->hotel();
-                @endphp
                 @if (Auth::user()?->isSuperAdmin())
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="mdi mdi-domain"></i>
-                            {{ $activeHotel ? $activeHotel->code : 'All Hotels' }}
+                            {{ app(\App\Support\Tenancy\TenantContext::class)->hotel()?->code ?? 'All Hotels' }}
                         </a>
                         <div class="dropdown-menu dropdown-menu-right scale-up p-3" style="min-width: 320px;">
                             <strong>Tenant Context</strong>
@@ -62,7 +59,7 @@
                     <li class="nav-item">
                         <span class="nav-link text-muted">
                             <i class="mdi mdi-domain"></i>
-                            {{ $activeHotel?->code ?? Auth::user()?->hotel?->code ?? 'No Hotel' }}
+                            {{ app(\App\Support\Tenancy\TenantContext::class)->hotel()?->code ?? Auth::user()?->hotel?->code ?? 'No Hotel' }}
                         </span>
                     </li>
                 @endif

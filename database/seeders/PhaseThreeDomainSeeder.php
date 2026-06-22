@@ -26,154 +26,164 @@ class PhaseThreeDomainSeeder extends Seeder
         $this->seedHotelRolesAndUsers($hotelIds);
         $this->seedHotelOperationalData($hotelIds, $now);
 
-        foreach (DB::table('m_meeting_rooms')->get() as $room) {
-            DB::table('meeting_rooms')->updateOrInsert(
-                ['hotel_id' => $hotelId, 'code' => $room->kd_room],
-                [
-                    'name' => $room->name,
-                    'operational_status' => $this->roomStatus($room->room_availability),
-                    'facilities' => json_encode(['legacy_room_code' => $room->kd_room]),
-                    'created_at' => $room->created_at ?? $now,
-                    'updated_at' => $room->updated_at ?? $now,
-                ]
-            );
-        }
-
-        foreach (DB::table('m_client')->get() as $client) {
-            DB::table('clients')->updateOrInsert(
-                ['hotel_id' => $hotelId, 'external_id' => $client->code],
-                [
-                    'company_name' => $client->name,
-                    'contact_name' => $client->contact_person,
-                    'contact_email' => $client->email ? mb_strtolower(trim($client->email)) : null,
-                    'contact_phone' => $client->company_phone,
-                    'metadata' => json_encode(['legacy_client_code' => $client->code]),
-                    'created_at' => $client->created_at ?? $now,
-                    'updated_at' => $client->updated_at ?? $now,
-                ]
-            );
-        }
-
-        foreach (DB::table('m_packages')->get() as $package) {
-            DB::table('meeting_packages')->updateOrInsert(
-                ['hotel_id' => $hotelId, 'code' => $package->kd_pck],
-                [
-                    'name' => $package->name,
-                    'description' => $package->details,
-                    'price' => $package->price,
-                    'is_active' => true,
-                    'metadata' => json_encode(['legacy_count_qr' => $package->count_qr]),
-                    'created_at' => $package->created_at ?? $now,
-                    'updated_at' => $package->updated_at ?? $now,
-                ]
-            );
-
-            $packageId = DB::table('meeting_packages')->where('hotel_id', $hotelId)->where('code', $package->kd_pck)->value('id');
-            DB::table('package_entitlements')->updateOrInsert(
-                ['package_id' => $packageId, 'entitlement_type' => 'CUSTOM'],
-                [
-                    'quantity' => max(1, (int) $package->count_qr),
-                    'metadata' => json_encode(['legacy_field' => 'count_qr']),
-                    'created_at' => $package->created_at ?? $now,
-                    'updated_at' => $package->updated_at ?? $now,
-                ]
-            );
-        }
-
-        foreach (DB::table('trx_meeting_schedule')->get() as $schedule) {
-            $clientId = DB::table('clients')->where('hotel_id', $hotelId)->where('external_id', $schedule->code_client)->value('id');
-            $roomId = DB::table('meeting_rooms')->where('hotel_id', $hotelId)->where('code', $schedule->room)->value('id');
-            $packageId = DB::table('meeting_packages')->where('hotel_id', $hotelId)->where('code', $schedule->package)->value('id');
-            $eventDate = $schedule->tgl_start ?? $schedule->tgl_meeting ?? now()->toDateString();
-            $startAt = Carbon::parse($eventDate.' '.$schedule->jam_mulai);
-            $endDate = $schedule->tgl_end ?? $eventDate;
-            $endAt = Carbon::parse($endDate.' '.$schedule->jam_selesai);
-
-            DB::table('bookings')->updateOrInsert(
-                ['hotel_id' => $hotelId, 'booking_number' => $schedule->trx_number],
-                [
-                    'client_id' => $clientId,
-                    'booking_source' => 'LEGACY',
-                    'booking_date' => $eventDate,
-                    'status' => 'CONFIRMED',
-                    'notes' => 'Generated from legacy meeting schedule.',
-                    'created_at' => $schedule->created_at ?? $now,
-                    'updated_at' => $schedule->updated_at ?? $now,
-                ]
-            );
-
-            $bookingId = DB::table('bookings')->where('hotel_id', $hotelId)->where('booking_number', $schedule->trx_number)->value('id');
-            DB::table('meeting_events')->updateOrInsert(
-                ['hotel_id' => $hotelId, 'legacy_trx_number' => $schedule->trx_number],
-                [
-                    'booking_id' => $bookingId,
-                    'meeting_room_id' => $roomId,
-                    'event_name' => 'Meeting '.$schedule->trx_number,
-                    'event_date' => $eventDate,
-                    'start_at' => $startAt,
-                    'end_at' => $endAt,
-                    'expected_participants' => max(0, (int) $schedule->kuota),
-                    'actual_participants' => 0,
-                    'status' => 'SCHEDULED',
-                    'meeting_qr_token_hash' => null,
-                    'created_at' => $schedule->created_at ?? $now,
-                    'updated_at' => $schedule->updated_at ?? $now,
-                ]
-            );
-
-            if ($packageId) {
-                $eventId = DB::table('meeting_events')->where('hotel_id', $hotelId)->where('legacy_trx_number', $schedule->trx_number)->value('id');
-                DB::table('meeting_package_assignments')->updateOrInsert(
-                    ['meeting_event_id' => $eventId, 'package_id' => $packageId],
+        if ($this->isPhysicalLegacyTable('m_meeting_rooms')) {
+            foreach (DB::table('m_meeting_rooms')->get() as $room) {
+                DB::table('meeting_rooms')->updateOrInsert(
+                    ['hotel_id' => $hotelId, 'code' => $room->kd_room],
                     [
-                        'participant_quota' => max(0, (int) $schedule->kuota),
-                        'unit_price' => DB::table('meeting_packages')->where('id', $packageId)->value('price') ?? 0,
-                        'notes' => 'Migrated from legacy package field.',
+                        'name' => $room->name,
+                        'operational_status' => $this->roomStatus($room->room_availability),
+                        'facilities' => json_encode(['legacy_room_code' => $room->kd_room]),
+                        'created_at' => $room->created_at ?? $now,
+                        'updated_at' => $room->updated_at ?? $now,
+                    ]
+                );
+            }
+        }
+
+        if ($this->isPhysicalLegacyTable('m_client')) {
+            foreach (DB::table('m_client')->get() as $client) {
+                DB::table('clients')->updateOrInsert(
+                    ['hotel_id' => $hotelId, 'external_id' => $client->code],
+                    [
+                        'company_name' => $client->name,
+                        'contact_name' => $client->contact_person,
+                        'contact_email' => $client->email ? mb_strtolower(trim($client->email)) : null,
+                        'contact_phone' => $client->company_phone,
+                        'metadata' => json_encode(['legacy_client_code' => $client->code]),
+                        'created_at' => $client->created_at ?? $now,
+                        'updated_at' => $client->updated_at ?? $now,
+                    ]
+                );
+            }
+        }
+
+        if ($this->isPhysicalLegacyTable('m_packages')) {
+            foreach (DB::table('m_packages')->get() as $package) {
+                DB::table('meeting_packages')->updateOrInsert(
+                    ['hotel_id' => $hotelId, 'code' => $package->kd_pck],
+                    [
+                        'name' => $package->name,
+                        'description' => $package->details,
+                        'price' => $package->price,
+                        'is_active' => true,
+                        'metadata' => json_encode(['legacy_count_qr' => $package->count_qr]),
+                        'created_at' => $package->created_at ?? $now,
+                        'updated_at' => $package->updated_at ?? $now,
+                    ]
+                );
+
+                $packageId = DB::table('meeting_packages')->where('hotel_id', $hotelId)->where('code', $package->kd_pck)->value('id');
+                DB::table('package_entitlements')->updateOrInsert(
+                    ['package_id' => $packageId, 'entitlement_type' => 'CUSTOM'],
+                    [
+                        'quantity' => max(1, (int) $package->count_qr),
+                        'metadata' => json_encode(['legacy_field' => 'count_qr']),
+                        'created_at' => $package->created_at ?? $now,
+                        'updated_at' => $package->updated_at ?? $now,
+                    ]
+                );
+            }
+        }
+
+        if ($this->isPhysicalLegacyTable('trx_meeting_schedule')) {
+            foreach (DB::table('trx_meeting_schedule')->get() as $schedule) {
+                $clientId = DB::table('clients')->where('hotel_id', $hotelId)->where('external_id', $schedule->code_client)->value('id');
+                $roomId = DB::table('meeting_rooms')->where('hotel_id', $hotelId)->where('code', $schedule->room)->value('id');
+                $packageId = DB::table('meeting_packages')->where('hotel_id', $hotelId)->where('code', $schedule->package)->value('id');
+                $eventDate = $schedule->tgl_start ?? $schedule->tgl_meeting ?? now()->toDateString();
+                $startAt = Carbon::parse($eventDate.' '.$schedule->jam_mulai);
+                $endDate = $schedule->tgl_end ?? $eventDate;
+                $endAt = Carbon::parse($endDate.' '.$schedule->jam_selesai);
+
+                DB::table('bookings')->updateOrInsert(
+                    ['hotel_id' => $hotelId, 'booking_number' => $schedule->trx_number],
+                    [
+                        'client_id' => $clientId,
+                        'booking_source' => 'LEGACY',
+                        'booking_date' => $eventDate,
+                        'status' => 'CONFIRMED',
+                        'notes' => 'Generated from legacy meeting schedule.',
                         'created_at' => $schedule->created_at ?? $now,
                         'updated_at' => $schedule->updated_at ?? $now,
                     ]
                 );
+
+                $bookingId = DB::table('bookings')->where('hotel_id', $hotelId)->where('booking_number', $schedule->trx_number)->value('id');
+                DB::table('meeting_events')->updateOrInsert(
+                    ['hotel_id' => $hotelId, 'legacy_trx_number' => $schedule->trx_number],
+                    [
+                        'booking_id' => $bookingId,
+                        'meeting_room_id' => $roomId,
+                        'event_name' => 'Meeting '.$schedule->trx_number,
+                        'event_date' => $eventDate,
+                        'start_at' => $startAt,
+                        'end_at' => $endAt,
+                        'expected_participants' => max(0, (int) $schedule->kuota),
+                        'actual_participants' => 0,
+                        'status' => 'SCHEDULED',
+                        'meeting_qr_token_hash' => null,
+                        'created_at' => $schedule->created_at ?? $now,
+                        'updated_at' => $schedule->updated_at ?? $now,
+                    ]
+                );
+
+                if ($packageId) {
+                    $eventId = DB::table('meeting_events')->where('hotel_id', $hotelId)->where('legacy_trx_number', $schedule->trx_number)->value('id');
+                    DB::table('meeting_package_assignments')->updateOrInsert(
+                        ['meeting_event_id' => $eventId, 'package_id' => $packageId],
+                        [
+                            'participant_quota' => max(0, (int) $schedule->kuota),
+                            'unit_price' => DB::table('meeting_packages')->where('id', $packageId)->value('price') ?? 0,
+                            'notes' => 'Migrated from legacy package field.',
+                            'created_at' => $schedule->created_at ?? $now,
+                            'updated_at' => $schedule->updated_at ?? $now,
+                        ]
+                    );
+                }
             }
         }
 
-        foreach (DB::table('trx_meeting_attendance')->get() as $attendance) {
-            $event = DB::table('meeting_events')->where('hotel_id', $hotelId)->where('legacy_trx_number', $attendance->trx_metting_number)->first();
+        if ($this->isPhysicalLegacyTable('trx_meeting_attendance')) {
+            foreach (DB::table('trx_meeting_attendance')->get() as $attendance) {
+                $event = DB::table('meeting_events')->where('hotel_id', $hotelId)->where('legacy_trx_number', $attendance->trx_metting_number)->first();
 
-            if (! $event) {
-                continue;
-            }
+                if (! $event) {
+                    continue;
+                }
 
-            $participantNumber = $attendance->trx_metting_number.'-LEGACY-'.$attendance->id;
-            DB::table('participants')->updateOrInsert(
-                ['meeting_event_id' => $event->id, 'participant_number' => $participantNumber],
-                [
-                    'hotel_id' => $hotelId,
-                    'full_name' => $attendance->name,
-                    'company_name' => $attendance->company ?? null,
-                    'phone' => $attendance->phone_number ?? null,
-                    'normalized_phone' => isset($attendance->phone_number) ? preg_replace('/[^0-9+]/', '', $attendance->phone_number) : null,
-                    'registration_source' => 'LEGACY',
-                    'status' => ((int) $attendance->scanned_qr > 0) ? 'CHECKED_IN' : 'REGISTERED',
-                    'registered_at' => $attendance->created_at ?? $now,
-                    'checked_in_at' => ((int) $attendance->scanned_qr > 0) ? ($attendance->updated_at ?? $attendance->created_at ?? $now) : null,
-                    'metadata' => json_encode(['legacy_attendance_id' => $attendance->id, 'legacy_fingerprint' => $attendance->mac_address ?? null]),
-                    'created_at' => $attendance->created_at ?? $now,
-                    'updated_at' => $attendance->updated_at ?? $now,
-                ]
-            );
-
-            if ((int) $attendance->scanned_qr > 0) {
-                $participantId = DB::table('participants')->where('meeting_event_id', $event->id)->where('participant_number', $participantNumber)->value('id');
-                DB::table('meeting_attendances')->updateOrInsert(
-                    ['participant_id' => $participantId, 'attendance_type' => 'MEETING_CHECKIN'],
+                $participantNumber = $attendance->trx_metting_number.'-LEGACY-'.$attendance->id;
+                DB::table('participants')->updateOrInsert(
+                    ['meeting_event_id' => $event->id, 'participant_number' => $participantNumber],
                     [
-                        'meeting_event_id' => $event->id,
-                        'attended_at' => $attendance->updated_at ?? $attendance->created_at ?? $now,
-                        'verification_method' => 'LEGACY_QR',
-                        'metadata' => json_encode(['legacy_attendance_id' => $attendance->id]),
+                        'hotel_id' => $hotelId,
+                        'full_name' => $attendance->name,
+                        'company_name' => $attendance->company ?? null,
+                        'phone' => $attendance->phone_number ?? null,
+                        'normalized_phone' => isset($attendance->phone_number) ? preg_replace('/[^0-9+]/', '', $attendance->phone_number) : null,
+                        'registration_source' => 'LEGACY',
+                        'status' => ((int) $attendance->scanned_qr > 0) ? 'CHECKED_IN' : 'REGISTERED',
+                        'registered_at' => $attendance->created_at ?? $now,
+                        'checked_in_at' => ((int) $attendance->scanned_qr > 0) ? ($attendance->updated_at ?? $attendance->created_at ?? $now) : null,
+                        'metadata' => json_encode(['legacy_attendance_id' => $attendance->id, 'legacy_fingerprint' => $attendance->mac_address ?? null]),
                         'created_at' => $attendance->created_at ?? $now,
+                        'updated_at' => $attendance->updated_at ?? $now,
                     ]
                 );
+
+                if ((int) $attendance->scanned_qr > 0) {
+                    $participantId = DB::table('participants')->where('meeting_event_id', $event->id)->where('participant_number', $participantNumber)->value('id');
+                    DB::table('meeting_attendances')->updateOrInsert(
+                        ['participant_id' => $participantId, 'attendance_type' => 'MEETING_CHECKIN'],
+                        [
+                            'meeting_event_id' => $event->id,
+                            'attended_at' => $attendance->updated_at ?? $attendance->created_at ?? $now,
+                            'verification_method' => 'LEGACY_QR',
+                            'metadata' => json_encode(['legacy_attendance_id' => $attendance->id]),
+                            'created_at' => $attendance->created_at ?? $now,
+                        ]
+                    );
+                }
             }
         }
     }
@@ -201,6 +211,7 @@ class PhaseThreeDomainSeeder extends Seeder
                     'source' => 'https://oriahotel.com/',
                     'district' => 'Menteng / Thamrin',
                     'meeting_profile' => 'Central Jakarta business hotel',
+                    'logo_path' => 'assets/images/logo-oria-wide.png',
                 ],
             ],
             'ASHLEY-WH' => [
@@ -257,7 +268,6 @@ class PhaseThreeDomainSeeder extends Seeder
                 'Dashboard',
                 'Master Data',
                 'Transaction',
-                'Report',
                 'Meeting Room',
                 'Client',
                 'Booking',
@@ -265,6 +275,8 @@ class PhaseThreeDomainSeeder extends Seeder
                 'Meeting Package',
                 'Participant',
                 'Meeting Attendance',
+                'Report',
+                'Meeting Report',
                 'meeting.qr.manage',
                 'participant.qr.manage',
                 'meal_session.view',
@@ -299,6 +311,8 @@ class PhaseThreeDomainSeeder extends Seeder
                 'attendance.scan',
                 'meal_package.view',
                 'meal_package.manage',
+                'report.view',
+                'report.export',
             ],
             'Hotel Admin' => [
                 'Dashboard',
@@ -311,6 +325,8 @@ class PhaseThreeDomainSeeder extends Seeder
                 'Meeting Package',
                 'Participant',
                 'Meeting Attendance',
+                'Report',
+                'Meeting Report',
                 'meeting.qr.manage',
                 'participant.qr.manage',
                 'meal_session.view',
@@ -345,6 +361,8 @@ class PhaseThreeDomainSeeder extends Seeder
                 'attendance.scan',
                 'meal_package.view',
                 'meal_package.manage',
+                'report.view',
+                'report.export',
             ],
             'Front Office' => [
                 'Dashboard',
@@ -615,5 +633,15 @@ class PhaseThreeDomainSeeder extends Seeder
             'MORRISSEY' => 'Morrissey',
             default => $hotelCode,
         };
+    }
+
+    private function isPhysicalLegacyTable(string $table): bool
+    {
+        return DB::table('pg_class')
+            ->join('pg_namespace', 'pg_namespace.oid', '=', 'pg_class.relnamespace')
+            ->where('pg_namespace.nspname', 'public')
+            ->where('pg_class.relname', $table)
+            ->where('pg_class.relkind', 'r')
+            ->exists();
     }
 }

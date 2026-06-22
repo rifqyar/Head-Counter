@@ -3,10 +3,12 @@
 namespace App\Actions;
 
 use App\Domain\Catering\MealSession;
+use App\Domain\Participant\Participant;
 use App\Domain\QRCode\ParticipantQRService;
 use App\Domain\Redemption\ParticipantEntitlement;
 use App\Domain\Redemption\Redemption;
 use App\Enums\MealSessionStatus;
+use App\Enums\ParticipantStatus;
 use App\Enums\RedemptionStatus;
 use App\Enums\RejectionCode;
 use App\Support\Audit\AuditLogger;
@@ -86,7 +88,12 @@ class RedeemParticipantAction
 
             /** @var MealSession $session */
             $session = $context['session'];
-            $participant = $context['participant'];
+            $participant = Participant::withoutGlobalScope('hotel')
+                ->whereKey($context['participant']->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $context['participant'] = $participant;
 
             $entitlement = ParticipantEntitlement::where('participant_id', $participant->id)
                 ->where('meeting_event_id', $participant->meeting_event_id)
@@ -161,7 +168,15 @@ class RedeemParticipantAction
                 'remaining_quantity' => $entitlement->remaining_quantity - 1,
             ]);
 
+            if ($participant->status === ParticipantStatus::REGISTERED) {
+                $participant->update([
+                    'status' => ParticipantStatus::CHECKED_IN,
+                    'checked_in_at' => now(),
+                ]);
+            }
+
             $context['entitlement'] = $entitlement->fresh();
+            $context['participant'] = $participant->fresh();
             $context['redemption'] = $redemption;
             $body = $this->response(true, 'Redemption successful.', null, $context);
             $this->storeIdempotentResponse($hotelId, $payload['idempotency_key'], 200, $body);

@@ -3,6 +3,7 @@
 namespace App\Domain\Booking;
 
 use App\Domain\Hotel\Hotel;
+use App\Domain\Meeting\MeetingEvent;
 use App\Enums\BookingStatus;
 use App\Models\User;
 use App\Support\Tenancy\ScopeByHotel;
@@ -45,5 +46,10 @@ class Booking extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function meetingEvents()
+    {
+        return $this->hasMany(MeetingEvent::class);
     }
 }

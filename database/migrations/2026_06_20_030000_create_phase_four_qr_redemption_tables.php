@@ -34,6 +34,7 @@ return new class extends Migration
             $table->foreignId('participant_id')->constrained('participants')->cascadeOnDelete();
             $table->string('token_hash', 64);
             $table->string('token_last_four', 4);
+            $table->string('printable_path')->nullable();
             $table->string('status', 20)->default('ACTIVE');
             $table->timestampTz('issued_at');
             $table->timestampTz('expires_at')->nullable();

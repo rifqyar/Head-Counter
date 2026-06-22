@@ -20,8 +20,20 @@ class MeetingEventPolicy
     {
         return $this->sameHotel($user, $model)
             && ($user->isSuperAdmin()
+                || $user->can('meeting.update')
                 || $user->can('meeting.start')
                 || $user->can('meeting.complete')
-                || $user->can('meeting.cancel'));
+                || $user->can('meeting.cancel')
+                || $user->can('attendance.view')
+                || $user->can('attendance.scan'));
+    }
+
+    public function update(User $user, $model): bool
+    {
+        return $this->sameHotel($user, $model)
+            && ($user->isSuperAdmin()
+                || $user->can('meeting.update')
+                || $user->can('attendance.view')
+                || $user->can('attendance.scan'));
     }
 }

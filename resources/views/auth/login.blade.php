@@ -101,7 +101,7 @@
         <div class="login-box card pt-5">
             <div class="card-body">
                 <form class="form-horizontal form-material mt-5" id="loginform" action="{{ route('login') }}" method="POST">
-                    <a href="javascript:void(0)" class="text-center db"><img  width="25%" src="{{ asset('assets/images/logo-oria.png') }}" alt="Home" /></a>
+                    <a href="javascript:void(0)" class="text-center db"><img  width="42%" src="{{ asset('images/logo-full.png') }}" alt="Head Counter" /></a>
                     @csrf
                     <div class="mb-3 form-group mt-4">
                         <label for="username" class="form-label">Username</label>

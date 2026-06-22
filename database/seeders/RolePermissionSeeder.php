@@ -177,7 +177,8 @@ class RolePermissionSeeder extends Seeder
 
         foreach (self::LEGACY_ROLE_ALIASES as $legacyRole => $canonicalRole) {
             $role = Role::firstOrCreate(['name' => $legacyRole, 'guard_name' => $guard]);
-            $role->syncPermissions($this->expandedPermissions($canonicalRole));
+            $permissions = $this->expandedPermissions($canonicalRole);
+            $role->syncPermissions($permissions);
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

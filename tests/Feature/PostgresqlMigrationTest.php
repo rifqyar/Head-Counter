@@ -108,4 +108,41 @@ class PostgresqlMigrationTest extends TestCase
     {
         $this->assertSame('pgsql', DB::connection()->getDriverName());
     }
+
+    public function test_legacy_resource_names_are_views_backed_by_canonical_tables(): void
+    {
+        $legacyRelations = DB::table('pg_class as c')
+            ->join('pg_namespace as n', 'n.oid', '=', 'c.relnamespace')
+            ->where('n.nspname', 'public')
+            ->whereIn('c.relname', [
+                'm_client',
+                'm_meeting_rooms',
+                'm_packages',
+                'r_room_status',
+                'trx_meeting_attendance',
+                'trx_meeting_schedule',
+            ])
+            ->pluck('c.relkind', 'c.relname');
+
+        $this->assertSame([
+            'm_client' => 'v',
+            'm_meeting_rooms' => 'v',
+            'm_packages' => 'v',
+            'r_room_status' => 'v',
+            'trx_meeting_attendance' => 'v',
+            'trx_meeting_schedule' => 'v',
+        ], $legacyRelations->sortKeys()->all());
+
+        MeetingRooms::create([
+            'kd_room' => 'PG-VIEW',
+            'name' => 'View Backed Room',
+            'room_availability' => RoomStatusEnum::Available,
+        ]);
+
+        $this->assertDatabaseHas('meeting_rooms', [
+            'code' => 'PG-VIEW',
+            'name' => 'View Backed Room',
+            'operational_status' => RoomStatusEnum::Available,
+        ]);
+    }
 }

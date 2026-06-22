@@ -1,16 +1,12 @@
 import { Html5Qrcode } from 'html5-qrcode';
 import { parseScannerPayload, shouldAcceptDecode } from './scannerPayload';
 
-window.HeadCounterScanner = {
-    parseScannerPayload,
-    shouldAcceptDecode,
-};
-
-document.addEventListener('DOMContentLoaded', () => {
+function initScanner() {
     const root = document.getElementById('scanner-app');
-    if (!root) {
+    if (!root || root.dataset.ready === '1') {
         return;
     }
+    root.dataset.ready = '1';
 
     let endpoint = root.dataset.redeemEndpoint;
     const csrf = root.dataset.csrf;
@@ -57,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }),
             });
             const data = await response.json();
-            showMessage([data.message, data.participant?.name, data.rejection_code].filter(Boolean).join('\n'), response.ok);
+            showMessage(formatResult(data), response.ok);
             if (navigator.vibrate) {
                 navigator.vibrate(response.ok ? 80 : [80, 50, 80]);
             }
@@ -73,6 +69,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function showMessage(message, ok) {
         panel.className = 'p-4 text-white ' + (ok ? 'bg-success' : 'bg-danger');
         result.textContent = message;
+    }
+
+    function formatResult(data) {
+        const lines = [
+            data.message,
+            data.participant?.name ? `Participant: ${data.participant.name}` : null,
+            data.participant?.status ? `Status: ${data.participant.status}` : null,
+            data.meal_session?.name ? `Session: ${data.meal_session.name}` : null,
+            data.remaining_entitlement ? `Remaining: ${data.remaining_entitlement.remaining}/${data.remaining_entitlement.total}` : null,
+            data.redemption_number ? `Redemption: ${data.redemption_number}` : null,
+            data.rejection_code ? `Reason: ${data.rejection_code}` : null,
+        ];
+
+        return lines.filter(Boolean).join('\n');
     }
 
     async function loadCameras() {
@@ -139,4 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadCameras();
-});
+}
+
+window.HeadCounterScanner = {
+    parseScannerPayload,
+    shouldAcceptDecode,
+    init: initScanner,
+};
+
+document.addEventListener('DOMContentLoaded', initScanner);

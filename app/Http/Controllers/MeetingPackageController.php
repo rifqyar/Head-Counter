@@ -31,7 +31,7 @@ class MeetingPackageController extends Controller
         abort_if($hotelId === null, 422, 'Select a hotel context before creating a package.');
 
         $package = DB::transaction(function () use ($request, $hotelId) {
-            $data = Arr::except($request->validated(), ['entitlement_type', 'entitlement_quantity']);
+            $data = Arr::except($request->validated(), ['entitlements', 'entitlement_type', 'entitlement_quantity']);
             $package = MeetingPackage::create(array_merge($data, ['hotel_id' => $hotelId]));
             $this->syncEntitlement($package, $request->validated());
 
@@ -60,7 +60,7 @@ class MeetingPackageController extends Controller
         $this->authorize('update', $package);
 
         DB::transaction(function () use ($request, $package) {
-            $package->update(Arr::except($request->validated(), ['entitlement_type', 'entitlement_quantity']));
+            $package->update(Arr::except($request->validated(), ['entitlements', 'entitlement_type', 'entitlement_quantity']));
             $this->syncEntitlement($package, $request->validated());
         });
 
@@ -77,13 +77,26 @@ class MeetingPackageController extends Controller
 
     private function syncEntitlement(MeetingPackage $package, array $data): void
     {
-        if (empty($data['entitlement_type'])) {
-            return;
+        $package->entitlements()->delete();
+
+        $entitlements = $data['entitlements'] ?? [];
+        if (empty($entitlements) && ! empty($data['entitlement_type'])) {
+            $entitlements = [[
+                'type' => $data['entitlement_type'],
+                'quantity' => $data['entitlement_quantity'] ?? 1,
+                'notes' => null,
+            ]];
         }
 
-        PackageEntitlement::updateOrCreate(
-            ['package_id' => $package->id, 'entitlement_type' => $data['entitlement_type']],
-            ['quantity' => (int) ($data['entitlement_quantity'] ?? 1), 'metadata' => ['source' => 'phase_3_ui']]
-        );
+        collect($entitlements)
+            ->filter(fn ($row) => ! empty($row['type']))
+            ->each(function ($row) use ($package) {
+                PackageEntitlement::create([
+                    'package_id' => $package->id,
+                    'entitlement_type' => $row['type'],
+                    'quantity' => (int) ($row['quantity'] ?? 1),
+                    'metadata' => ['source' => 'package_ui', 'notes' => $row['notes'] ?? null],
+                ]);
+            });
     }
 }

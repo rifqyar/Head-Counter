@@ -14,6 +14,7 @@ class ParticipantQRCredential extends Model
         'participant_id',
         'token_hash',
         'token_last_four',
+        'printable_path',
         'status',
         'issued_at',
         'expires_at',

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Actions\RedeemParticipantAction;
 use App\Domain\Catering\MealSession;
+use App\Domain\Catering\MealSessionService;
+use App\Domain\Meeting\MeetingEvent;
+use App\Enums\MealSessionStatus;
 use App\Http\Requests\RedeemParticipantRequest;
 use App\Http\Requests\ValidateParticipantQRRequest;
 use App\Support\Tenancy\TenantContext;
@@ -11,10 +14,17 @@ use Illuminate\Http\Request;
 
 class ScannerController extends Controller
 {
-    public function page(Request $request)
+    public function page(Request $request, MealSessionService $mealSessionService)
     {
         $hotelId = $this->hotelId($request);
-        $sessions = MealSession::where('hotel_id', $hotelId)->orderByDesc('starts_at')->orderBy('name')->get();
+        $this->ensureScannerSessions($hotelId, $request->user()->id, $mealSessionService);
+
+        $sessions = MealSession::with('meetingEvent')
+            ->where('hotel_id', $hotelId)
+            ->where('status', '!=', MealSessionStatus::CANCELLED->value)
+            ->orderByDesc('starts_at')
+            ->orderBy('name')
+            ->get();
 
         return $this->viewOrRedirect($request, 'domain.scanner.index', compact('sessions'));
     }
@@ -44,5 +54,15 @@ class ScannerController extends Controller
         abort_if($hotelId === null, 403, 'Select an active hotel context.');
 
         return (int) $hotelId;
+    }
+
+    private function ensureScannerSessions(int $hotelId, int $actorId, MealSessionService $mealSessionService): void
+    {
+        MeetingEvent::with(['packageAssignments.package.entitlements', 'mealSessions'])
+            ->where('hotel_id', $hotelId)
+            ->whereHas('packageAssignments.package.entitlements')
+            ->whereDoesntHave('mealSessions')
+            ->get()
+            ->each(fn (MeetingEvent $meeting) => $mealSessionService->generateFromPackages($meeting, $actorId, MealSessionStatus::OPEN));
     }
 }

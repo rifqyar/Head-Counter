@@ -44,7 +44,9 @@ class PhaseFourQRRedemptionTest extends TestCase
 
         $this->assertNotSame($issued['token'], $meeting->refresh()->meeting_qr_token_hash);
         $this->assertSame(hash('sha256', $issued['token']), $meeting->meeting_qr_token_hash);
+        $this->assertStringEndsWith('.pdf', $meeting->meeting_qr_path);
         Storage::disk('public')->assertExists($meeting->meeting_qr_path);
+        $this->assertStringStartsWith('%PDF', Storage::disk('public')->get($meeting->meeting_qr_path));
         $this->assertTrue($service->validate($issued['token'])[0]);
 
         $regenerated = $service->regenerate($meeting);
@@ -61,11 +63,23 @@ class PhaseFourQRRedemptionTest extends TestCase
         $this->app->make(TenantContext::class)->set($hotel);
         $token = app(MeetingQRService::class)->generate($meeting)['token'];
 
+        $this->get('/attendance/meeting/'.$token)
+            ->assertOk()
+            ->assertSee('public-participant-wizard')
+            ->assertSee('assets/plugins/bootstrap/css/bootstrap.min.css')
+            ->assertSee('assets/plugins/wizard/jquery.steps.min.js')
+            ->assertDontSee('@php');
+
         $this->post('/attendance/meeting/'.$token.'/register', [
             'full_name' => 'QR Guest',
             'email' => 'qr.guest@example.test',
             'phone' => '+6281200000001',
-        ])->assertOk()->assertSee('Registration complete');
+        ])->assertOk()
+            ->assertSee('Registration Complete')
+            ->assertSee('Download Participant QR PDF')
+            ->assertSee('issued-card')
+            ->assertSee('assets/plugins/bootstrap/css/bootstrap.min.css')
+            ->assertSee('Phase Four Hotel');
 
         $this->assertDatabaseHas('participants', ['meeting_event_id' => $meeting->id, 'full_name' => 'QR Guest']);
         $participantId = DB::table('participants')->where('full_name', 'QR Guest')->value('id');
@@ -88,6 +102,7 @@ class PhaseFourQRRedemptionTest extends TestCase
         $first = $this->actingAs($scanner, 'sanctum')->postJson('/api/v1/scanner/redeem', $payload)
             ->assertOk()
             ->assertJsonPath('eligible', true)
+            ->assertJsonPath('participant.status', 'CHECKED_IN')
             ->json();
 
         $this->actingAs($scanner, 'sanctum')->postJson('/api/v1/scanner/redeem', $payload)
@@ -98,8 +113,11 @@ class PhaseFourQRRedemptionTest extends TestCase
             ->assertStatus(409)
             ->assertJsonPath('rejection_code', 'ALREADY_REDEEMED');
 
-        $this->assertSame(1, Redemption::withoutGlobalScope('hotel')->where('participant_id', DB::table('participants')->where('full_name', 'Redeem Guest')->value('id'))->where('meal_session_id', $session->id)->where('status', RedemptionStatus::SUCCESS->value)->count());
+        $participantId = DB::table('participants')->where('full_name', 'Redeem Guest')->value('id');
+        $this->assertSame(1, Redemption::withoutGlobalScope('hotel')->where('participant_id', $participantId)->where('meal_session_id', $session->id)->where('status', RedemptionStatus::SUCCESS->value)->count());
         $this->assertDatabaseHas('participant_entitlements', ['meeting_event_id' => $meeting->id, 'redeemed_quantity' => 1, 'remaining_quantity' => 0]);
+        $this->assertDatabaseHas('participants', ['id' => $participantId, 'status' => 'CHECKED_IN']);
+        $this->assertNotNull(DB::table('participants')->where('id', $participantId)->value('checked_in_at'));
     }
 
     public function test_scanner_validate_is_non_mutating_and_cross_hotel_session_is_rejected(): void
@@ -114,6 +132,7 @@ class PhaseFourQRRedemptionTest extends TestCase
         ])->assertOk()->assertJsonPath('eligible', true);
 
         $this->assertSame($before, Redemption::withoutGlobalScope('hotel')->count());
+        $this->assertDatabaseHas('participants', ['full_name' => 'Redeem Guest', 'status' => 'REGISTERED', 'checked_in_at' => null]);
 
         $otherHotel = Hotel::create(['code' => 'OTHER', 'name' => 'Other Hotel']);
         $otherUser = $this->scannerUser($otherHotel);
@@ -215,11 +234,19 @@ class PhaseFourQRRedemptionTest extends TestCase
 
         $oldCredential = $participant->activeQrCredential()->firstOrFail();
         $this->actingAs($user)->post(route('participants.qr.rotate', $participant), ['confirm' => '1'])->assertRedirect(route('participants.qr.show', $participant));
-        $this->followingRedirects()->actingAs($user)->get(route('participants.qr.show', $participant))->assertSee('Raw token');
+        $this->followingRedirects()->actingAs($user)->get(route('participants.qr.show', $participant))
+            ->assertSee('Raw token')
+            ->assertSee('Download QR PDF')
+            ->assertSee('Reprint QR PDF')
+            ->assertSee('QR Admin Guest');
         $this->actingAs($user)->get(route('participants.qr.show', $participant))->assertDontSee('Raw token:');
         $this->assertDatabaseHas('participant_qr_credentials', ['id' => $oldCredential->id, 'status' => 'REVOKED']);
 
         $active = $participant->fresh()->activeQrCredential()->firstOrFail();
+        $this->assertNotNull($active->printable_path);
+        Storage::disk('public')->assertExists($active->printable_path);
+        $this->actingAs($user)->get(route('participants.qr.download-active', $participant))->assertOk();
+
         $this->actingAs($user)->post(route('participants.qr.revoke', $participant), ['confirm' => '1'])->assertRedirect(route('participants.qr.show', $participant));
         $this->assertDatabaseHas('participant_qr_credentials', ['id' => $active->id, 'status' => 'REVOKED']);
         $this->assertDatabaseHas('audit_logs', ['event' => 'participant_qr.revoked']);
@@ -231,12 +258,36 @@ class PhaseFourQRRedemptionTest extends TestCase
         $user = $this->scannerUser($hotel);
 
         $this->actingAs($user)->get(route('scanner.index'))->assertRedirect(route('redirect'))->assertSessionHas('Redirect', 'scanner');
+        $this->followingRedirects()->actingAs($user)->get(route('scanner.index'))
+            ->assertOk()
+            ->assertSee('QR Scanner')
+            ->assertDontSee('403');
 
         $this->actingAs($user)->withHeader('X-Requested-With', 'XMLHttpRequest')->get(route('scanner.index'))
             ->assertOk()
             ->assertSee('Start camera')
             ->assertSee('Stop camera')
-            ->assertSee('Participant QR Token');
+            ->assertSee('Participant Entitlement Scanner')
+            ->assertSee('Participant QR Token or URL')
+            ->assertSee('Scan Entitlement')
+            ->assertSee('HeadCounterScanner.init');
+    }
+
+    public function test_scanner_page_auto_generates_open_sessions_for_package_backed_meetings(): void
+    {
+        [$hotel, $firstMeeting] = $this->meetingFixture();
+        [, $secondMeeting] = $this->meetingFixtureForHotel($hotel, 'Second Scanner Meeting');
+        $user = $this->scannerUser($hotel);
+
+        MealSession::withoutGlobalScope('hotel')->whereIn('meeting_event_id', [$firstMeeting->id, $secondMeeting->id])->delete();
+
+        $this->actingAs($user)->withHeader('X-Requested-With', 'XMLHttpRequest')->get(route('scanner.index'))
+            ->assertOk()
+            ->assertSee('Phase Four Meeting')
+            ->assertSee('Second Scanner Meeting');
+
+        $this->assertSame(1, MealSession::withoutGlobalScope('hotel')->where('meeting_event_id', $firstMeeting->id)->where('status', MealSessionStatus::OPEN->value)->count());
+        $this->assertSame(1, MealSession::withoutGlobalScope('hotel')->where('meeting_event_id', $secondMeeting->id)->where('status', MealSessionStatus::OPEN->value)->count());
     }
 
     public function test_phase_four_postgresql_partial_unique_index_exists(): void
@@ -273,6 +324,12 @@ class PhaseFourQRRedemptionTest extends TestCase
     private function meetingFixture(): array
     {
         $hotel = Hotel::create(['code' => 'H'.uniqid(), 'name' => 'Phase Four Hotel']);
+
+        return $this->meetingFixtureForHotel($hotel, 'Phase Four Meeting');
+    }
+
+    private function meetingFixtureForHotel(Hotel $hotel, string $meetingName): array
+    {
         $client = Client::create(['hotel_id' => $hotel->id, 'company_name' => 'Phase Four Client']);
         $booking = Booking::create(['hotel_id' => $hotel->id, 'client_id' => $client->id, 'booking_number' => 'BKG-'.uniqid(), 'booking_source' => 'TEST', 'booking_date' => '2026-07-01', 'status' => 'CONFIRMED']);
         $room = MeetingRoom::create(['hotel_id' => $hotel->id, 'code' => 'ROOM-'.uniqid(), 'name' => 'Phase Four Room', 'operational_status' => RoomOperationalStatus::AVAILABLE]);
@@ -280,7 +337,7 @@ class PhaseFourQRRedemptionTest extends TestCase
             'hotel_id' => $hotel->id,
             'booking_id' => $booking->id,
             'meeting_room_id' => $room->id,
-            'event_name' => 'Phase Four Meeting',
+            'event_name' => $meetingName,
             'event_date' => '2026-07-01',
             'start_at' => now()->subHour(),
             'end_at' => now()->addHours(2),

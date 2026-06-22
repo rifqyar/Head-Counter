@@ -36,10 +36,30 @@ class PhaseSixDashboardReportingTest extends TestCase
             ->get(route('dashboard.index', ['date' => $meeting->start_at->toDateString()]))
             ->assertOk()
             ->assertSee('Operational Dashboard')
+            ->assertSee('dashboard-hero', false)
+            ->assertSee('Attendance rate')
+            ->assertSee('Room Status')
             ->assertSee('Oria Phase Six Meeting')
             ->assertDontSee('Foreign Phase Six Meeting');
 
         $this->assertNotSame($hotel->id, $otherHotel->id);
+    }
+
+    public function test_authenticated_shell_renders_tenant_logo_without_blade_leaks(): void
+    {
+        [$hotel, $user] = $this->reportFixture('P6LOGO', 'Logo Shell Meeting');
+        $hotel->update(['settings' => ['logo_path' => 'assets/images/logo-oria-wide.png']]);
+
+        $this->actingAs($user)
+            ->followingRedirects()
+            ->get(route('dashboard.index'))
+            ->assertOk()
+            ->assertSee('assets/images/logo-oria-wide.png')
+            ->assertDontSee('@php')
+            ->assertDontSee('currentAsset()')
+            ->assertDontSee('TenantContext');
+
+        $this->assertSame('P6LOGO', $hotel->code);
     }
 
     public function test_report_view_and_export_permissions_are_enforced(): void

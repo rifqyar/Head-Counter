@@ -8,16 +8,27 @@
 
     @if ($issued && $issuedSvg)
         <div class="alert alert-warning">
-            This QR is displayed once. Download or print it now; old QR images cannot be reconstructed because raw tokens are never stored.
+            This QR is displayed once. Download the PDF now; old QR documents cannot be reconstructed because raw tokens are never stored.
         </div>
         <div class="row mb-4">
             <div class="col-md-4">{!! $issuedSvg !!}</div>
             <div class="col-md-8">
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm">
+                        <tr><th>Hotel</th><td>{{ $participant->hotel?->name ?? '-' }}</td></tr>
+                        <tr><th>Participant</th><td>{{ $participant->full_name }}</td></tr>
+                        <tr><th>Participant No.</th><td>{{ $participant->participant_number }}</td></tr>
+                        <tr><th>Meeting</th><td>{{ $participant->meetingEvent?->event_name ?? '-' }}</td></tr>
+                        <tr><th>Credential</th><td>{{ $participant->activeQrCredential?->token_last_four ? 'Last four '.$participant->activeQrCredential->token_last_four : '-' }}</td></tr>
+                    </table>
+                </div>
                 <p><strong>Raw token:</strong></p>
                 <textarea class="form-control mb-2" rows="3" readonly>{{ $issued['token'] }}</textarea>
                 <p><strong>Scanner URL:</strong></p>
                 <textarea class="form-control mb-3" rows="2" readonly>{{ $issued['url'] }}</textarea>
-                <button type="button" class="btn btn-primary" onclick="window.print()">Print</button>
+                @if ($issuedPdfDataUri)
+                    <a href="{{ $issuedPdfDataUri }}" class="btn btn-primary" download="{{ $issuedPdfName }}">Download QR PDF</a>
+                @endif
             </div>
         </div>
     @endif
@@ -48,6 +59,11 @@
             @if (! $active)
                 <form method="POST" action="{{ route('participants.qr.generate', $participant) }}">@csrf<button class="btn btn-success">Generate QR</button></form>
             @else
+                @if ($active->printable_path)
+                    <a href="{{ route('participants.qr.download-active', $participant) }}" class="btn btn-info">Reprint QR PDF</a>
+                @else
+                    <span class="badge badge-warning">Reprint unavailable for this older credential; rotate to create a printable PDF.</span>
+                @endif
                 <form method="POST" action="{{ route('participants.qr.rotate', $participant) }}" class="d-inline" onsubmit="return confirm('Rotate this QR and invalidate the previous credential?')">@csrf<input type="hidden" name="confirm" value="1"><button class="btn btn-warning">Rotate QR</button></form>
                 <form method="POST" action="{{ route('participants.qr.revoke', $participant) }}" class="d-inline" onsubmit="return confirm('Revoke this QR credential?')">@csrf<input type="hidden" name="confirm" value="1"><button class="btn btn-outline-danger">Revoke QR</button></form>
             @endif

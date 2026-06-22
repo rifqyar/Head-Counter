@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Module\Transaction;
 
+use App\Domain\QRCode\QrPdfService;
 use App\Http\Controllers\Controller;
 use App\Models\Module\MasterData\MeetingSchedule;
 use App\Models\Module\Transaction\MeetingAttendance;
@@ -9,7 +10,6 @@ use App\Models\Transaction\QRDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Yajra\DataTables\DataTables;
 
 class MeetingAttendanceController extends Controller
@@ -24,14 +24,16 @@ class MeetingAttendanceController extends Controller
 
     public function data(Request $request)
     {
-        $schedule = MeetingSchedule::orderBy('tgl_start')->with('attendance')->whereHas('attendance')->with('ruangan')->with('paket')->with('qr');
+        $schedule = MeetingSchedule::orderBy('tgl_start')
+            ->with(['attendance', 'ruangan', 'paket', 'qr'])
+            ->whereHas('attendance');
 
-        if ($request->client != null) {
-            $schedule = $schedule->where('code_client', 'like', '%'.$request->client.'%');
+        if ($request->filled('client')) {
+            $schedule->where('code_client', 'like', '%'.$request->client.'%');
         }
 
-        if ($request->tgl != date('Y-m-d')) {
-            $schedule = $schedule->orWhereDate('tgl_start', $request->tgl);
+        if ($request->filled('tgl')) {
+            $schedule->whereDate('tgl_start', $request->tgl);
         }
 
         return DataTables::of($schedule->get())
@@ -121,7 +123,7 @@ class MeetingAttendanceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, QrPdfService $qrPdfService)
     {
         DB::beginTransaction();
         try {
@@ -153,14 +155,10 @@ class MeetingAttendanceController extends Controller
                 $attendance = MeetingAttendance::create($data);
 
                 $output_file = null;
-                $qrCodeIsi = $attendance->id;
+                $qrCodeIsi = (string) $attendance->id;
 
-                $image = QrCode::format('png')
-                    ->size(200)->errorCorrection('H')
-                    ->generate($qrCodeIsi);
-
-                $output_file = 'QR Code - Attendance '.$schedule->code_client.' - '.str()->slug($request->name).' - '.str()->random(12).'.png';
-                Storage::disk('qr_meeting_attendance')->put($output_file, $image);
+                $output_file = 'QR Code - Attendance '.$schedule->code_client.' - '.str()->slug($request->name).' - '.str()->random(12).'.pdf';
+                Storage::disk('qr_meeting_attendance')->put($output_file, $qrPdfService->legacyAttendancePdf($attendance, $schedule, $qrCodeIsi)->output());
 
                 $attendance = MeetingAttendance::find($attendance->id);
                 $attendance->update([

@@ -21,13 +21,13 @@ class StoreMeetingEventRequest extends FormRequest
         return [
             'booking_id' => ['nullable', Rule::exists('bookings', 'id')->where('hotel_id', $hotelId)],
             'meeting_room_id' => ['nullable', Rule::exists('meeting_rooms', 'id')->where('hotel_id', $hotelId)],
-            'event_name' => ['required', 'max:255'],
-            'event_date' => ['required', 'date'],
-            'start_at' => ['required', 'date'],
-            'end_at' => ['required', 'date', 'after:start_at'],
-            'expected_participants' => ['required', 'integer', 'min:0'],
+            'event_name' => ['nullable', 'required_without:booking_id', 'max:255'],
+            'event_date' => ['nullable', 'required_without:booking_id', 'date'],
+            'start_at' => ['nullable', 'required_without:booking_id', 'date'],
+            'end_at' => ['nullable', 'required_without:booking_id', 'date', 'after:start_at'],
+            'expected_participants' => ['nullable', 'required_without:booking_id', 'integer', 'min:0'],
             'actual_participants' => ['nullable', 'integer', 'min:0'],
-            'status' => ['required', Rule::enum(MeetingStatus::class)],
+            'status' => ['nullable', 'required_without:booking_id', Rule::enum(MeetingStatus::class)],
         ];
     }
 }

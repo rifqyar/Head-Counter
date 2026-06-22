@@ -47,9 +47,10 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::resource('hotels', HotelController::class)->middleware('permission:hotel.manage');
     Route::resource('meeting-rooms', MeetingRoomController::class)->middleware('permission:meeting_room.view|meeting_room.manage');
     Route::resource('clients', ClientDomainController::class)->middleware('permission:client.view|client.manage');
+    Route::post('bookings/{booking}/status', [BookingController::class, 'changeStatus'])->middleware(['permission:booking.update|booking.cancel', 'throttle:sensitive-admin'])->name('bookings.status');
     Route::resource('bookings', BookingController::class)->middleware('permission:booking.view|booking.create|booking.update|booking.cancel');
     Route::resource('meetings', MeetingEventController::class)->middleware('permission:meeting.view|meeting.create|meeting.update|meeting.cancel');
-    Route::post('meetings/{meeting}/transition', [MeetingEventController::class, 'transition'])->middleware('permission:meeting.start|meeting.complete|meeting.cancel')->name('meetings.transition');
+    Route::post('meetings/{meeting}/transition', [MeetingEventController::class, 'transition'])->middleware('permission:meeting.update|meeting.start|meeting.complete|meeting.cancel|attendance.view|attendance.scan')->name('meetings.transition');
     Route::post('meetings/{meeting}/qr/generate', [MeetingQRCodeController::class, 'generate'])->middleware(['permission:meeting.qr.manage', 'throttle:sensitive-admin'])->name('meetings.qr.generate');
     Route::post('meetings/{meeting}/qr/regenerate', [MeetingQRCodeController::class, 'regenerate'])->middleware(['permission:meeting.qr.manage', 'throttle:sensitive-admin'])->name('meetings.qr.regenerate');
     Route::post('meetings/{meeting}/qr/revoke', [MeetingQRCodeController::class, 'revoke'])->middleware(['permission:meeting.qr.manage', 'throttle:sensitive-admin'])->name('meetings.qr.revoke');
@@ -57,6 +58,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::post('meetings/{meeting}/meal-sessions/generate', [MealSessionController::class, 'generate'])->middleware('permission:meal_session.manage')->name('meetings.meal-sessions.generate');
     Route::resource('participants', ParticipantController::class)->middleware('permission:participant.view|participant.register|participant.update|participant.block');
     Route::get('participants/{participant}/qr', [ParticipantQRCodeController::class, 'show'])->middleware('permission:participant.qr.manage')->name('participants.qr.show');
+    Route::get('participants/{participant}/qr/download-active', [ParticipantQRCodeController::class, 'downloadActive'])->middleware('permission:participant.qr.manage')->name('participants.qr.download-active');
     Route::post('participants/{participant}/qr/generate', [ParticipantQRCodeController::class, 'generate'])->middleware(['permission:participant.qr.manage', 'throttle:sensitive-admin'])->name('participants.qr.generate');
     Route::post('participants/{participant}/qr/rotate', [ParticipantQRCodeController::class, 'rotate'])->middleware(['permission:participant.qr.manage', 'throttle:sensitive-admin'])->name('participants.qr.rotate');
     Route::post('participants/{participant}/qr/revoke', [ParticipantQRCodeController::class, 'revoke'])->middleware(['permission:participant.qr.manage', 'throttle:sensitive-admin'])->name('participants.qr.revoke');
