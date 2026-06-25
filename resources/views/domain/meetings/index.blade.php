@@ -37,6 +37,7 @@
                 <tbody>
                 @forelse ($meetings as $meeting)
                     @php($meetingStatus = $meeting->status->value ?? $meeting->status)
+                    @php($nextStatuses = \App\Services\MeetingStateTransition::ALLOWED[$meetingStatus] ?? [])
                     <tr>
                         <td>{{ $meeting->event_name }}</td>
                         <td>{{ $meeting->booking?->client?->company_name ?? '-' }}</td>
@@ -48,11 +49,11 @@
                         <td>
                             <a href="{{ route('meetings.show', $meeting) }}" class="btn btn-sm btn-info spa_route">Detail</a>
                             <a href="{{ route('meetings.edit', $meeting) }}" class="btn btn-sm btn-warning spa_route">Edit</a>
-                            @if (! in_array($meetingStatus, ['COMPLETED', 'CANCELLED', 'NO_SHOW'], true))
+                            @if ($nextStatuses !== [])
                                 <form method="POST" action="{{ route('meetings.transition', $meeting) }}" class="d-inline">
                                     @csrf
-                                    <select name="status" class="form-control form-control-sm d-inline-block w-auto">
-                                        @foreach (['CHECKIN_OPEN', 'OCCUPIED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'] as $status)
+                                    <select name="status" class="form-control form-control-sm select2 d-inline-block w-auto">
+                                        @foreach ($nextStatuses as $status)
                                             <option value="{{ $status }}">{{ $status }}</option>
                                         @endforeach
                                     </select>

@@ -25,7 +25,11 @@ class UserManagementController extends Controller
             ->orderBy('name')
             ->paginate(25);
 
-        return $this->viewOrRedirect($request, 'domain.users.index', compact('users'));
+        return $this->viewOrRedirect($request, 'domain.users.index', [
+            'users' => $users,
+            'hotels' => $request->user()->isSuperAdmin() ? Hotel::where('status', 'ACTIVE')->orderBy('name')->get() : collect(),
+            'selectedHotelId' => $request->input('hotel_id'),
+        ]);
     }
 
     public function create(Request $request, RoleAuthority $authority)

@@ -13,8 +13,8 @@ class MeetingStateTransition
 {
     public const ALLOWED = [
         'DRAFT' => ['SCHEDULED', 'CANCELLED'],
-        'SCHEDULED' => ['CHECKIN_OPEN', 'OCCUPIED', 'CANCELLED', 'NO_SHOW'],
-        'CHECKIN_OPEN' => ['OCCUPIED', 'CANCELLED', 'NO_SHOW'],
+        'SCHEDULED' => ['CHECKIN_OPEN', 'OCCUPIED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'],
+        'CHECKIN_OPEN' => ['OCCUPIED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'],
         'OCCUPIED' => ['COMPLETED', 'CANCELLED'],
         'COMPLETED' => [],
         'CANCELLED' => [],
@@ -43,6 +43,8 @@ class MeetingStateTransition
             }
 
             if ($target === MeetingStatus::COMPLETED) {
+                $updates['checkin_open_at'] = $meetingEvent->checkin_open_at ?: now();
+                $updates['started_at'] = $meetingEvent->started_at ?: now();
                 $updates['completed_at'] = now();
             }
 

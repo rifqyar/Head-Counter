@@ -68,7 +68,7 @@ class TmpScannerAuthTest extends TestCase
         $ref = new \ReflectionMethod(\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class, 'fromFrontend');
         $ref->setAccessible(true);
         $req = \Illuminate\Http\Request::create('/api/v1/scanner/redeem', 'POST');
-        echo "\n[fromFrontend no headers] " . var_export($ref->invoke(null, $req), true) . "\n";
+        echo "\n[fromFrontend no headers] ".var_export($ref->invoke(null, $req), true)."\n";
 
         $response = $this->postJson('/api/v1/scanner/redeem', $payload);
 

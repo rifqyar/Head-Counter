@@ -1,14 +1,15 @@
 var table
-$( function(){
+$(function () {
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
 
-    table = $('.data-table').DataTable({
+    if ($('.data-table').length) {
+        table = $('.data-table').DataTable({
         responsive: true,
-        scrollX: true,
+        autoWidth: false,
         processing: true,
         serverSide: true,
         ajax: {
@@ -21,31 +22,35 @@ $( function(){
         columns: [{
                 data: 'DT_RowIndex',
                 name: 'DT_RowIndex',
-                className: 'text-center',
+                className: 'text-muted',
                 width: '20px'
             },
             {
                 data: 'name',
-                name: 'name',
-                className: 'text-center'
+                name: 'name'
+            },
+            {
+                data: 'roles_count',
+                name: 'roles_count',
+                className: 'text-muted'
             },
             {
                 data: 'action',
                 name: 'action',
                 orderable: false,
                 searchable: false,
-                className: 'text-center',
+                className: 'text-right',
                 width: '200px'
             },
         ],
         fnDrawCallback: () => {
-            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+            $('[data-toggle="tooltip"]').tooltip()
         },
-    });
+        });
+    }
 })
 
-$('#btn-update-permission').on('click', function(){
+$(document).off('click.permissionSettings', '#btn-update-permission').on('click.permissionSettings', '#btn-update-permission', function () {
     apiCall($(this).data('url'), 'POST', 'edit-permission', {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
         },
@@ -58,7 +63,7 @@ $('#btn-update-permission').on('click', function(){
         })
 })
 
-$('#btn-save').on('click', function(){
+$(document).off('submit.permissionSettings', '#add-permission').on('submit.permissionSettings', '#add-permission', function () {
     const fAddComponent = $('#add-permission')
     var required = fAddComponent.find('.required')
     var canInput = true

@@ -914,3 +914,25 @@ The QR Scanner screen is exposed in the Transaction sidebar for users with `rede
 The scanner page auto-generates open meal/entitlement sessions for package-backed meetings that do not yet have any meal sessions. Participant QR credentials store a printable PDF path at issuance/rotation time, allowing authorized operators to reprint the active QR PDF without storing or revealing the raw token.
 
 **Rationale:** Scanner operators need every eligible booking/meeting to appear without knowing the separate meal-session generation step. Reprint support reduces operational risk after accidental QR rotation while preserving hash-only token storage; the application stores only the generated QR document, not the raw credential token.
+
+---
+
+## AD-084: Tenant Settings And Subscription Metadata
+
+**Date:** 2026-06-25
+**Status:** Accepted
+
+Tenant operational settings use the existing `hotels.settings` JSON column for logo path, contact details, QR note, and default booking source. Super-admin subscription metadata is stored under `hotels.settings.subscription` and managed from a platform-only subscription screen.
+
+**Rationale:** The requested settings, tenant user, hotel, and subscription administration can be delivered without a schema change because the current requirement is operational metadata, not billing ledger data. Keeping subscription metadata on the hotel record preserves PostgreSQL compatibility, tenant isolation, and auditability while leaving a dedicated subscription table available for a future billing phase if invoice or lifecycle automation requirements appear.
+
+---
+
+## AD-085: Direct Meeting Completion Shortcut
+
+**Date:** 2026-06-25
+**Status:** Accepted
+
+Managers may transition a meeting directly from `SCHEDULED` or `CHECKIN_OPEN` to `COMPLETED`. When this shortcut is used, missing `checkin_open_at` and `started_at` timestamps are filled before `completed_at`.
+
+**Rationale:** Hotel operators may close a meeting after the event without first walking through every intermediate state. The shortcut keeps operational data complete while preserving terminal-state protections for `COMPLETED`, `CANCELLED`, and `NO_SHOW`.

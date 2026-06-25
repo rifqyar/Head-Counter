@@ -44,6 +44,7 @@ function initScanner() {
 
             const response = await fetch(endpoint, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
                 body: JSON.stringify({
                     qr_token: token,

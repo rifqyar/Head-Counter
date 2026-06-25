@@ -2,6 +2,23 @@
 @include('domain._page_header', ['title' => 'Users', 'breadcrumbs' => ['Security' => null, 'Users' => null], 'actions' => new \Illuminate\Support\HtmlString('<a href="'.route('users.create').'" class="btn btn-primary spa_route">Create User</a>')])
 @include('domain._alerts')
 @component('domain._card')
+@if ($hotels->isNotEmpty())
+    <form method="GET" action="{{ route('users.index') }}" class="form-row align-items-end mb-3">
+        <div class="form-group col-md-5 mb-md-0">
+            <label>Tenant</label>
+            <select class="form-control select2" name="hotel_id">
+                <option value="">All platform and tenant users</option>
+                @foreach ($hotels as $hotel)
+                    <option value="{{ $hotel->id }}" @selected((string) $selectedHotelId === (string) $hotel->id)>{{ $hotel->code }} - {{ $hotel->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="form-group col-md-3 mb-md-0">
+            <button class="btn btn-primary" type="submit">Filter</button>
+            <a class="btn btn-link spa_route" href="{{ route('users.index') }}">Reset</a>
+        </div>
+    </form>
+@endif
 <div class="table-responsive">
     <table class="table table-striped">
         <thead><tr><th>Name</th><th>Username</th><th>Hotel</th><th>Status</th><th>Roles</th><th>Tokens</th><th></th></tr></thead>
@@ -20,6 +37,6 @@
         </tbody>
     </table>
 </div>
-{{ $users->links() }}
+{{ $users->appends(request()->query())->links() }}
 @endcomponent
 </div>

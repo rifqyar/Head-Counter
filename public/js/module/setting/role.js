@@ -1,14 +1,15 @@
 var table
-$( function(){
+$(function () {
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
 
-    table = $('.data-table').DataTable({
+    if ($('.data-table').length) {
+        table = $('.data-table').DataTable({
         responsive: true,
-        scrollX: true,
+        autoWidth: false,
         processing: true,
         serverSide: true,
         ajax: {
@@ -21,31 +22,62 @@ $( function(){
         columns: [{
                 data: 'DT_RowIndex',
                 name: 'DT_RowIndex',
-                className: 'text-center',
+                className: 'text-muted',
                 width: '20px'
             },
             {
                 data: 'name',
-                name: 'name',
-                className: 'text-center'
+                name: 'name'
+            },
+            {
+                data: 'permissions_count',
+                name: 'permissions_count',
+                className: 'text-muted'
             },
             {
                 data: 'action',
                 name: 'action',
                 orderable: false,
                 searchable: false,
-                className: 'text-center',
+                className: 'text-right',
                 width: '200px'
             },
         ],
         fnDrawCallback: () => {
-            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+            $('[data-toggle="tooltip"]').tooltip()
         },
-    });
+        });
+    }
 })
 
-$('#manage-permission').on('submit', function(){
+$(document).off('click.roleSettings', '#check-all-permissions').on('click.roleSettings', '#check-all-permissions', function () {
+    $('.permission-checkbox').prop('checked', true)
+})
+
+$(document).off('click.roleSettings', '#clear-all-permissions').on('click.roleSettings', '#clear-all-permissions', function () {
+    $('.permission-checkbox').prop('checked', false)
+})
+
+$(document).off('submit.roleSettings', '#add-role').on('submit.roleSettings', '#add-role', function () {
+    const form = $('#add-role')
+    if (!form.find('[name="name"]').val()) {
+        form.find('[name="name"]').addClass('is-invalid')
+        return
+    }
+
+    prompt('submit', 'Role', (confirm) => {
+        if (confirm) {
+            apiCall('setting/role/store', 'POST', 'add-role', {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+            }, null, null, true, () => {
+                $('.loading').hide()
+                renderView(`${$('meta[name="baseurl"]').attr('content')}setting/role`)
+            })
+        }
+    })
+})
+
+$(document).off('submit.roleSettings', '#manage-permission').on('submit.roleSettings', '#manage-permission', function () {
     const fAddComponent = $('#manage-permission')
     var required = fAddComponent.find('.required')
     var canInput = true

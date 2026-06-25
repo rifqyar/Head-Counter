@@ -2,6 +2,8 @@ $(document).ready(function () {
     const link = $(".spa_route"),
         render = $("#render");
 
+    initEnhancedSelects($(document));
+
     link.on("click", function (t) {
         $('.spa_route').removeClass('active')
         $('.spa_route').parent().removeClass('active')
@@ -28,6 +30,7 @@ $(document).ready(function () {
                     $(this).addClass('active')
                     $(this).parent().addClass('active')
                     render.html(res);
+                    initEnhancedSelects(render);
                     $(".loading").hide();
                 },
                 error: (err) => {
@@ -72,6 +75,7 @@ function renderView(route) {
         success: (res) => {
             NProgress.done();
             render.html(res);
+            initEnhancedSelects(render);
             $(".loading").hide();
         },
         error: (err) => {
@@ -80,6 +84,14 @@ function renderView(route) {
         },
     });
     NProgress.remove();
+}
+
+function initEnhancedSelects(scope = $(document)) {
+    if ($.fn.select2) {
+        scope.find('.select2').select2({
+            width: '100%'
+        });
+    }
 }
 
 function beforeAjaxSend() {
@@ -123,8 +135,10 @@ function fillResData(form_id) {
                 formData.append(`${$(form)[i].name}`, $(form)[i].value);
             }
         } else {
-            const val = $(form[i]).val().toString();
-            formData.append(`${$(form)[i].name}`, val);
+            const values = $(form[i]).val() || [];
+            values.forEach((value) => {
+                formData.append(`${$(form)[i].name}`, value);
+            });
         }
     }
 

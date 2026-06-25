@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePermissionRequest;
 use App\Http\Requests\UpdatePermissionRequest;
 use App\Support\Audit\AuditLogger;
+use App\Support\Security\RoleAuthority;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,9 +19,12 @@ class PermissionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request, RoleAuthority $authority)
     {
-        return view('module.setting.permission.index');
+        return view('module.setting.permission.index', [
+            'permissionCount' => $authority->manageablePermissions($request->user())->count(),
+            'roleCount' => \Spatie\Permission\Models\Role::count(),
+        ]);
     }
 
     /**
@@ -32,17 +36,19 @@ class PermissionController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
+            ->editColumn('name', fn ($query) => '<span class="font-weight-semibold">'.$query->name.'</span>')
+            ->addColumn('roles_count', fn ($query) => $query->roles()->count())
             ->editColumn('action', function ($query) {
-                $html = "<a href='javascript:void(0)' onclick='renderView(`".route('permission.edit', $query->id)."`)'  class='btn icon btn-sm btn-outline-warning rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Edit Permission'>
-                                <i class='fas fa-pencil'></i>
+                $html = "<a href='javascript:void(0)' onclick='renderView(`".route('permission.edit', $query->id)."`)' class='btn btn-sm btn-outline-warning mr-1' data-toggle='tooltip' title='Edit permission'>
+                                <i class='fa fa-pencil'></i>
                             </a>
-                            <a href='javascript:void(0)' onclick='renderView(`".route('permission.destroy', $query->id)."`)'  class='btn icon btn-sm btn-outline-danger rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Delete Permission'>
-                                <i class='fas fa-trash'></i>
+                            <a href='javascript:void(0)' onclick='prompt(`delete`, `Permission`, function(confirm){ if(confirm){ apiCall(`setting/permission/destroy/".$query->id.'`, `GET`, ``, null, null, null, true, function(){ renderView(`'.route('setting.permission')."`); }); } })' class='btn btn-sm btn-outline-danger' data-toggle='tooltip' title='Delete permission'>
+                                <i class='fa fa-trash'></i>
                             </a>";
 
                 return $html;
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['name', 'action'])
             ->make(true);
     }
 

@@ -20,9 +20,12 @@ class RoleControlller extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(RoleAuthority $authority, Request $request)
     {
-        return view('module.setting.role.index');
+        return view('module.setting.role.index', [
+            'roleCount' => $authority->assignableRoles($request->user())->count(),
+            'permissionCount' => $authority->manageablePermissions($request->user())->count(),
+        ]);
     }
 
     /**
@@ -34,14 +37,16 @@ class RoleControlller extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
+            ->editColumn('name', fn ($query) => '<span class="font-weight-semibold">'.$query->name.'</span>')
+            ->addColumn('permissions_count', fn ($query) => $query->permissions()->count())
             ->editColumn('action', function ($query) {
-                $html = "<a href='javascript:void(0)' onclick='renderView(`".route('role.manage-permission', $query->id)."`)'  class='btn icon btn-sm btn-outline-primary rounded-pill' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='Manage Permission'>
-                                <i class='fas fa-cogs'></i>
+                $html = "<a href='javascript:void(0)' onclick='renderView(`".route('role.manage-permission', $query->id)."`)' class='btn btn-sm btn-outline-primary' data-toggle='tooltip' title='Manage permissions'>
+                                <i class='fa fa-lock'></i> Permissions
                             </a>";
 
                 return $html;
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['name', 'action'])
             ->make(true);
     }
 

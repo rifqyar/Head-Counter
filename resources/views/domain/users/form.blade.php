@@ -15,7 +15,7 @@
     </div>
     <div class="form-group col-md-6">
         <label>Status</label>
-        <select class="form-control" name="status">
+        <select class="form-control select2" name="status">
             @foreach (['ACTIVE', 'INACTIVE'] as $status)
                 <option value="{{ $status }}" @selected(old('status', $managedUser->status ?? 'ACTIVE') === $status)>{{ $status }}</option>
             @endforeach
@@ -25,7 +25,7 @@
 @if (auth()->user()->isSuperAdmin())
     <div class="form-group">
         <label>Hotel</label>
-        <select class="form-control" name="hotel_id">
+        <select class="form-control select2" name="hotel_id">
             <option value="">Platform user</option>
             @foreach ($hotels as $hotel)
                 <option value="{{ $hotel->id }}" @selected((int) old('hotel_id', $managedUser->hotel_id) === (int) $hotel->id)>{{ $hotel->code }} - {{ $hotel->name }}</option>
@@ -46,7 +46,7 @@
 @if (! $managedUser->exists)
     <div class="form-group">
         <label>Roles</label>
-        <select class="form-control" name="roles[]" multiple>
+        <select class="form-control select2" name="roles[]" multiple>
             @foreach ($roles as $role)
                 <option value="{{ $role->name }}" @selected(collect(old('roles', []))->contains($role->name))>{{ $role->name }}</option>
             @endforeach

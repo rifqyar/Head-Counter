@@ -122,6 +122,53 @@
 
 Phase 6 is complete. Recommended next step: start Phase 7 only after review.
 
+## Tenant Settings, User, Hotel, and Subscription Administration
+
+**Current Status:** COMPLETED
+
+### Completed Work
+
+- COMPLETED: Added a tenant settings screen where hotel admins can maintain their own hotel profile, logo path, contact details, QR note, default booking source, address, and timezone.
+- COMPLETED: Added super-admin subscription administration backed by `hotels.settings.subscription`, with plan, status, start date, expiry date, user limit, and notes.
+- COMPLETED: Fixed the Setting sidebar so Manage User opens the existing tenant-scoped `/users` manager instead of a placeholder link.
+- COMPLETED: Added Setting sidebar links for Hotel Settings, Subscriptions, and Tenant Switch where permitted.
+- COMPLETED: Added a super-admin tenant selector to the Users screen so platform admins can manage users for a specific hotel.
+- COMPLETED: Exposed subscription and tenant user quick actions from hotel detail.
+- COMPLETED: Added audit logging for tenant settings and subscription changes.
+- COMPLETED: Added focused regression coverage for tenant settings updates, super-admin subscription updates, and tenant user filtering.
+- COMPLETED: Enhanced Manage Role and Manage Permission screens with the canonical admin shell, summary counters, cleaner DataTables, Bootstrap 4 tooltips, and improved create/edit forms.
+- COMPLETED: Reworked the role permission editor into grouped permission sections with Select All and Clear controls.
+- COMPLETED: Reworked the subscription page so hotel list and subscription status appear first, with inline expandable edit forms.
+- COMPLETED: Fixed missing sidebar icons for Subscriptions and All Reports by using loaded Font Awesome icons.
+- COMPLETED: Improved select option rendering by removing an invalid Select2 theme URL, adding local Select2 styling, initializing Select2 after AJAX page renders, and applying Select2 to role, tenant, status, and API ability selects.
+- COMPLETED: Fixed multiple-select form serialization so selected values are submitted as repeated array values instead of one comma-separated string.
+- COMPLETED: Fixed seeded General Manager and Hotel Admin roles so both receive the legacy `Setting` and `Manage User` menu permissions as well as `settings.manage` and `user.manage`.
+- COMPLETED: Re-seeded the local database and cleared caches so existing `oria.admin` and `oria.gm` accounts show Setting, Manage User, and Hotel Settings immediately.
+- COMPLETED: Fixed Role and Permission DataTables in AJAX-loaded pages by returning their script tags directly in the partial response instead of using layout-only Blade stacks.
+- COMPLETED: Fixed meeting completion by allowing managers to complete meetings directly from `SCHEDULED` or `CHECKIN_OPEN`, while setting missing started/check-in timestamps safely.
+- COMPLETED: Limited meeting transition dropdowns to valid next statuses so users are not offered backend-rejected transitions.
+- COMPLETED: Added regression coverage for hotel admin/GM Setting menu visibility, direct scheduled-to-completed meeting transitions, and Role/Permission DataTable JSON data.
+
+### Tests And Validation Executed
+
+| Command | Result |
+|---|---|
+| `php artisan route:list --path=settings` | Exit 0; settings and subscription routes registered |
+| `php artisan route:list --path=users` | Exit 0; user management routes registered |
+| `php artisan route:list --path=setting` | Exit 0; role, permission, settings, and subscription routes registered |
+| `php artisan db:seed --force` | Exit 0; local seeded hotel roles refreshed |
+| `php artisan optimize:clear` | Exit 0; caches cleared after local reseed |
+| `php artisan test tests\\Feature\\PhaseFiveCompletionTest.php --filter="settings\|subscription\|user management"` | Exit 0; 2 tests passed, 14 assertions |
+| `php artisan test tests\\Feature\\PhaseFiveCompletionTest.php --stop-on-failure` | Exit 0; 9 tests passed, 87 assertions |
+| `php artisan test` | Exit 0; 72 tests passed, 499 assertions |
+| `./vendor/bin/pint` | Exit 0; formatting applied |
+| `./vendor/bin/pint --test` | Exit 0; 285 files passed |
+
+### Known Risks
+
+- Subscription data is intentionally stored in `hotels.settings` JSON for this bounded administration pass. A dedicated billing/subscription table may be needed later if invoices, payment history, package limits, or subscription lifecycle automation become requirements.
+- Logo settings currently accept a public asset path; file upload/storage management remains a future enhancement.
+
 ## Booking, Package, QR, and GM Menu Enhancement
 
 **Current Status:** COMPLETED

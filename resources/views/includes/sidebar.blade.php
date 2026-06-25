@@ -115,7 +115,7 @@
                     @can('report.view')
                         <li>
                             <a href='{{ route('reports.index') }}' class='sidebar-link spa_route'>
-                                <i class='mdi mdi-chart-box'></i>
+                                <i class='fa fa-bar-chart'></i>
                                 <span>All Reports</span>
                             </a>
                         </li>
@@ -134,12 +134,34 @@
                     <li class='nav-small-cap'>Setting</li>
                     @can('Manage User')
                         <li class='sidebar-item'>
-                            <a href='#' class='sidebar-link spa_route'>
+                            <a href='{{ route('users.index') }}' class='sidebar-link spa_route'>
                                 <i class='mdi mdi-account-settings-variant'></i>
                                 <span>Manage User</span>
                             </a>
                         </li>
                     @endcan
+                    @can('settings.manage')
+                        <li class='sidebar-item'>
+                            <a href='{{ route('settings.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-tune'></i>
+                                <span>Hotel Settings</span>
+                            </a>
+                        </li>
+                    @endcan
+                    @if (auth()->user()?->isSuperAdmin())
+                        <li class='sidebar-item'>
+                            <a href='{{ route('settings.subscriptions.index') }}' class='sidebar-link spa_route'>
+                                <i class='fa fa-credit-card'></i>
+                                <span>Subscriptions</span>
+                            </a>
+                        </li>
+                        <li class='sidebar-item'>
+                            <a href='{{ route('tenant-switch.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-swap-horizontal'></i>
+                                <span>Tenant Switch</span>
+                            </a>
+                        </li>
+                    @endif
 
                     @can('Manage Role')
                         <li class='sidebar-item'>

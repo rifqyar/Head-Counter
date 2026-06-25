@@ -62,6 +62,23 @@ class PhaseFiveCompletionTest extends TestCase
         $this->seed();
         [$hotel, $hotelAdmin] = $this->hotelUser('ORIA');
 
+        $gm = User::where('hotel_id', $hotel->id)->where('username', 'oria.gm')->firstOrFail();
+
+        foreach ([$hotelAdmin, $gm] as $manager) {
+            $this->assertTrue($manager->can('Setting'));
+            $this->assertTrue($manager->can('Manage User'));
+            $this->assertTrue($manager->can('settings.manage'));
+            $this->assertTrue($manager->can('user.manage'));
+
+            $this->followingRedirects()
+                ->actingAs($manager)
+                ->get(route('dashboard'))
+                ->assertOk()
+                ->assertSee('Setting')
+                ->assertSee('Manage User')
+                ->assertSee('Hotel Settings');
+        }
+
         $this->actingAs($hotelAdmin)->post(route('users.store'), [
             'name' => 'Hotel Staff',
             'username' => 'hotel.staff',
@@ -93,6 +110,28 @@ class PhaseFiveCompletionTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'user.tokens_revoked', 'entity_id' => $managed->id]);
     }
 
+    public function test_hotel_manager_can_complete_scheduled_meeting(): void
+    {
+        $this->seed();
+        [$hotel, $hotelAdmin] = $this->hotelUser('ORIA');
+        $meeting = MeetingEvent::where('hotel_id', $hotel->id)->where('status', MeetingStatus::SCHEDULED)->firstOrFail();
+
+        $this->actingAs($hotelAdmin)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->get(route('meetings.show', $meeting))
+            ->assertOk()
+            ->assertSee('COMPLETED');
+
+        $this->actingAs($hotelAdmin)
+            ->post(route('meetings.transition', $meeting), ['status' => 'COMPLETED'])
+            ->assertRedirect(route('meetings.show', $meeting));
+
+        $meeting->refresh();
+        $this->assertSame(MeetingStatus::COMPLETED, $meeting->status);
+        $this->assertNotNull($meeting->started_at);
+        $this->assertNotNull($meeting->completed_at);
+    }
+
     public function test_last_super_admin_is_protected(): void
     {
         $this->seed();
@@ -102,11 +141,98 @@ class PhaseFiveCompletionTest extends TestCase
         $this->assertTrue($superAdmin->refresh()->isActive());
     }
 
+    public function test_tenant_admin_can_update_own_hotel_settings(): void
+    {
+        $this->seed();
+        [$hotel, $hotelAdmin] = $this->hotelUser('ORIA');
+
+        $this->actingAs($hotelAdmin)->put(route('settings.update'), [
+            'name' => 'Oria Hotel Jakarta Operations',
+            'address' => 'Jl. K.H. Wahid Hasyim',
+            'timezone' => 'Asia/Jakarta',
+            'settings' => [
+                'logo_path' => 'images/oria-logo.png',
+                'contact_email' => 'ops.oria@example.test',
+                'contact_phone' => '+622100000',
+                'meeting_qr_note' => 'Bring your invitation QR.',
+                'default_booking_source' => 'DIRECT',
+            ],
+        ])->assertRedirect(route('settings.index'));
+
+        $hotel->refresh();
+        $this->assertSame('Oria Hotel Jakarta Operations', $hotel->name);
+        $this->assertSame('images/oria-logo.png', $hotel->settings['logo_path']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'settings.updated', 'hotel_id' => $hotel->id]);
+    }
+
+    public function test_super_admin_can_manage_hotel_subscription_and_filter_tenant_users(): void
+    {
+        $this->seed();
+        $superAdmin = User::where('username', 'superadmin')->firstOrFail();
+        $hotel = Hotel::where('code', 'ORIA')->firstOrFail();
+
+        $this->actingAs($superAdmin)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->get(route('settings.subscriptions.index'))
+            ->assertOk()
+            ->assertSee('Subscriptions')
+            ->assertSee('Hotel')
+            ->assertSee('Status');
+
+        $this->actingAs($superAdmin)->put(route('settings.subscriptions.update', $hotel), [
+            'plan' => 'Enterprise Pilot',
+            'status' => 'ACTIVE',
+            'started_at' => '2026-06-01',
+            'expires_at' => '2027-06-01',
+            'max_users' => 50,
+            'notes' => 'Annual subscription',
+        ])->assertRedirect(route('settings.subscriptions.index'));
+
+        $hotel->refresh();
+        $this->assertSame('Enterprise Pilot', $hotel->settings['subscription']['plan']);
+        $this->assertSame('ACTIVE', $hotel->settings['subscription']['status']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'hotel.subscription_updated', 'hotel_id' => $hotel->id]);
+
+        $this->actingAs($superAdmin)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->get(route('users.index', ['hotel_id' => $hotel->id]))
+            ->assertOk()
+            ->assertSee('Tenant')
+            ->assertSee('oria.admin')
+            ->assertDontSee('aonewh.admin');
+    }
+
     public function test_role_and_permission_mutations_are_audited_and_protected(): void
     {
         $this->seed();
         $superAdmin = User::where('username', 'superadmin')->firstOrFail();
         $role = Role::findByName('SCANNER_OPERATOR');
+
+        $this->actingAs($superAdmin)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->get(route('setting.role'))
+            ->assertOk()
+            ->assertSee('Manage Roles')
+            ->assertSee('Create Role');
+
+        $this->actingAs($superAdmin)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->get(route('setting.permission'))
+            ->assertOk()
+            ->assertSee('Manage Permissions')
+            ->assertSee('Create Permission');
+
+        $this->actingAs($superAdmin)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->post(route('role.data'), ['draw' => 1, 'start' => 0, 'length' => 10])
+            ->assertOk()
+            ->assertJson(fn ($json) => $json->has('data.0.name')->etc());
+
+        $this->actingAs($superAdmin)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->post(route('permission.data'), ['draw' => 1, 'start' => 0, 'length' => 10])
+            ->assertOk()
+            ->assertJson(fn ($json) => $json->has('data.0.name')->etc());
 
         $this->actingAs($superAdmin)->withHeader('X-Requested-With', 'XMLHttpRequest')->post(route('role.store'), ['name' => 'CUSTOM_SECURITY_ROLE'])->assertOk();
         $this->assertDatabaseHas('audit_logs', ['action' => 'role.created']);

@@ -1,63 +1,45 @@
-<div class="page-heading">
-    <div class="page-title">
-        <div class="row">
-            <div class="col-12 col-md-6 order-md-1 order-last">
-                <h3>Manage Permission <i class="fas fa-refresh refresh-page" onclick="renderView(`{!!route('role.manage-permission', $role->id)!!}`)"></i> </h3>
-                <p class="text-subtitle text-muted"></p>
+<div class="container-fluid">
+    @include('domain._page_header', [
+        'title' => 'Role Permissions',
+        'breadcrumbs' => ['Setting' => null, 'Roles' => route('setting.role'), $role->name => null],
+    ])
+
+    @component('domain._card')
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="mb-1">{{ $role->name }}</h5>
+                <span class="text-muted">{{ count($myPermissions) }} of {{ $permissions->count() }} permissions selected</span>
             </div>
-            <div class="col-12 col-md-6 order-md-2 order-first">
-                <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">Setting</a></li>
-                        <li class="breadcrumb-item spa_route" aria-current="page"><a href="javascript:void(0)" onclick="renderView(`{!!route('setting.role')!!}`)">Role</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Manage Permission</a></li>
-                    </ol>
-                </nav>
+            <div class="mt-2 mt-md-0">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="check-all-permissions">Select All</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-all-permissions">Clear</button>
             </div>
         </div>
-    </div>
-    <section class="section row">
-        <div class="card">
-            <div class="card-body">
-                <form class="form form-vertical" id="manage-permission" action="javascript:void(0)">
-                    @csrf
-                    <div class="form-body">
-                        <input type="text" class="form-control form-input" placeholder="Nama" name="role_id"
-                        value="{{ $role->id }}" hidden>
 
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Name</th>
-                                        <th scope="col">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($permissions as $value)
-                                        <tr>
-                                            <td>{{ $value->name }}</td>
-                                            <td><input class="form-check-input form-input" type="checkbox" value="{{ $value->name }}"
-                                                    name="permissions[]"
-                                                    {{ in_array($value->name, $myPermissions) ? 'checked' : '' }}></td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+        <form class="form form-vertical" id="manage-permission" action="javascript:void(0)">
+            @csrf
+            <input type="hidden" class="form-control form-input" name="role_id" value="{{ $role->id }}">
 
-                        <div class="col-12 d-flex justify-content-end">
-                            <button type="submit" id="btn-save" class="btn btn-primary me-1 mb-1">Submit</button>
-                            <button type="button" class="btn btn-warning me-1 mb-1" onclick="renderView(`{!!route('setting.role')!!}`)" >Cancel</button>
+            <div class="row">
+                @foreach ($permissions->groupBy(fn ($permission) => \Illuminate\Support\Str::before($permission->name, '.')) as $group => $items)
+                    <div class="col-md-6 col-xl-4 mb-3">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="text-uppercase text-muted mb-3">{{ $group }}</h6>
+                            @foreach ($items as $permission)
+                                <div class="custom-control custom-checkbox mb-2">
+                                    <input class="custom-control-input form-input permission-checkbox" id="permission-{{ $permission->id }}" type="checkbox" value="{{ $permission->name }}" name="permissions[]" {{ in_array($permission->name, $myPermissions, true) ? 'checked' : '' }}>
+                                    <label class="custom-control-label" for="permission-{{ $permission->id }}">{{ $permission->name }}</label>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
-                </form>
+                @endforeach
             </div>
 
-        </div>
-    </section>
-
-    @prepend('after-script')
-    <script type="text/javascript" src="{{ asset('js/module/setting/role.js') }}"></script>
-    @endprepend
+            <button type="submit" id="btn-save" class="btn btn-primary">Save Permissions</button>
+            <button type="button" class="btn btn-link" onclick="renderView(`{!! route('setting.role') !!}`)">Cancel</button>
+        </form>
+    @endcomponent
 </div>
+
+<script type="text/javascript" src="{{ asset('js/module/setting/role.js') }}"></script>

@@ -1,8 +1,9 @@
 @if (! in_array($meetingStatus, ['COMPLETED', 'CANCELLED', 'NO_SHOW'], true))
+    @php($nextStatuses = \App\Services\MeetingStateTransition::ALLOWED[$meetingStatus] ?? [])
     <form method="POST" action="{{ route('meetings.transition', $meeting) }}" class="d-inline">
         @csrf
-        <select name="status" class="form-control d-inline-block w-auto">
-            @foreach (['CHECKIN_OPEN', 'OCCUPIED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'] as $status)
+        <select name="status" class="form-control select2 d-inline-block w-auto">
+            @foreach ($nextStatuses as $status)
                 <option value="{{ $status }}">{{ $status }}</option>
             @endforeach
         </select>

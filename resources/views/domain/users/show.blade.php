@@ -24,7 +24,7 @@
 <h5>Role Assignment</h5>
 <form method="POST" action="{{ route('users.roles.sync', $managedUser) }}">
     @csrf
-    <select class="form-control mb-2" name="roles[]" multiple>
+    <select class="form-control select2 mb-2" name="roles[]" multiple>
         @foreach ($roles as $role)
             <option value="{{ $role->name }}" @selected($managedUser->roles->pluck('name')->contains($role->name))>{{ $role->name }}</option>
         @endforeach
@@ -47,16 +47,16 @@
 <form method="POST" action="{{ route('users.tokens.store', $managedUser) }}" class="mb-3">
     @csrf
     <div class="form-row">
-        <div class="col-md-3"><input class="form-control" name="name" placeholder="Token name" required></div>
-        <div class="col-md-5">
-            <select class="form-control" name="abilities[]" multiple required>
+        <div class="form-group col-lg-3 col-md-6"><input class="form-control" name="name" placeholder="Token name" required></div>
+        <div class="form-group col-lg-5 col-md-6">
+            <select class="form-control select2" name="abilities[]" multiple required>
                 @foreach ($tokenAbilities as $ability)
                     <option value="{{ $ability }}">{{ $ability }}</option>
                 @endforeach
             </select>
         </div>
-        <div class="col-md-2"><input class="form-control" type="datetime-local" name="expires_at"></div>
-        <div class="col-md-2"><button class="btn btn-primary btn-block">Create Token</button></div>
+        <div class="form-group col-lg-2 col-md-6"><input class="form-control" type="datetime-local" name="expires_at"></div>
+        <div class="form-group col-lg-2 col-md-6"><button class="btn btn-primary btn-block" type="submit">Create Token</button></div>
     </div>
 </form>
 <table class="table table-sm">
