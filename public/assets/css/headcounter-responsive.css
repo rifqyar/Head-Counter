@@ -222,8 +222,32 @@ body {
 .left-sidebar .scroll-sidebar {
     height: calc(100vh - 66px) !important;
     max-height: calc(100vh - 66px) !important;
+    direction: rtl;
     overflow-x: hidden !important;
     overflow-y: auto !important;
+    scrollbar-color: rgba(148, 163, 184, .62) transparent;
+    scrollbar-width: thin;
+}
+
+.left-sidebar .scroll-sidebar > * {
+    direction: ltr;
+}
+
+.left-sidebar .scroll-sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.left-sidebar .scroll-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.left-sidebar .scroll-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, .58);
+    border-radius: 999px;
+}
+
+.left-sidebar .scroll-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(203, 213, 225, .78);
 }
 
 .left-sidebar .slimScrollBar,
@@ -921,6 +945,7 @@ tr td[colspan] {
     .mini-sidebar .left-sidebar:hover .scroll-sidebar {
         height: calc(100vh - 66px) !important;
         max-height: calc(100vh - 66px) !important;
+        direction: rtl;
         overflow-x: hidden !important;
         overflow-y: auto !important;
     }
