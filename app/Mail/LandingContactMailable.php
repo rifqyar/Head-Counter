@@ -26,7 +26,7 @@ class LandingContactMailable extends Mailable
 
         return $this
             ->to(config('app.contact_email', 'admin@rekayasadigital.com'))
-            ->from($fromAddress, $fromName)
+            ->from('admin@rekayasadigital.com', 'Rekayasa Digital - Head Counter App')
             ->replyTo($fromAddress, $fromName)
             ->subject($subject)
             ->view('emails.landing-contact', ['data' => $this->payload]);
