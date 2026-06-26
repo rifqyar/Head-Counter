@@ -31,8 +31,10 @@
                 @if (Auth::user()?->isSuperAdmin())
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="mdi mdi-domain"></i>
-                            {{ app(\App\Support\Tenancy\TenantContext::class)->hotel()?->code ?? 'All Hotels' }}
+                            <span class="hc-tenant-pill">
+                                <i class="mdi mdi-domain"></i>
+                                {{ app(\App\Support\Tenancy\TenantContext::class)->hotel()?->code ?? 'All Hotels' }}
+                            </span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right scale-up p-3" style="min-width: 320px;">
                             <strong>Tenant Context</strong>
@@ -58,8 +60,10 @@
                 @else
                     <li class="nav-item">
                         <span class="nav-link text-muted">
-                            <i class="mdi mdi-domain"></i>
-                            {{ app(\App\Support\Tenancy\TenantContext::class)->hotel()?->code ?? Auth::user()?->hotel?->code ?? 'No Hotel' }}
+                            <span class="hc-tenant-pill">
+                                <i class="mdi mdi-domain"></i>
+                                {{ app(\App\Support\Tenancy\TenantContext::class)->hotel()?->code ?? Auth::user()?->hotel?->code ?? 'No Hotel' }}
+                            </span>
                         </span>
                     </li>
                 @endif
@@ -67,7 +71,10 @@
                 <!-- Profile -->
                 <!-- ============================================================== -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="../assets/images/users/1.jpg" alt="user" class="profile-pic" /></a>
+                    <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark hc-user-trigger" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="hc-user-name">{{ Auth::user()->name }}</span>
+                        <img src="../assets/images/users/1.jpg" alt="user" class="profile-pic" />
+                    </a>
                     <div class="dropdown-menu dropdown-menu-right scale-up">
                         <ul class="dropdown-user">
                             <li>

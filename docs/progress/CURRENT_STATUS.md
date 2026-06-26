@@ -140,6 +140,14 @@ Phase 6 is complete. Recommended next step: start Phase 7 only after review.
 - COMPLETED: Wired Back to the nearest breadcrumb parent as a deterministic SPA navigation action, replacing the current history entry so browser Back does not bounce users back into the detail/edit page.
 - COMPLETED: Renamed non-destructive form exit links from Cancel to Back so Cancel remains reserved for real operational cancellation actions.
 - COMPLETED: Rebuilt the login screen with a responsive full-cover background image, mobile-safe layout, polished login card, stronger typography, and touch-friendly form controls.
+- COMPLETED: Added a global modern UI skin across authenticated pages: calmer shell background, white topbar, refined dark sidebar, modern page headers, elevated cards, improved tables, cleaner forms, polished buttons, status badges, alerts, DataTables controls, dropdowns, and responsive action spacing.
+- COMPLETED: Added a second authenticated UI polish pass for richer topbar tenant/user affordances, refined dropdowns, clearer validation/status alerts, stronger table action cells, better filter/export form spacing, wizard styling, report/dashboard card accents, and mobile action stacking.
+- COMPLETED: Restored a colored gradient topbar and added a protected logo contrast bay with dual logo shadowing so light or dark hotel logos remain visible.
+- COMPLETED: Removed the logo bay background, increased topbar logo sizing within constrained bounds, and added spacing above the dashboard/page header area.
+- COMPLETED: Fixed collapsed sidebar behavior so menu text is hidden, icons are centered, the navbar brand collapses with the sidebar width, and the operational dashboard header has topbar breathing room.
+- COMPLETED: Replaced collapsed sidebar per-item flyouts with smooth full-sidebar hover expansion so labels return together and menu hover feels stable.
+- COMPLETED: Added a coordinated sidebar hover-expanded shell state so the navbar brand expands with the sidebar and the expanded sidebar scrolls to the bottom through the SlimScroll wrapper.
+- COMPLETED: Removed the sidebar double-scrollbar effect by hiding SlimScroll's extra rail/bar and delegating vertical scrolling to the main sidebar scroll container.
 
 ### Tests And Validation Executed
 
@@ -162,6 +170,24 @@ Phase 6 is complete. Recommended next step: start Phase 7 only after review.
 | `./vendor/bin/pint` after login responsive redesign | Exit 0; 285 files passed |
 | `php artisan test tests\Feature\PhaseOneSmokeTest.php --stop-on-failure` | Exit 0; 10 tests passed, 20 assertions |
 | `php artisan route:list --path=login` | Exit 0; login GET and POST routes registered |
+| `node --check public/js/core/core.js` after global UI skin | Exit 0 |
+| `./vendor/bin/pint` after global UI skin | Exit 0; 285 files passed |
+| `php artisan test tests\Feature\PhaseThreeCompletionTest.php tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` | Exit 0; 17 tests passed, 140 assertions |
+| `./vendor/bin/pint` after second UI polish pass | Exit 0; 285 files passed |
+| `php artisan test tests\Feature\PhaseThreeCompletionTest.php tests\Feature\PhaseFiveCompletionTest.php tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` | Exit 0; 26 tests passed, 227 assertions |
+| `./vendor/bin/pint` after topbar contrast fix | Exit 0; 285 files passed |
+| `php artisan test tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` | Exit 0; 6 tests passed, 30 assertions |
+| `./vendor/bin/pint` after topbar logo spacing update | Exit 0; 285 files passed |
+| `php artisan test tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` after topbar logo spacing update | Exit 0; 6 tests passed, 30 assertions |
+| `./vendor/bin/pint` after collapsed shell fix | Exit 0; 285 files passed |
+| `php artisan test tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` after collapsed shell fix | Exit 0; 6 tests passed, 30 assertions |
+| `./vendor/bin/pint` after collapsed sidebar hover expansion | Exit 0; 285 files passed |
+| `php artisan test tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` after collapsed sidebar hover expansion | Exit 0; 6 tests passed, 30 assertions |
+| `node --check public/js/core/core.js` after sidebar hover scroll/brand fix | Exit 0 |
+| `./vendor/bin/pint` after sidebar hover scroll/brand fix | Exit 0; 285 files passed |
+| `php artisan test tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` after sidebar hover scroll/brand fix | Exit 0; 6 tests passed, 30 assertions |
+| `./vendor/bin/pint` after sidebar double-scroll cleanup | Exit 0; 285 files passed |
+| `php artisan test tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` after sidebar double-scroll cleanup | Exit 0; 6 tests passed, 30 assertions |
 
 ### Known Risks
 

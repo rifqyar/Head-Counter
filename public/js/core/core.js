@@ -17,6 +17,16 @@ $(document).ready(function () {
         goBackInShell($(this).data("fallback-url"));
     });
 
+    $(document).on("mouseenter", ".left-sidebar", function () {
+        if ($("body").hasClass("mini-sidebar")) {
+            $("body").addClass("sidebar-hover-expanded");
+        }
+    });
+
+    $(document).on("mouseleave", ".left-sidebar", function () {
+        $("body").removeClass("sidebar-hover-expanded");
+    });
+
     $(document).on("submit", "#render form", function (event) {
         const method = ($(this).attr("method") || "GET").toUpperCase();
 
