@@ -21,8 +21,13 @@ class LandingContactMailable extends Mailable
             default => '[Head Counter] New contact inquiry',
         };
 
+        $fromAddress = $this->payload['email'] ?? config('mail.from.address');
+        $fromName = $this->payload['name'] ?? config('mail.from.name');
+
         return $this
             ->to(config('app.contact_email', 'admin@rekayasadigital.com'))
+            ->from($fromAddress, $fromName)
+            ->replyTo($fromAddress, $fromName)
             ->subject($subject)
             ->view('emails.landing-contact', ['data' => $this->payload]);
     }

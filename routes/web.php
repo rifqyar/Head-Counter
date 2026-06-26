@@ -40,7 +40,7 @@ use Illuminate\Support\Facades\Route;
 Auth::routes(['register' => false]);
 
 Route::get('/test-email', function () {
-    Mail::to('rifqyaditya55@gmail.com')->send(new TestMail());
+    Mail::to('rifqyaditya55@gmail.com')->send(new TestMail);
 
     return 'Email terkirim';
 });

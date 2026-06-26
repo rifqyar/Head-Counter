@@ -1,6 +1,6 @@
 # Current Status
 
-**Last Updated:** 2026-06-26
+**Last Updated:** 2026-06-27
 
 ## Phase Progress
 
@@ -153,6 +153,7 @@ Phase 6 is complete. Recommended next step: start Phase 7 only after review.
 - COMPLETED: Strengthened landing SEO for `hotel.rekayasadigital.com` with canonical and hreflang links, indexable meta tags, Open Graph/Twitter cards, JSON-LD Organization/SoftwareApplication/FAQ structured data, production-aware sitemap entries, and an absolute robots.txt sitemap reference.
 - COMPLETED: Captured a verified local landing screenshot artifact at `public/images/landing/landing-page-preview.png`; authenticated dashboard screenshot capture was attempted but not published because the static SPA snapshot froze on the app loading state.
 - COMPLETED: Stabilized the Phase 1 attendance smoke-test fixture by pinning its legacy meeting schedule to daytime hours so it no longer violates the PostgreSQL meeting time-range check near midnight.
+- COMPLETED: Enhanced the landing page with animated stats grid (icons + hover scale), fixed all missing MDI icon classes against the bundled font, added RBAC & user management to all pricing tiers with per-plan user limits (Starter 5 / Pro 25 / Enterprise unlimited), replaced the SEO-indexing FAQ with first-version product FAQs in EN+ID, made the consent checkbox inline, and restructured the footer to Product/Company/Resources columns.
 
 ### Tests And Validation Executed
 
@@ -200,6 +201,9 @@ Phase 6 is complete. Recommended next step: start Phase 7 only after review.
 | `./vendor/bin/pint` after landing enhancement | Exit 0; 286 files passed |
 | `php artisan test tests\Feature\PhaseOneSmokeTest.php --stop-on-failure` after landing enhancement | Exit 0; 10 tests passed, 20 assertions |
 | `php artisan test` after landing enhancement | Exit 0; 72 tests passed, 499 assertions |
+| `./vendor/bin/pint` after landing UI/UX fixes (icons, stats, pricing, FAQ, consent, footer) | Exit 0; 289 files, 2 style issues fixed |
+| `php artisan test tests\Feature\PhaseOneSmokeTest.php --stop_on_failure` after landing UI/UX fixes | Exit 0; 10 tests passed, 20 assertions |
+| `php -r` landing render checks for EN+ID after UI/UX fixes | Exit 0; both rendered with no missing icons or old FAQ content |
 
 ### Known Risks
 
