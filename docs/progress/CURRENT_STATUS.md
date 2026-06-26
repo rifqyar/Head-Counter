@@ -148,6 +148,11 @@ Phase 6 is complete. Recommended next step: start Phase 7 only after review.
 - COMPLETED: Replaced collapsed sidebar per-item flyouts with smooth full-sidebar hover expansion so labels return together and menu hover feels stable.
 - COMPLETED: Added a coordinated sidebar hover-expanded shell state so the navbar brand expands with the sidebar and the expanded sidebar scrolls to the bottom through the SlimScroll wrapper.
 - COMPLETED: Removed the sidebar double-scrollbar effect by hiding SlimScroll's extra rail/bar and delegating vertical scrolling to the main sidebar scroll container.
+- COMPLETED: Restyled the single sidebar scrollbar as a slim left-side native scrollbar while preserving normal left-to-right menu content.
+- COMPLETED: Enhanced the public landing page with server-rendered English/Indonesian copy, a persistent language switch, functional cookie preference controls, Rekayasa Digital attribution, contact mailto flow, IDR pricing, and feature copy aligned to the current booking, QR, redemption, reporting, RBAC, audit, and multi-hotel codebase.
+- COMPLETED: Strengthened landing SEO for `hotel.rekayasadigital.com` with canonical and hreflang links, indexable meta tags, Open Graph/Twitter cards, JSON-LD Organization/SoftwareApplication/FAQ structured data, production-aware sitemap entries, and an absolute robots.txt sitemap reference.
+- COMPLETED: Captured a verified local landing screenshot artifact at `public/images/landing/landing-page-preview.png`; authenticated dashboard screenshot capture was attempted but not published because the static SPA snapshot froze on the app loading state.
+- COMPLETED: Stabilized the Phase 1 attendance smoke-test fixture by pinning its legacy meeting schedule to daytime hours so it no longer violates the PostgreSQL meeting time-range check near midnight.
 
 ### Tests And Validation Executed
 
@@ -188,6 +193,13 @@ Phase 6 is complete. Recommended next step: start Phase 7 only after review.
 | `php artisan test tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` after sidebar hover scroll/brand fix | Exit 0; 6 tests passed, 30 assertions |
 | `./vendor/bin/pint` after sidebar double-scroll cleanup | Exit 0; 285 files passed |
 | `php artisan test tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` after sidebar double-scroll cleanup | Exit 0; 6 tests passed, 30 assertions |
+| `./vendor/bin/pint` after left-side slim sidebar scrollbar | Exit 0; 285 files passed |
+| `php artisan test tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` after left-side slim sidebar scrollbar | Exit 0; 6 tests passed, 30 assertions |
+| `php -r` landing render checks for `/`, `/?lang=id`, and `/sitemap.xml` | Exit 0; all returned HTTP 200 |
+| `npx playwright screenshot` for landing preview | Exit 0; wrote `public/images/landing/landing-page-preview.png` |
+| `./vendor/bin/pint` after landing enhancement | Exit 0; 286 files passed |
+| `php artisan test tests\Feature\PhaseOneSmokeTest.php --stop-on-failure` after landing enhancement | Exit 0; 10 tests passed, 20 assertions |
+| `php artisan test` after landing enhancement | Exit 0; 72 tests passed, 499 assertions |
 
 ### Known Risks
 

@@ -28,6 +28,10 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
+        RateLimiter::for('landing-contact', function (Request $request) {
+            return Limit::perMinutes(10, 3)->by($request->ip().'|'.$request->path());
+        });
+
         RateLimiter::for('attendance', function (Request $request) {
             $token = (string) $request->route('token');
 

@@ -1,2 +1,9 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /api/
+Disallow: /home
+Disallow: /redirect
+Disallow: /logout
+Disallow: /password/
+
+Sitemap: https://hotel.rekayasadigital.com/sitemap.xml

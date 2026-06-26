@@ -57,6 +57,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'public_url' => env('APP_PUBLIC_URL', 'https://hotel.rekayasadigital.com'),
+
     'asset_url' => env('ASSET_URL'),
 
     /*

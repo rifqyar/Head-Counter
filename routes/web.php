@@ -4,6 +4,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ClientDomainController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HotelController;
+use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\MealSessionController;
 use App\Http\Controllers\MeetingEventController;
 use App\Http\Controllers\MeetingPackageController;
@@ -20,7 +21,9 @@ use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TenantSwitchController;
+use App\Mail\TestMail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,7 +39,20 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes(['register' => false]);
 
-Route::middleware('auth')->get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/test-email', function () {
+    Mail::to('rifqyaditya55@gmail.com')->send(new TestMail());
+
+    return 'Email terkirim';
+});
+
+Route::get('/', LandingPageController::class)->name('dashboard');
+Route::post('/contact', [LandingPageController::class, 'contact'])->name('landing.contact')->middleware('throttle:landing-contact');
+Route::post('/register-request', [LandingPageController::class, 'register'])->name('landing.register')->middleware('throttle:landing-contact');
+Route::get('/sitemap.xml', function () {
+    return response()->view('sitemap', [
+        'appName' => config('app.name', 'Head Counter'),
+    ])->header('Content-Type', 'application/xml');
+})->name('sitemap');
 Route::middleware('auth')->get('/redirect', [DashboardController::class, 'redirect'])->name('redirect');
 Route::middleware(['auth', 'tenant', 'ajax'])->get('/home', [DashboardController::class, 'dashboard'])->name('dashboard.index');
 

@@ -47,9 +47,9 @@ class PhaseOneSmokeTest extends TestCase
         return $user;
     }
 
-    public function test_guest_is_redirected_to_login(): void
+    public function test_guest_sees_landing_page(): void
     {
-        $this->get('/')->assertRedirect('/login');
+        $this->get('/')->assertOk()->assertSee('Hotel Meeting Head Counter');
     }
 
     public function test_user_can_log_in_with_valid_credentials(): void
@@ -121,8 +121,8 @@ class PhaseOneSmokeTest extends TestCase
             'code_client' => 'TST',
             'tgl_start' => now()->toDateString(),
             'tgl_end' => now()->toDateString(),
-            'jam_mulai' => now()->subHour()->format('H:i:s'),
-            'jam_selesai' => now()->addHour()->format('H:i:s'),
+            'jam_mulai' => '09:00:00',
+            'jam_selesai' => '11:00:00',
             'kuota' => 10,
             'qr_path' => '0',
             'package' => 'PKG',
