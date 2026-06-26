@@ -5,6 +5,7 @@ namespace App\Support\Branding;
 use App\Domain\Hotel\Hotel;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class HotelLogo
 {
@@ -17,6 +18,13 @@ class HotelLogo
 
     public function assetFor(?Hotel $hotel): string
     {
+        $settingsPath = $hotel?->settings['logo_path'] ?? null;
+
+        // Uploaded logo stored in the public disk (storage/app/public/...)
+        if ($settingsPath && Storage::disk('public')->exists($settingsPath)) {
+            return Storage::url($settingsPath);
+        }
+
         return asset($this->pathFor($hotel));
     }
 

@@ -8,7 +8,7 @@
 
     @if ($currentHotel)
         @component('domain._card')
-            <form method="POST" action="{{ route('settings.update') }}">
+            <form method="POST" action="{{ route('settings.update') }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 @if (auth()->user()->isSuperAdmin())
@@ -34,8 +34,23 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group col-md-4">
-                        <label>Logo Path</label>
-                        <input class="form-control" name="settings[logo_path]" value="{{ old('settings.logo_path', $currentHotel->settings['logo_path'] ?? '') }}" placeholder="images/logo-full.png">
+                        <label>Hotel Logo</label>
+                        @php($currentLogoPath = $currentHotel->settings['logo_path'] ?? null)
+                        @if ($currentLogoPath)
+                            <div class="mb-2">
+                                <img src="{{ Storage::disk('public')->exists($currentLogoPath) ? Storage::url($currentLogoPath) : asset($currentLogoPath) }}"
+                                     alt="Current Logo" class="img-thumbnail" style="max-height:60px;">
+                                <small class="form-text text-muted">Current: {{ $currentLogoPath }}</small>
+                            </div>
+                        @else
+                            <p class="text-muted small">No logo uploaded yet.</p>
+                        @endif
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input @error('logo_file') is-invalid @enderror" id="logo_file" name="logo_file" accept="image/*">
+                            <label class="custom-file-label" for="logo_file">Choose image file&hellip;</label>
+                        </div>
+                        @error('logo_file')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        <small class="form-text text-muted">Accepted: JPG, PNG, GIF, SVG. Max 2 MB. Leave empty to keep current logo.</small>
                     </div>
                     <div class="form-group col-md-4">
                         <label>Contact Email</label>
@@ -87,3 +102,12 @@
         @endcomponent
     @endif
 </div>
+@include('domain._datatable')
+<script>
+    $(function () {
+        $('#logo_file').on('change', function () {
+            var fileName = $(this).val().split('\\').pop();
+            $(this).siblings('.custom-file-label').text(fileName || 'Choose image file\u2026');
+        });
+    });
+</script>

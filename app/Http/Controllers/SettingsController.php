@@ -40,6 +40,13 @@ class SettingsController extends Controller
 
         $data = $request->validated();
         $settings = array_merge($hotel->settings ?? [], $data['settings'] ?? []);
+
+        if ($request->hasFile('logo_file')) {
+            $file = $request->file('logo_file');
+            $storedPath = $file->store('logos/'.$hotel->id, 'public');
+            $settings['logo_path'] = $storedPath;
+        }
+
         unset($data['hotel_id'], $data['settings']);
 
         DB::transaction(function () use ($hotel, $data, $settings, $auditLogger, $request, $before) {

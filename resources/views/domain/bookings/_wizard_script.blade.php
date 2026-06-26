@@ -7,6 +7,14 @@
                 return;
             }
 
+            if ($.fn.select2) {
+                wizard.find('.select2').each(function () {
+                    if ($(this).hasClass('select2-hidden-accessible')) {
+                        $(this).select2('destroy');
+                    }
+                });
+            }
+
             wizard.data('booking-wizard-ready', true).show().steps({
                 headerTag: 'h6',
                 bodyTag: 'section',
@@ -56,6 +64,10 @@
                         error.insertAfter(element);
                     }
                 });
+            }
+
+            if ($.fn.select2) {
+                wizard.find('.select2').select2({ width: '100%' });
             }
         }
 

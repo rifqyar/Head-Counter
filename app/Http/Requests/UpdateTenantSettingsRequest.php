@@ -26,6 +26,7 @@ class UpdateTenantSettingsRequest extends FormRequest
             'timezone' => ['required', 'timezone'],
             'settings' => ['nullable', 'array'],
             'settings.logo_path' => ['nullable', 'string', 'max:255'],
+            'logo_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,svg', 'max:2048'],
             'settings.contact_email' => ['nullable', 'email', 'max:255'],
             'settings.contact_phone' => ['nullable', 'string', 'max:50'],
             'settings.meeting_qr_note' => ['nullable', 'string', 'max:500'],
