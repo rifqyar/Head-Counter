@@ -49,9 +49,12 @@ Route::get('/', LandingPageController::class)->name('dashboard');
 Route::post('/contact', [LandingPageController::class, 'contact'])->name('landing.contact')->middleware('throttle:landing-contact');
 Route::post('/register-request', [LandingPageController::class, 'register'])->name('landing.register')->middleware('throttle:landing-contact');
 Route::get('/sitemap.xml', function () {
-    return response()->view('sitemap', [
-        'appName' => config('app.name', 'Head Counter'),
-    ])->header('Content-Type', 'application/xml');
+    $content = view('sitemap')->render();
+
+    return response($content, 200, [
+        'Content-Type' => 'application/xml; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
 })->name('sitemap');
 Route::middleware('auth')->get('/redirect', [DashboardController::class, 'redirect'])->name('redirect');
 Route::middleware(['auth', 'tenant', 'ajax'])->get('/home', [DashboardController::class, 'dashboard'])->name('dashboard.index');
