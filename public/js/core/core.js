@@ -1,89 +1,195 @@
 $(document).ready(function () {
-    const link = $(".spa_route"),
-        render = $("#render");
-
+    configureProgressBar();
+    ensureHistoryState(window.location.href, true);
     initEnhancedSelects($(document));
 
-    link.on("click", function (t) {
-        $('.spa_route').removeClass('active')
-        $('.spa_route').parent().removeClass('active')
-        if ($(this).attr("id") != "dashboard") {
-            t.preventDefault();
-            let route = $(this).attr("href");
-            const currentURL = route;
-            const newURL = currentURL.replace("{{ url('/') }}", "/");
-            history.pushState({}, null, newURL);
-            NProgress.configure({
-                template: `<div class="progress bar">
-                                <div class="progress-bar bg-danger" role="bar" style="width:50%; height:6px;"></div>
-                            </div>`
-            });
-            $.ajax({
-                url: route,
-                method: "GET",
-                beforeSend: () => {
-                    NProgress.start();
-                    beforeAjaxSend();
-                },
-                success: (res) => {
-                    NProgress.done();
-                    $(this).addClass('active')
-                    $(this).parent().addClass('active')
-                    render.html(res);
-                    initEnhancedSelects(render);
-                    $(".loading").hide();
-                },
-                error: (err) => {
-                    NProgress.done();
-                    onAjaxError(err);
-                },
-            });
-
-            NProgress.remove();
+    $(document).on("click", "a", function (event) {
+        if (!shouldHandleAsSpaLink(this, event)) {
+            return;
         }
+
+        event.preventDefault();
+        renderView($(this).attr("href"), { source: this });
+    });
+
+    $(document).on("click", ".js-spa-back", function (event) {
+        event.preventDefault();
+        goBackInShell($(this).data("fallback-url"));
+    });
+
+    $(document).on("submit", "#render form", function (event) {
+        const method = ($(this).attr("method") || "GET").toUpperCase();
+
+        if (method !== "GET" || $(this).data("spa") === false || $(this).attr("target")) {
+            return;
+        }
+
+        event.preventDefault();
+        const action = $(this).attr("action") || window.location.href;
+        const query = $(this).serialize();
+        renderView(query ? `${action}?${query}` : action);
     });
 });
 
-//render halaman ketika navigasi browser di klik
-function handleNavigationChange(event) {
-    if (event.state != null) {
-        renderView(window.location.pathname);
-    }
+function handleNavigationChange() {
+    renderView(window.location.href, { history: false });
 }
 
-// Mendaftarkan event listener untuk event popstate
 window.addEventListener("popstate", handleNavigationChange);
 
-function renderView(route) {
-    const currentURL = route;
-    const newURL = currentURL.replace("{{ url('/') }}", "/");
-    history.pushState({}, null, newURL);
+function renderView(route, options = {}) {
     const render = $("#render");
-    NProgress.configure({
-        template: `<div class="progress bar">
-                        <div class="progress-bar bg-danger" role="bar" style="width:50%; height:6px;"></div>
-                    </div>`
-    });
+    const normalizedUrl = normalizeAppUrl(route);
+
+    if (!render.length) {
+        window.location.href = normalizedUrl.href;
+        return;
+    }
+
+    ensureHistoryState(normalizedUrl.href, options.replace === true);
+    syncActiveNavigation(normalizedUrl.href);
 
     $.ajax({
-        url: route,
+        url: normalizedUrl.href,
         method: "GET",
         beforeSend: () => {
-            NProgress.start();
-            beforeAjaxSend();
+            startNavigationFeedback();
         },
         success: (res) => {
-            NProgress.done();
             render.html(res);
-            initEnhancedSelects(render);
-            $(".loading").hide();
+            initPageEnhancements(render);
+            syncActiveNavigation(normalizedUrl.href);
+            finishNavigationFeedback();
         },
         error: (err) => {
-            NProgress.done();
+            finishNavigationFeedback();
             onAjaxError(err);
         },
     });
-    NProgress.remove();
+}
+
+function configureProgressBar() {
+    if (window.NProgress) {
+        NProgress.configure({
+            showSpinner: false,
+            minimum: 0.12,
+            trickleSpeed: 120,
+        });
+    }
+}
+
+function startNavigationFeedback() {
+    if (window.NProgress) {
+        NProgress.start();
+    }
+    beforeAjaxSend();
+    $("#render").attr("aria-busy", "true");
+}
+
+function finishNavigationFeedback() {
+    if (window.NProgress) {
+        NProgress.done();
+    }
+    $(".loading").hide();
+    $("#render").removeAttr("aria-busy");
+}
+
+function normalizeAppUrl(route) {
+    return new URL(route, window.location.origin);
+}
+
+function ensureHistoryState(route, replace = false) {
+    const normalizedUrl = normalizeAppUrl(route);
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const target = `${normalizedUrl.pathname}${normalizedUrl.search}${normalizedUrl.hash}`;
+    const currentDepth = Number(history.state?.spaDepth || 0);
+
+    if (replace || current === "/redirect") {
+        history.replaceState({ url: normalizedUrl.href, spaDepth: currentDepth }, "", target);
+        return;
+    }
+
+    if (current !== target) {
+        history.pushState({ url: normalizedUrl.href, spaDepth: currentDepth + 1 }, "", target);
+    }
+}
+
+function shouldHandleAsSpaLink(link, event) {
+    const $link = $(link);
+    const href = $link.attr("href");
+
+    if (
+        event.defaultPrevented ||
+        event.which > 1 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey ||
+        !href ||
+        href === "#" ||
+        href.indexOf("javascript:") === 0 ||
+        href.indexOf("mailto:") === 0 ||
+        href.indexOf("tel:") === 0 ||
+        $link.attr("target") ||
+        $link.attr("download") ||
+        $link.data("toggle") ||
+        $link.data("spa") === false
+    ) {
+        return false;
+    }
+
+    const url = normalizeAppUrl(href);
+
+    if (url.origin !== window.location.origin) {
+        return false;
+    }
+
+    if (/\/(download|print)(\/|$)/.test(url.pathname)) {
+        return false;
+    }
+
+    return $link.hasClass("spa_route") || $link.closest("#render, #sidebarnav").length > 0;
+}
+
+function initPageEnhancements(scope) {
+    initEnhancedSelects(scope);
+
+    if ($.fn.tooltip) {
+        scope.find('[data-toggle="tooltip"], [data-bs-toggle="tooltip"]').tooltip();
+    }
+
+    collapseMobileSidebar();
+    window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function collapseMobileSidebar() {
+    if (window.matchMedia("(max-width: 767px)").matches) {
+        $("body").removeClass("show-sidebar");
+        $(".left-sidebar").removeClass("show-sidebar");
+    }
+}
+
+function syncActiveNavigation(route) {
+    const targetPath = normalizeAppUrl(route).pathname.replace(/\/+$/, "") || "/";
+
+    $(".spa_route").each(function () {
+        const linkPath = normalizeAppUrl($(this).attr("href")).pathname.replace(/\/+$/, "") || "/";
+        const isActive = linkPath === targetPath;
+
+        $(this).toggleClass("active", isActive);
+        $(this).closest("li").toggleClass("active", isActive);
+    });
+}
+
+function goBackInShell(fallbackUrl) {
+    if (fallbackUrl) {
+        renderView(fallbackUrl, { replace: true });
+        return;
+    }
+
+    if (Number(history.state?.spaDepth || 0) > 0) {
+        history.back();
+    }
 }
 
 function initEnhancedSelects(scope = $(document)) {

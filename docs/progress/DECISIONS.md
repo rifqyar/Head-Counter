@@ -1,6 +1,6 @@
 # Architectural Decisions
 
-**Last Updated:** 2026-06-21
+**Last Updated:** 2026-06-26
 
 ## AD-001: Phase-Based Implementation Strategy
 
@@ -936,3 +936,14 @@ Tenant operational settings use the existing `hotels.settings` JSON column for l
 Managers may transition a meeting directly from `SCHEDULED` or `CHECKIN_OPEN` to `COMPLETED`. When this shortcut is used, missing `checkin_open_at` and `started_at` timestamps are filled before `completed_at`.
 
 **Rationale:** Hotel operators may close a meeting after the event without first walking through every intermediate state. The shortcut keeps operational data complete while preserving terminal-state protections for `COMPLETED`, `CANCELLED`, and `NO_SHOW`.
+
+---
+
+## AD-086: Preserve Custom SPA Shell With History-Safe Navigation
+
+**Date:** 2026-06-26
+**Status:** Accepted
+
+The Bootstrap 4/jQuery shell continues to use the existing partial-rendering SPA approach, but navigation is now delegated to dynamically loaded links, GET filter forms are handled through the shell, browser back/forward renders without pushing extra history entries, and `/redirect` bootstrap renders replace the history state instead of leaving `/redirect` in the stack.
+
+**Rationale:** The application is already close to production for hotel staff and does not need a frontend rewrite. Strengthening the existing shell fixes mobile and navigation usability issues with a much lower risk than introducing a new SPA framework.

@@ -53,7 +53,7 @@
             wizard.closest('form').find('.booking-form-actions').hide();
             var cancelUrl = wizard.closest('form').data('cancel-url');
             if (cancelUrl && !wizard.find('.actions .booking-cancel-link').length) {
-                wizard.find('.actions ul').prepend('<li><a href="' + cancelUrl + '" class="booking-cancel-link spa_route">Cancel</a></li>');
+                wizard.find('.actions ul').prepend('<li><a href="' + cancelUrl + '" class="booking-cancel-link spa_route">Back</a></li>');
             }
 
             if (typeof wizard.closest('form').validate === 'function') {

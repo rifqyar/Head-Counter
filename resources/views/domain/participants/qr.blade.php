@@ -3,7 +3,6 @@
     @include('domain._page_header', [
         'title' => 'Participant QR Administration',
         'breadcrumbs' => ['Operations' => null, 'Participants' => route('participants.index'), $participant->full_name => route('participants.show', $participant), 'QR Administration' => null],
-        'actions' => new \Illuminate\Support\HtmlString('<a href="'.route('participants.show', $participant).'" class="btn btn-outline-secondary spa_route">Back</a>'),
     ])
 
     @if ($issued && $issuedSvg)

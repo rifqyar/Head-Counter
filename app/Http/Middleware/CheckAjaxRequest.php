@@ -20,7 +20,7 @@ class CheckAjaxRequest
                 return $next($request);
             }
 
-            return redirect()->route('redirect')->with(['Redirect' => $request->path()]);
+            return redirect()->route('redirect')->with(['Redirect' => ltrim($request->getRequestUri(), '/')]);
         }
 
         return $next($request);

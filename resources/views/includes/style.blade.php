@@ -26,6 +26,7 @@
     <link href="{{ asset('assets/plugins/wizard/steps.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets/plugins/timepicker/bootstrap-timepicker.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/plugins/daterangepicker/daterangepicker.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/headcounter-responsive.css') }}" rel="stylesheet">
     <style>
         .pricing-header {
             -webkit-box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.05);

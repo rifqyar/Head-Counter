@@ -5,7 +5,6 @@
     @include('domain._page_header', [
         'title' => 'Redemption '.$redemption->redemption_number,
         'breadcrumbs' => ['Operations' => null, 'Redemptions' => route('redemptions.index'), $redemption->redemption_number => null],
-        'actions' => new \Illuminate\Support\HtmlString('<a href="'.route('redemptions.index').'" class="btn btn-outline-secondary spa_route">Back</a>'),
     ])
     @component('domain._card')
     <div class="row">

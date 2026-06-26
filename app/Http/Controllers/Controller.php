@@ -37,6 +37,6 @@ class Controller extends BaseController
             return view($view, $data);
         }
 
-        return redirect()->route('redirect')->with('Redirect', $request->path());
+        return redirect()->route('redirect')->with('Redirect', ltrim($request->getRequestUri(), '/'));
     }
 }

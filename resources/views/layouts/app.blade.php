@@ -63,12 +63,12 @@
 
     @if (session()->has('Redirect'))
         <script>
-            // Fungsi untuk menjalankan renderView secara otomatis
             function autoRenderView() {
-                renderView(`/{!! session('Redirect') !!}`);
+                renderView(@json(url(session('Redirect'))), {
+                    replace: true
+                });
             }
 
-            // Panggil fungsi untuk menjalankan renderView setelah halaman sepenuhnya dimuat
             document.addEventListener('DOMContentLoaded', autoRenderView);
         </script>
     @endif

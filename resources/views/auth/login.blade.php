@@ -18,6 +18,221 @@
 
     <!-- CSS -->
     @include('includes.style')
+    <style>
+        html,
+        body {
+            min-height: 100%;
+        }
+
+        body {
+            background: #101820;
+        }
+
+        .hc-login {
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+            background-image:
+                linear-gradient(90deg, rgba(16, 24, 32, .82) 0%, rgba(16, 24, 32, .58) 42%, rgba(16, 24, 32, .2) 100%),
+                url('{{ asset('assets/images/background/login-register.jpg') }}');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+
+        .hc-login::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 18% 18%, rgba(38, 198, 218, .22), transparent 34%);
+            pointer-events: none;
+        }
+
+        .hc-login-shell {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 48px;
+        }
+
+        .hc-login-content {
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 420px;
+            gap: 48px;
+            align-items: center;
+        }
+
+        .hc-login-copy {
+            color: #fff;
+            max-width: 620px;
+        }
+
+        .hc-login-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding: 7px 12px;
+            border: 1px solid rgba(255, 255, 255, .24);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, .1);
+            color: #dff8ff;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .hc-login-copy h1 {
+            color: #fff;
+            font-size: 44px;
+            line-height: 1.08;
+            margin-bottom: 16px;
+            font-weight: 800;
+        }
+
+        .hc-login-copy p {
+            color: rgba(255, 255, 255, .82);
+            font-size: 17px;
+            line-height: 1.7;
+            margin-bottom: 0;
+        }
+
+        .hc-login-card {
+            border: 1px solid rgba(255, 255, 255, .38);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .94);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
+            backdrop-filter: blur(14px);
+        }
+
+        .hc-login-card .card-body {
+            padding: 34px;
+        }
+
+        .hc-login-logo {
+            max-width: 188px;
+            max-height: 70px;
+            object-fit: contain;
+            margin-bottom: 24px;
+        }
+
+        .hc-login-card h2 {
+            color: #263238;
+            font-size: 25px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .hc-login-card .text-muted {
+            color: #607d8b !important;
+        }
+
+        .hc-login-card label {
+            color: #37474f;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .hc-login-card .form-control {
+            height: 48px;
+            border-color: #d8e0e5;
+            border-radius: 6px;
+            padding-left: 14px;
+            font-size: 15px;
+            background: #fff;
+        }
+
+        .hc-login-card .form-control:focus {
+            border-color: #26c6da;
+            box-shadow: 0 0 0 .2rem rgba(38, 198, 218, .16);
+        }
+
+        .hc-login-submit {
+            height: 48px;
+            border-radius: 6px;
+            background: #0f766e;
+            border-color: #0f766e;
+            font-weight: 800;
+            letter-spacing: .02em;
+        }
+
+        .hc-login-submit:hover,
+        .hc-login-submit:focus {
+            background: #115e59;
+            border-color: #115e59;
+        }
+
+        .hc-login-footnote {
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 1px solid #edf1f4;
+            color: #78909c;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 991.98px) {
+            .hc-login {
+                background-image:
+                    linear-gradient(180deg, rgba(16, 24, 32, .78) 0%, rgba(16, 24, 32, .46) 100%),
+                    url('{{ asset('assets/images/background/login-register.jpg') }}');
+                background-position: center top;
+            }
+
+            .hc-login-shell {
+                padding: 28px;
+            }
+
+            .hc-login-content {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+
+            .hc-login-copy {
+                max-width: 720px;
+            }
+
+            .hc-login-copy h1 {
+                font-size: 34px;
+            }
+
+            .hc-login-card {
+                max-width: 460px;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .hc-login-shell {
+                align-items: flex-start;
+                padding: 18px;
+            }
+
+            .hc-login-copy h1 {
+                font-size: 27px;
+            }
+
+            .hc-login-copy p {
+                font-size: 14px;
+            }
+
+            .hc-login-card .card-body {
+                padding: 24px 20px;
+            }
+
+            .hc-login-logo {
+                max-width: 150px;
+                margin-bottom: 18px;
+            }
+        }
+    </style>
 </head>
 <body>
     {{-- <div id="app">
@@ -97,41 +312,58 @@
     <!-- ============================================================== -->
     <!-- Main wrapper - style you can find in pages.scss -->
     <!-- ============================================================== -->
-    <section id="wrapper" class="login-register login-sidebar" style="background-image:url(../assets/images/background/login-register.jpg);">
-        <div class="login-box card pt-5">
-            <div class="card-body">
-                <form class="form-horizontal form-material mt-5" id="loginform" action="{{ route('login') }}" method="POST">
-                    <a href="javascript:void(0)" class="text-center db"><img  width="42%" src="{{ asset('images/logo-full.png') }}" alt="Head Counter" /></a>
-                    @csrf
-                    <div class="mb-3 form-group mt-4">
-                        <label for="username" class="form-label">Username</label>
-                        <input id="username" type="username" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autocomplete="username" autofocus>
-
-                        @error('username')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
+    <section id="wrapper" class="hc-login">
+        <div class="hc-login-shell">
+            <div class="hc-login-content">
+                <div class="hc-login-copy">
+                    <div class="hc-login-eyebrow">
+                        <i class="mdi mdi-qrcode-scan"></i>
+                        head counter
                     </div>
+                    <h1>Meeting attendance and entitlement scanning in one hotel-ready workspace.</h1>
+                    <p>Sign in to manage bookings, rooms, participants, QR credentials, redemptions, and operational reporting across authorized hotel tenants.</p>
+                </div>
 
-                    <div class="mb-3 form-group">
-                        <label class="form-label" for="password-input">Password</label>
-                        <div class="position-relative auth-pass-inputgroup mb-3">
-                            <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+                <div class="hc-login-card card">
+                    <div class="card-body">
+                        <form class="form-horizontal" id="loginform" action="{{ route('login') }}" method="POST">
+                            @csrf
+                            <div class="text-center">
+                                <img src="{{ asset('images/logo-full.png') }}" alt="Head Counter" class="hc-login-logo">
+                                <h2>Welcome back</h2>
+                                <p class="text-muted mb-4">Use your hotel operations account to continue.</p>
+                            </div>
 
-                            @error('password')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input id="username" type="text" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autocomplete="username" autofocus placeholder="Enter username">
+
+                                @error('username')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password" placeholder="Enter password">
+
+                                @error('password')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+
+                            <button class="btn btn-info btn-block text-uppercase waves-effect waves-light hc-login-submit mt-4" type="submit">Log In</button>
+
+                            <div class="hc-login-footnote text-center">
+                                Access is restricted to authorized hotel and platform users.
+                            </div>
+                        </form>
                     </div>
-                    <div class="form-group text-center m-t-20">
-                        <div class="col-xs-12">
-                            <button class="btn btn-info btn-lg btn-block btn-rounded text-uppercase waves-effect waves-light" type="submit">Log In</button>
-                        </div>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </section>
