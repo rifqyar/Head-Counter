@@ -426,14 +426,15 @@
             --hc-tr: .25s cubic-bezier(.4,0,.2,1);
         }
         *{box-sizing:border-box}
-        html{scroll-behavior:smooth}
-        body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--hc-ink);background:var(--hc-white);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+        html{max-width:100%;overflow-x:hidden;scroll-behavior:smooth}
+        body{margin:0;max-width:100%;overflow-x:hidden;font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--hc-ink);background:var(--hc-white);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
         a{color:var(--hc-teal);text-decoration:none;transition:color var(--hc-tr)}
         a:hover{color:var(--hc-teal-light)}
         img{max-width:100%;display:block}
         button{font:inherit;cursor:pointer}
-        .hc-container{width:min(100% - 32px,var(--hc-max));margin:0 auto}
+        .hc-container{width:min(100% - 32px,var(--hc-max));max-width:100%;margin:0 auto}
         .hc-section{padding:84px 0}
+        .hc-section,.hc-footer{max-width:100%;overflow-x:hidden}
         .hc-section.alt{background:var(--hc-bg)}
         .hc-center{text-align:center;margin-inline:auto}
         .hc-eyebrow{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;background:rgba(20,184,166,.08);color:var(--hc-teal);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
@@ -442,7 +443,7 @@
         .hc-section-head p{margin:0;color:var(--hc-muted);font-size:18px;line-height:1.7}
         .hc-center .hc-section-head{margin-inline:auto}
 
-        .hc-nav{position:fixed;inset:0 0 auto;z-index:50;background:rgba(255,255,255,.88);border-bottom:1px solid transparent;backdrop-filter:blur(14px);transition:box-shadow var(--hc-tr),background var(--hc-tr)}
+        .hc-nav{position:fixed;inset:0 0 auto;z-index:50;max-width:100vw;overflow-x:hidden;background:rgba(255,255,255,.88);border-bottom:1px solid transparent;backdrop-filter:blur(14px);transition:box-shadow var(--hc-tr),background var(--hc-tr)}
         .hc-nav.scrolled{background:rgba(255,255,255,.96);box-shadow:var(--hc-shadow-sm);border-bottom-color:var(--hc-line)}
         .hc-nav-inner{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:20px}
         .hc-brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:18px;color:var(--hc-navy)}
@@ -585,6 +586,7 @@
         .hc-contact h2{color:#fff;font-size:clamp(28px,4vw,40px);font-weight:800;margin:0 0 14px;letter-spacing:-.02em}
         .hc-contact p{font-size:19px;color:rgba(255,255,255,.75);margin:0 0 34px}
         .hc-contact .hc-eyebrow{background:rgba(255,255,255,.08);color:#cffafe;border-color:rgba(255,255,255,.2)}
+        .hc-contact-link{margin-left:8px}
 
         .hc-footer{background:var(--hc-navy);color:rgba(255,255,255,.7);padding:56px 0 28px}
         .hc-footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px}
@@ -661,14 +663,48 @@
             .hc-pricing-grid,.hc-steps{grid-template-columns:1fr;max-width:420px;margin-inline:auto}
         }
         @media (max-width:760px){
+            body *{min-width:0}
+            .hc-container{width:min(100% - 24px,var(--hc-max))}
+            .hc-nav-inner{gap:8px;min-width:0}
+            .hc-nav-actions{gap:6px;min-width:0}
+            .hc-nav-actions .hc-btn-primary{min-height:38px;padding:0 12px;font-size:13px}
             .hc-nav-actions .hc-btn-ghost{display:none}
+            .hc-lang{flex-shrink:0}
+            .hc-lang a{min-width:32px;padding:6px 8px}
             .hc-hero{padding:118px 0 76px}
+            .hc-hero h1,.hc-hero p,.hc-section h2,.hc-price-tag{overflow-wrap:anywhere}
+            .hc-hero-grid,.hc-highlight-grid,.hc-features-grid,.hc-security-grid,.hc-footer-grid,.hc-pricing-grid,.hc-steps{min-width:0;width:100%;max-width:100%}
+            .hc-hero-mock,.hc-hero-card,.hc-highlight-visual,.hc-hl-card,.hc-feature-card,.hc-price-card,.hc-sec-card,.hc-testimonial,.hc-faq-list,.hc-contact-inner{width:100%;max-width:100%;min-width:0}
+            .hc-hero-card,.hc-hero-card:hover{transform:none}
+            .hc-mock-row,.hc-hl-card-head,.hc-hl-card-foot,.hc-price-features li,.hc-highlight-list li{min-width:0}
             .hc-hero-cta{flex-direction:column}
             .hc-hero-cta .hc-btn{width:100%}
+            .hc-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+            .hc-stat{padding:14px 10px;border:1px solid var(--hc-line);border-radius:12px;background:#fff;box-shadow:0 8px 22px rgba(15,23,42,.05)}
+            .hc-stat-icon{width:40px;height:40px;border-radius:10px;font-size:21px;margin-bottom:8px}
+            .hc-stat h3{font-size:26px;line-height:1.05}
+            .hc-stat p{font-size:12px;line-height:1.35;margin-top:5px}
             .hc-steps{grid-template-columns:1fr;gap:36px}
             .hc-security-grid,.hc-footer-grid{grid-template-columns:1fr}
             .hc-features-grid{grid-template-columns:1fr}
             .hc-section{padding:58px 0}
+            .hc-stats-section{padding:34px 0!important}
+            .hc-cookie-banner{left:12px;right:12px;bottom:12px;width:auto;padding:12px;border-radius:12px}
+            .hc-cookie-content{gap:10px}
+            .hc-cookie-content h3{font-size:15px}
+            .hc-cookie-content p{font-size:11px;line-height:1.35}
+            .hc-cookie-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+            .hc-cookie-actions .hc-btn{min-height:34px;padding:0 8px;font-size:11px;white-space:normal}
+            .hc-contact-link{display:inline-flex;margin-top:12px;margin-left:0}
+        }
+        @media (max-width:420px){
+            .hc-brand img{height:28px}
+            .hc-nav-actions .hc-btn-primary{display:none}
+            .hc-stats-grid{gap:10px}
+            .hc-stat{padding:12px 8px}
+            .hc-stat-icon{width:34px;height:34px;font-size:18px;margin-bottom:7px}
+            .hc-stat h3{font-size:22px}
+            .hc-stat p{font-size:11px}
         }
     </style>
 </head>
@@ -760,7 +796,7 @@
     </div>
 </section>
 
-<section class="hc-section alt hc-animate" style="padding:64px 0">
+<section class="hc-section alt hc-stats-section hc-animate" style="padding:64px 0">
     <div class="hc-container">
         <div class="hc-stats-grid">
             @foreach ($t['stats'] as $stat)
@@ -946,7 +982,7 @@
             <h2>{{ $t['contactTitle'] }}</h2>
             <p>{{ $t['contactSub'] }}</p>
             <button class="hc-btn hc-btn-primary hc-btn-lg" data-open-contact><span class="mdi mdi-email"></span>{{ $contactEmail }}</button>
-            <a class="hc-btn hc-btn-light hc-btn-lg" href="https://rekayasadigital.com" rel="noopener" style="margin-left:8px"><span class="mdi mdi-web"></span>rekayasadigital.com</a>
+            <a class="hc-btn hc-btn-light hc-btn-lg hc-contact-link" href="https://rekayasadigital.com" rel="noopener"><span class="mdi mdi-web"></span>rekayasadigital.com</a>
         </div>
     </div>
 </section>
