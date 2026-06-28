@@ -390,6 +390,21 @@
                     ['@type' => 'Offer', 'name' => 'Enterprise', 'priceCurrency' => 'IDR', 'description' => 'Custom pricing for hotel groups', 'availability' => 'https://schema.org/InStock'],
                 ],
                 'featureList' => array_column($t['features'], 'title'),
+                'review' => [
+                    [
+                        '@type' => 'Review',
+                        'reviewBody' => $t['testimonial']['quote'],
+                        'author' => [
+                            '@type' => 'Person',
+                            'name' => $t['testimonial']['name'],
+                            'affiliation' => [
+                                '@type' => 'Organization',
+                                'name' => $t['testimonial']['role'],
+                            ],
+                        ],
+                        'publisher' => ['@id' => $publicUrl.'/#organization'],
+                    ],
+                ],
             ],
             [
                 '@type' => 'FAQPage',
@@ -438,6 +453,10 @@
     <meta property="og:site_name" content="{{ $appName }}">
     <meta property="og:image" content="{{ $ogImage }}">
     <meta property="og:image:alt" content="{{ $metaImageAlt }}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1250">
+    <meta property="og:image:height" content="400">
+    <meta property="og:image:secure_url" content="{{ $ogImage }}">
     <meta property="og:locale" content="{{ $t['locale'] }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $t['title'] }}">
@@ -446,6 +465,11 @@
     <meta name="twitter:image:alt" content="{{ $metaImageAlt }}">
 
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/images/icon/favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo-full.png') }}">
+    <link rel="mask-icon" href="{{ asset('images/logo-full.png') }}" color="#0f766e">
+    <meta name="theme-color" content="#0f766e">
+    <meta name="color-scheme" content="light">
+    <meta name="format-detection" content="telephone=no">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800,900&display=swap" rel="stylesheet">

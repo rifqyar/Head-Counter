@@ -29,6 +29,56 @@
 | DataTables | Yajra Laravel DataTables 10.0 |
 | Build | Vite ^4.0 |
 
+## Landing Page SEO Fixes (Google Search Console) - 2026-06-28
+
+### Symptoms Reported
+- URL Inspection > "View crawled page" reported 4 of 6 page resources couldn't be loaded.
+- URL Inspection > Enhancements & Experience only showed "HTTPS" — no "Review snippet" tile (comparison site `wms.rekayasadigital.com` does show one).
+- Pages indexing produced no data 2 days after adding the property to Google Search Console (added Friday night).
+
+### Root Causes Identified
+- `config/security.php` CSP `style-src` only allowed `https://fonts.googleapis.com` and `font-src` only allowed `https://fonts.gstatic.com`, while the landing page loads Inter fonts from `https://fonts.bunny.net`. The browser-rendered Google inspect path blocked those requests, contributing to the resource-loading failures and to reduced LCP / Core Web Vitals scoring.
+- The JSON-LD `SoftwareApplication` block carried `offers` and `featureList` but no `Review` or `AggregateRating`, so Google Search Console had nothing to render a "Review snippet" enhancement for.
+- No `Cache-Control` directives for static assets in `public/.htaccess`, leaving reload/recrawl behavior un-optimized for Page Experience signals.
+- `og:image` was missing `og:image:width`, `og:image:height`, `og:image:type`, and `og:image:secure_url`, which can delay social/crawler preview rendering.
+- No `theme-color`, `apple-touch-icon`, or `color-scheme` hints for mobile crawlers / mobile experience scoring.
+- The "Pages indexing" panel returning no data after 2 days is normal Google behaviour for a brand-new property; indexing typically takes days to weeks. The failures above slow it further. Manual "Request Indexing" from URL Inspection plus submitting `https://hotel.rekayasadigital.com/sitemap.xml` in Search Console > Sitemaps remains the recommended next step.
+
+### Completed Work
+- COMPLETED: Updated `config/security.php` to add `https://fonts.bunny.net` to `style-src` and `font-src`, unblocking the Inter stylesheet and font files for both regular browsers and Google's rendering crawler. Backed by the `SECURITY_CSP` env override.
+- COMPLETED: Added a `Review` entity (real testimonial from the General Manager of Oria Hotel Jakarta, already displayed on the page) inside the `SoftwareApplication` JSON-LD `@graph` in `resources/views/landing.blade.php`. No fabricated `AggregateRating` — single `Review` with `reviewBody`, `author` (`Person` + `affiliation`), and `publisher`, in line with Google's "no self-serving reviews" guidance.
+- COMPLETED: Extended `public/.htaccess` with far-future `Cache-Control: immutable` for hashed Vite build assets, 30-day caching for images/fonts/icons, 7-day caching for un-hashed theme CSS/JS, `mod_expires` directives, and `AddDefaultCharset UTF-8` to improve Page Experience / Core Web Vitals scoring.
+- COMPLETED: Added `og:image:type`, `og:image:width` (1250), `og:image:height` (400), and `og:image:secure_url` to the landing page `<head>` in `resources/views/landing.blade.php`.
+- COMPLETED: Added `apple-touch-icon`, `mask-icon`, `theme-color`, `color-scheme`, and `format-detection` meta tags to `resources/views/landing.blade.php`.
+- COMPLETED: Added `tests/Feature/LandingPageSeoTest.php` with regression coverage for review/FAQ structured data, HTTPS canonical + hreflang, OG image dimensions, robots + theme-color metas, and the `/sitemap.xml` route.
+
+### Tests And Validation Executed
+| Command | Result |
+|---|---|
+| `./vendor/bin/pint config/security.php` | Exit 0 |
+| `./vendor/bin/pint tests/Feature/LandingPageSeoTest.php` | Exit 0 (1 style fix auto-applied) |
+| `php artisan test --filter=LandingPageSeoTest` | Exit 0; 6 tests passed, 26 assertions |
+| `php artisan test --filter=PhaseOneSmokeTest::test_guest_sees_landing_page` | Exit 0; still passes |
+
+### Files Changed
+- `config/security.php`
+- `resources/views/landing.blade.php`
+- `public/.htaccess`
+- `tests/Feature/LandingPageSeoTest.php`
+- `docs/progress/CURRENT_STATUS.md`
+
+### Operator Actions Still Needed (outside the codebase)
+1. In the production `.env`, set `APP_URL=https://hotel.rekayasadigital.com` and `APP_PUBLIC_URL=https://hotel.rekayasadigital.com` so `asset()` and the canonical/OG/JSON-LD URLs share the same HTTPS host. A `http://localhost` `APP_URL` would render local asset URLs that the Googlebot cannot reach and would account for the remaining un-loaded page resources.
+2. In Google Search Console > Sitemaps, submit `https://hotel.rekayasadigital.com/sitemap.xml`.
+3. In URL Inspection, run "Live Test" then "Request Indexing" on `/` to speed up indexing.
+4. After deployment, re-run the Google Rich Results Test on `https://hotel.rekayasadigital.com/` to confirm the "Review snippet" enhancement is now detected.
+5. Wait 1–2 weeks for "Pages indexing" data; this is normal for new properties and not caused by the codebase.
+
+### Known Risks
+- The Review was added from a real customer testimonial that is already displayed on the page (no rating value, no aggregate count). Google may still choose not to surface a star-rating rich result without a numeric `reviewRating`; the enhancement capability, however, will be reported in Search Console.
+- `.htaccess` directives only apply on Apache + `mod_headers` / `mod_expires` enabled. If the deployment runs nginx or Apache without those modules, the cache rules are silently ignored — the response still succeeds.
+- CSP still blocks third-party origins other than bunny.net and Google Fonts; any future external CSS/fonts/scripts added to the landing page will require CSP updates.
+
 ## Landing Page SEO Update - 2026-06-28
 
 ### Completed Work
@@ -42,6 +92,9 @@
 | Command | Result |
 |---|---|
 | `php -l resources/views/landing.blade.php` | Exit 0 |
+| `./vendor/bin/pint` | Exit 0 |
+| `php artisan test` | Exit 1; 68 passed, 4 Phase 5 tests failed on PostgreSQL deadlocks during table drop/alter refresh operations |
+| `php artisan test --filter=PhaseOneSmokeTest` | Exit 0; 10 tests passed, 20 assertions |
 
 ### Files Changed
 
@@ -52,6 +105,7 @@
 ### Known Risks
 
 - First-page Google ranking cannot be guaranteed by meta tags alone. Indexing, domain authority, page speed, backlinks, Search Console submission, content quality, and search competition still determine ranking.
+- The full suite currently has PostgreSQL deadlock failures in Phase 5 test database refresh paths that are not related to the landing page SEO change.
 
 ## Phase 1 Execution Status
 
