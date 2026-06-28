@@ -357,10 +357,16 @@
         '@graph' => [
             [
                 '@type' => 'Organization',
-                '@id' => $publicUrl.'/#organization',
+                '@id' => 'https://rekayasadigital.com/#organization',
                 'name' => 'Rekayasa Digital',
                 'url' => 'https://rekayasadigital.com',
                 'email' => $contactEmail,
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    'url' => $ogImage,
+                    'width' => 1250,
+                    'height' => 400,
+                ],
             ],
             [
                 '@type' => 'SoftwareApplication',
@@ -382,8 +388,8 @@
                     '@type' => 'Country',
                     'name' => 'Indonesia',
                 ],
-                'creator' => ['@id' => $publicUrl.'/#organization'],
-                'publisher' => ['@id' => $publicUrl.'/#organization'],
+                'creator' => ['@id' => 'https://rekayasadigital.com/#organization'],
+                'publisher' => ['@id' => 'https://rekayasadigital.com/#organization'],
                 'offers' => [
                     ['@type' => 'Offer', 'name' => 'Starter', 'price' => '100000', 'priceCurrency' => 'IDR', 'availability' => 'https://schema.org/InStock'],
                     ['@type' => 'Offer', 'name' => 'Professional', 'price' => '175000', 'priceCurrency' => 'IDR', 'availability' => 'https://schema.org/InStock'],
@@ -402,7 +408,7 @@
                                 'name' => $t['testimonial']['role'],
                             ],
                         ],
-                        'publisher' => ['@id' => $publicUrl.'/#organization'],
+                        'publisher' => ['@id' => 'https://rekayasadigital.com/#organization'],
                     ],
                 ],
             ],
@@ -421,9 +427,10 @@
                 '@id' => $publicUrl.'/#website',
                 'url' => $publicUrl.'/',
                 'name' => $appName,
+                'alternateName' => 'Head Counter',
                 'description' => $t['description'],
                 'inLanguage' => $language,
-                'publisher' => ['@id' => $publicUrl.'/#organization'],
+                'publisher' => ['@id' => 'https://rekayasadigital.com/#organization'],
             ],
         ],
     ];
