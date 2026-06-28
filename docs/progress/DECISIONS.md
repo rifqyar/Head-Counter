@@ -1,6 +1,6 @@
 # Architectural Decisions
 
-**Last Updated:** 2026-06-26
+**Last Updated:** 2026-06-28
 
 ## AD-001: Phase-Based Implementation Strategy
 
@@ -947,3 +947,14 @@ Managers may transition a meeting directly from `SCHEDULED` or `CHECKIN_OPEN` to
 The Bootstrap 4/jQuery shell continues to use the existing partial-rendering SPA approach, but navigation is now delegated to dynamically loaded links, GET filter forms are handled through the shell, browser back/forward renders without pushing extra history entries, and `/redirect` bootstrap renders replace the history state instead of leaving `/redirect` in the stack.
 
 **Rationale:** The application is already close to production for hotel staff and does not need a frontend rewrite. Strengthening the existing shell fixes mobile and navigation usability issues with a much lower risk than introducing a new SPA framework.
+
+---
+
+## AD-087: Landing SEO Uses Focused Search Intent, Not Keyword Stuffing
+
+**Date:** 2026-06-28
+**Status:** Accepted
+
+The public landing page title, descriptions, and structured data target natural hotel meeting attendance, QR check-in, event management, and Indonesian search phrases. The legacy `meta keywords` field is kept for compatibility, but ranking strategy relies on visible page relevance, concise snippets, canonical/hreflang signals, and schema metadata rather than repeated keyword stuffing.
+
+**Rationale:** Google ranking cannot be forced by adding every possible keyword to meta tags. Focused, accurate search intent is more durable and avoids spam signals while still reflecting the Google Trends terms supplied for Indonesian queries.

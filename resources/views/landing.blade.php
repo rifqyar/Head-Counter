@@ -20,9 +20,20 @@
             'locale' => 'en_US',
             'dir' => 'ltr',
             'languageName' => 'English',
-            'title' => $appName.' | Hotel Meeting Head Counter & QR Attendance Platform',
-            'description' => $appName.' is a hotel operations platform for meeting head counts, QR attendance, meal entitlement redemption, room booking visibility, RBAC, audit logs, and real-time reporting.',
-            'keywords' => 'hotel head counter, hotel meeting app, QR attendance hotel, meal redemption scanner, banquet head count, meeting room booking, hotel SaaS Indonesia',
+            'title' => $appName.' | Hotel Meeting Attendance, QR Check-in & Event Management',
+            'description' => $appName.' helps hotels manage meeting attendance, QR check-in, event head counts, meal package redemption, meeting room bookings, reports, RBAC, and audit logs.',
+            'keywords' => 'hotel meeting attendance software, hotel event management app, QR attendance hotel, meeting room booking software, banquet head count app, meal redemption scanner, hotel guest check-in app, digital guest book hotel, hotel SaaS Indonesia',
+            'searchTerms' => [
+                'hotel meeting attendance software',
+                'QR attendance hotel',
+                'hotel event management app',
+                'meeting room booking software',
+                'banquet head count app',
+                'meal redemption scanner',
+                'hotel guest check-in app',
+                'digital guest book hotel',
+                'hotel SaaS Indonesia',
+            ],
             'nav' => [
                 'features' => 'Features',
                 'workflow' => 'Workflow',
@@ -167,9 +178,22 @@
             'locale' => 'id_ID',
             'dir' => 'ltr',
             'languageName' => 'Indonesia',
-            'title' => $appName.' | Platform Head Counter Meeting Hotel & Absensi QR',
-            'description' => $appName.' adalah platform operasional hotel untuk head count meeting, absensi QR, redeem paket makan, booking room, RBAC, audit log, dan laporan real-time.',
-            'keywords' => 'hotel head counter, aplikasi meeting hotel, absensi QR hotel, scanner redeem makan, banquet head count, booking ruang meeting, SaaS hotel Indonesia',
+            'title' => $appName.' | Aplikasi Absensi QR, Meeting Hotel & Event Management',
+            'description' => $appName.' adalah aplikasi absensi QR untuk meeting hotel, event management, head count peserta, redeem paket makan, booking ruang meeting, laporan, RBAC, dan audit log.',
+            'keywords' => 'aplikasi absensi QR, aplikasi meeting hotel, hotel meeting, meeting hotel, event management hotel, buku tamu digital hotel, head counter hotel, absensi QR hotel, scanner redeem makan, booking ruang meeting, SaaS hotel Indonesia',
+            'searchTerms' => [
+                'aplikasi absensi QR',
+                'aplikasi meeting hotel',
+                'hotel meeting',
+                'meeting hotel',
+                'event management hotel',
+                'buku tamu digital hotel',
+                'head counter hotel',
+                'absensi QR hotel',
+                'scanner redeem makan',
+                'booking ruang meeting',
+                'SaaS hotel Indonesia',
+            ],
             'nav' => [
                 'features' => 'Fitur',
                 'workflow' => 'Alur Kerja',
@@ -315,6 +339,7 @@
     $t = $copy[$language] ?? $copy['en'];
     $ogImage = $publicUrl.'/images/logo-full.png';
     $contactHref = 'mailto:'.$contactEmail.'?subject='.rawurlencode($appName.' inquiry');
+    $metaImageAlt = $appName.' hotel meeting attendance and QR check-in platform';
     $jsI18n = [
         'sending' => $t['forms']['sending'],
         'send' => $t['forms']['send'],
@@ -341,11 +366,24 @@
                 '@type' => 'SoftwareApplication',
                 '@id' => $publicUrl.'/#software',
                 'name' => $appName,
+                'alternateName' => ['Head Counter Hotel', 'Hotel Meeting Head Counter', 'Aplikasi Absensi QR Hotel'],
                 'applicationCategory' => 'BusinessApplication',
+                'applicationSubCategory' => 'Hotel event management and meeting attendance software',
                 'operatingSystem' => 'Web',
                 'url' => $canonicalUrl,
+                'inLanguage' => $language,
                 'description' => $t['description'],
+                'keywords' => implode(', ', $t['searchTerms']),
+                'audience' => [
+                    '@type' => 'BusinessAudience',
+                    'audienceType' => 'Hotels, banquet teams, meeting room operators, event operations teams',
+                ],
+                'areaServed' => [
+                    '@type' => 'Country',
+                    'name' => 'Indonesia',
+                ],
                 'creator' => ['@id' => $publicUrl.'/#organization'],
+                'publisher' => ['@id' => $publicUrl.'/#organization'],
                 'offers' => [
                     ['@type' => 'Offer', 'name' => 'Starter', 'price' => '100000', 'priceCurrency' => 'IDR', 'availability' => 'https://schema.org/InStock'],
                     ['@type' => 'Offer', 'name' => 'Professional', 'price' => '175000', 'priceCurrency' => 'IDR', 'availability' => 'https://schema.org/InStock'],
@@ -356,11 +394,21 @@
             [
                 '@type' => 'FAQPage',
                 '@id' => $publicUrl.'/#faq',
+                'inLanguage' => $language,
                 'mainEntity' => array_map(fn ($faq) => [
                     '@type' => 'Question',
                     'name' => $faq['q'],
                     'acceptedAnswer' => ['@type' => 'Answer', 'text' => $faq['a']],
                 ], $t['faqs']),
+            ],
+            [
+                '@type' => 'WebSite',
+                '@id' => $publicUrl.'/#website',
+                'url' => $publicUrl.'/',
+                'name' => $appName,
+                'description' => $t['description'],
+                'inLanguage' => $language,
+                'publisher' => ['@id' => $publicUrl.'/#organization'],
             ],
         ],
     ];
@@ -389,11 +437,13 @@
     <meta property="og:description" content="{{ $t['description'] }}">
     <meta property="og:site_name" content="{{ $appName }}">
     <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:image:alt" content="{{ $metaImageAlt }}">
     <meta property="og:locale" content="{{ $t['locale'] }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $t['title'] }}">
     <meta name="twitter:description" content="{{ $t['description'] }}">
     <meta name="twitter:image" content="{{ $ogImage }}">
+    <meta name="twitter:image:alt" content="{{ $metaImageAlt }}">
 
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/images/icon/favicon.ico') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
