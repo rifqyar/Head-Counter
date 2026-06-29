@@ -22,7 +22,7 @@
             'languageName' => 'English',
             'title' => $appName.' | Hotel Meeting Attendance, QR Check-in & Event Management',
             'description' => $appName.' helps hotels manage meeting attendance, QR check-in, event head counts, meal package redemption, meeting room bookings, reports, RBAC, and audit logs.',
-            'keywords' => 'hotel meeting attendance software, hotel event management app, QR attendance hotel, meeting room booking software, banquet head count app, meal redemption scanner, hotel guest check-in app, digital guest book hotel, hotel SaaS Indonesia',
+            'keywords' => 'hotel meeting attendance software, hotel event management app, QR attendance hotel, meeting room booking software, banquet head count app, meal redemption scanner, hotel guest check-in app, digital guest book hotel, hotel SaaS Indonesia, meal entitlement, qr meeting attendance meeting, meeting head counter application, hotel meeting attendance software, QR code attendance software for hotel meetings, hotel event check-in app, hotel banquet attendance system, meeting attendance QR scanner, meal redemption scanner, hotel meeting check-in system, hotel event registration system, banquet meal coupon scanner, hotel meeting management software',
             'searchTerms' => [
                 'hotel meeting attendance software',
                 'QR attendance hotel',
@@ -180,7 +180,7 @@
             'languageName' => 'Indonesia',
             'title' => $appName.' | Aplikasi Absensi QR, Meeting Hotel & Event Management',
             'description' => $appName.' adalah aplikasi absensi QR untuk meeting hotel, event management, head count peserta, redeem paket makan, booking ruang meeting, laporan, RBAC, dan audit log.',
-            'keywords' => 'aplikasi absensi QR, aplikasi meeting hotel, hotel meeting, meeting hotel, event management hotel, buku tamu digital hotel, head counter hotel, absensi QR hotel, scanner redeem makan, booking ruang meeting, SaaS hotel Indonesia',
+            'keywords' => 'aplikasi absensi QR, aplikasi meeting hotel, hotel meeting, meeting hotel, event management hotel, buku tamu digital hotel, head counter hotel, absensi QR hotel, scanner redeem makan, booking ruang meeting, SaaS hotel Indonesia, kupon makan hotel, aplikasi daftar hadir qr meeting, aplikasi head counter meeting, aplikasi absensi meeting hotel, aplikasi absensi QR hotel, aplikasi daftar hadir QR meeting, aplikasi check-in event hotel, aplikasi event management hotel, buku tamu digital hotel, aplikasi booking ruang meeting hotel, scanner kupon makan hotel, aplikasi redeem kupon makanaplikasi headcount meeting, aplikasi banquet hotel',
             'searchTerms' => [
                 'aplikasi absensi QR',
                 'aplikasi meeting hotel',
