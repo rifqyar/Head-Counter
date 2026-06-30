@@ -148,6 +148,10 @@ function shouldHandleAsSpaLink(link, event) {
         return false;
     }
 
+    if (!$link.hasClass("booking-cancel-link") && ($link.closest(".wizard").length || $link.closest(".steps, .actions").length)) {
+        return false;
+    }
+
     const url = normalizeAppUrl(href);
 
     if (url.origin !== window.location.origin) {

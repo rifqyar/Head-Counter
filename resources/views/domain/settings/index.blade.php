@@ -14,58 +14,78 @@
                 @if (auth()->user()->isSuperAdmin())
                     <input type="hidden" name="hotel_id" value="{{ $currentHotel->id }}">
                 @endif
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label>Hotel Name</label>
-                        <input class="form-control" name="name" value="{{ old('name', $currentHotel->name) }}" required>
-                    </div>
-                    <div class="form-group col-md-3">
-                        <label>Timezone</label>
-                        <input class="form-control" name="timezone" value="{{ old('timezone', $currentHotel->timezone) }}" required>
-                    </div>
-                    <div class="form-group col-md-3">
-                        <label>Default Booking Source</label>
-                        <input class="form-control" name="settings[default_booking_source]" value="{{ old('settings.default_booking_source', $currentHotel->settings['default_booking_source'] ?? '') }}">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Address</label>
-                    <textarea class="form-control" name="address" rows="2">{{ old('address', $currentHotel->address) }}</textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-4">
-                        <label>Hotel Logo</label>
-                        @php($currentLogoPath = $currentHotel->settings['logo_path'] ?? null)
-                        @if ($currentLogoPath)
-                            <div class="mb-2">
-                                <img src="{{ Storage::disk('public')->exists($currentLogoPath) ? Storage::url($currentLogoPath) : asset($currentLogoPath) }}"
-                                     alt="Current Logo" class="img-thumbnail" style="max-height:60px;">
-                                <small class="form-text text-muted">Current: {{ $currentLogoPath }}</small>
+                <div class="hc-settings-grid">
+                    <div class="hc-settings-section">
+                        <div class="hc-settings-section-title">Hotel Identity</div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Hotel Name</label>
+                                <input class="form-control" name="name" value="{{ old('name', $currentHotel->name) }}" required>
                             </div>
-                        @else
-                            <p class="text-muted small">No logo uploaded yet.</p>
-                        @endif
-                        <div class="custom-file">
-                            <input type="file" class="custom-file-input @error('logo_file') is-invalid @enderror" id="logo_file" name="logo_file" accept="image/*">
-                            <label class="custom-file-label" for="logo_file">Choose image file&hellip;</label>
+                            <div class="form-group col-md-3">
+                                <label>Timezone</label>
+                                <input class="form-control" name="timezone" value="{{ old('timezone', $currentHotel->timezone) }}" required>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Default Booking Source</label>
+                                <input class="form-control" name="settings[default_booking_source]" value="{{ old('settings.default_booking_source', $currentHotel->settings['default_booking_source'] ?? '') }}">
+                            </div>
                         </div>
-                        @error('logo_file')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                        <small class="form-text text-muted">Accepted: JPG, PNG, GIF, SVG. Max 2 MB. Leave empty to keep current logo.</small>
+                        <div class="form-group mb-0">
+                            <label>Address</label>
+                            <textarea class="form-control" name="address" rows="2">{{ old('address', $currentHotel->address) }}</textarea>
+                        </div>
                     </div>
-                    <div class="form-group col-md-4">
-                        <label>Contact Email</label>
-                        <input class="form-control" name="settings[contact_email]" value="{{ old('settings.contact_email', $currentHotel->settings['contact_email'] ?? '') }}">
+
+                    <div class="hc-settings-section">
+                        <div class="hc-settings-section-title">Branding & Contact</div>
+                        <div class="form-row">
+                            <div class="form-group col-lg-5">
+                                <label>Hotel Logo</label>
+                                @php($currentLogoPath = $currentHotel->settings['logo_path'] ?? null)
+                                <div class="hc-logo-upload">
+                                    <div class="hc-logo-preview">
+                                        @if ($currentLogoPath)
+                                            <img src="{{ Storage::disk('public')->exists($currentLogoPath) ? Storage::url($currentLogoPath) : asset($currentLogoPath) }}" alt="Current Logo">
+                                        @else
+                                            <span class="hc-logo-preview-empty">No logo uploaded</span>
+                                        @endif
+                                    </div>
+                                    <div class="flex-fill">
+                                        @if ($currentLogoPath)
+                                            <small class="form-text text-muted mb-2">Current: {{ $currentLogoPath }}</small>
+                                        @endif
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input @error('logo_file') is-invalid @enderror" id="logo_file" name="logo_file" accept="image/*">
+                                            <label class="custom-file-label" for="logo_file">Choose image file&hellip;</label>
+                                        </div>
+                                        @error('logo_file')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                        <small class="form-text text-muted">JPG, PNG, GIF, SVG. Max 2 MB. Leave empty to keep current logo.</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-lg-3">
+                                <label>Contact Email</label>
+                                <input class="form-control" name="settings[contact_email]" value="{{ old('settings.contact_email', $currentHotel->settings['contact_email'] ?? '') }}">
+                            </div>
+                            <div class="form-group col-lg-4">
+                                <label>Contact Phone</label>
+                                <input class="form-control" name="settings[contact_phone]" value="{{ old('settings.contact_phone', $currentHotel->settings['contact_phone'] ?? '') }}">
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group col-md-4">
-                        <label>Contact Phone</label>
-                        <input class="form-control" name="settings[contact_phone]" value="{{ old('settings.contact_phone', $currentHotel->settings['contact_phone'] ?? '') }}">
+
+                    <div class="hc-settings-section">
+                        <div class="hc-settings-section-title">QR Document Note</div>
+                        <div class="form-group mb-0">
+                            <label>Meeting QR Note</label>
+                            <textarea class="form-control" name="settings[meeting_qr_note]" rows="3">{{ old('settings.meeting_qr_note', $currentHotel->settings['meeting_qr_note'] ?? '') }}</textarea>
+                        </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Meeting QR Note</label>
-                    <textarea class="form-control" name="settings[meeting_qr_note]" rows="3">{{ old('settings.meeting_qr_note', $currentHotel->settings['meeting_qr_note'] ?? '') }}</textarea>
+                <div class="mt-3">
+                    <button class="btn btn-primary js-disable-on-submit" type="submit"><i class="mdi mdi-content-save"></i> Save Settings</button>
                 </div>
-                <button class="btn btn-primary js-disable-on-submit" type="submit">Save Settings</button>
             </form>
         @endcomponent
     @else

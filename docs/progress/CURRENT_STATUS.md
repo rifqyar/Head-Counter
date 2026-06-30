@@ -1,6 +1,6 @@
 # Current Status
 
-**Last Updated:** 2026-06-28
+**Last Updated:** 2026-06-30
 
 ## Phase Progress
 
@@ -28,6 +28,60 @@
 | QR | SimpleSoftwareIO QR Code ~4 |
 | DataTables | Yajra Laravel DataTables 10.0 |
 | Build | Vite ^4.0 |
+
+## Authenticated UI/UX Remediation - 2026-06-30
+
+### Symptoms Reported
+- Top navigation hotel name and username alignment looked uneven.
+- Sidebar labels could overflow, hover backgrounds felt heavy, and the navbar brand/logo presentation looked rough.
+- Booking create wizard step backgrounds were visually noisy.
+- Report icons were missing or inconsistent.
+- Hotel Settings form was too flat and hard to scan.
+- Booking wizard Next clicked through shell navigation instead of advancing steps.
+- Master Data > Meetings and Transaction > Meeting Attendance opened the same route, making the two workflows indistinct.
+
+### Completed Work
+- COMPLETED: Refined authenticated topbar logo bay, tenant hotel-name pill, user trigger alignment, and mobile truncation.
+- COMPLETED: Hardened sidebar item layout with stable icon/label sizing, ellipsis for long labels, clearer active state, and calmer hover feedback.
+- COMPLETED: Follow-up polish increased the logo bay/logo fit to prevent cropping, centered sidebar icon/label rows, and made the mini-sidebar hover-expanded state reveal menu labels from the expanded shell state.
+- COMPLETED: Added booking wizard SPA-click isolation so jQuery Steps controls advance locally instead of being intercepted by the shell router.
+- COMPLETED: Reworked the booking wizard stepper from large filled step backgrounds into a lighter line-and-circle progress treatment, and removed the extra wizard-level Back action because the page header already provides Back navigation.
+- COMPLETED: Added inner spacing to table-responsive/DataTables frames so table controls and rows no longer sit flush against card borders.
+- COMPLETED: Added a dedicated canonical `meeting-attendance.index` route for the Transaction sidebar entry while preserving `/meetings` compatibility for front-office attendance operations.
+- COMPLETED: Updated report sidebar icons and report index cards with visible Material Design icons.
+- COMPLETED: Reworked Hotel Settings into clear identity, branding/contact, and QR-note sections with a better logo preview/upload area.
+
+### Tests And Validation Executed
+| Command | Result |
+|---|---|
+| `php -l app/Http/Controllers/MeetingEventController.php` | Exit 0 |
+| `php -l routes/web.php` | Exit 0 |
+| `node --check public/js/core/core.js` | Exit 0 |
+| `php artisan route:list --path=meeting-attendance` | Exit 0; dedicated `meeting-attendance.index` route registered |
+| `php artisan route:list --path=bookings` | Exit 0; booking routes still registered |
+| `php artisan test tests\Feature\PhaseThreeCompletionTest.php --stop-on-failure` | Exit 0; 11 tests passed, 110 assertions |
+| `php artisan test tests\Feature\PhaseSixDashboardReportingTest.php --stop-on-failure` | Exit 0; 6 tests passed, 30 assertions |
+| `./vendor/bin/pint` | Exit 0; 290 files passed |
+| `php artisan test --stop-on-failure` | Exit 0; 78 tests passed, 525 assertions |
+
+### Files Changed
+- `app/Http/Controllers/MeetingEventController.php`
+- `public/assets/css/headcounter-responsive.css`
+- `public/js/core/core.js`
+- `resources/views/domain/bookings/_wizard_script.blade.php`
+- `resources/views/domain/meetings/index.blade.php`
+- `resources/views/domain/settings/index.blade.php`
+- `resources/views/includes/navbar.blade.php`
+- `resources/views/includes/sidebar.blade.php`
+- `resources/views/reports/index.blade.php`
+- `resources/views/reports/show.blade.php`
+- `routes/web.php`
+- `docs/progress/CURRENT_STATUS.md`
+- `docs/progress/DECISIONS.md`
+
+### Known Risks
+- Visual QA was validated through code and regression tests, not a live browser screenshot pass in this turn.
+- Front-office direct access to `/meetings` still renders the legacy-compatible "Meeting Attendance Operations" heading to preserve existing tests and permissions; users with broader master-data access now get distinct sidebar URLs.
 
 ## Landing Page SEO Fixes (Google Search Console) - 2026-06-28
 

@@ -22,8 +22,8 @@
                     @endif
                 @endforeach
                 <select name="format" class="form-control mr-2"><option value="xlsx">Excel</option><option value="csv">CSV</option><option value="pdf">PDF</option></select>
-                <button class="btn btn-success">Export</button>
-                <a href="{{ route('reports.exports.index') }}" class="btn btn-link spa_route">Export center</a>
+                <button class="btn btn-success"><i class="mdi mdi-download"></i> Export</button>
+                <a href="{{ route('reports.exports.index') }}" class="btn btn-link spa_route"><i class="mdi mdi-folder-download"></i> Export center</a>
             </form>
         @endcan
     @endcomponent

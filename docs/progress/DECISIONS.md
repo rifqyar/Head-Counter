@@ -1,6 +1,6 @@
 # Architectural Decisions
 
-**Last Updated:** 2026-06-28
+**Last Updated:** 2026-06-30
 
 ## AD-001: Phase-Based Implementation Strategy
 
@@ -958,3 +958,14 @@ The Bootstrap 4/jQuery shell continues to use the existing partial-rendering SPA
 The public landing page title, descriptions, and structured data target natural hotel meeting attendance, QR check-in, event management, and Indonesian search phrases. The legacy `meta keywords` field is kept for compatibility, but ranking strategy relies on visible page relevance, concise snippets, canonical/hreflang signals, and schema metadata rather than repeated keyword stuffing.
 
 **Rationale:** Google ranking cannot be forced by adding every possible keyword to meta tags. Focused, accurate search intent is more durable and avoids spam signals while still reflecting the Google Trends terms supplied for Indonesian queries.
+
+---
+
+## AD-088: Distinct Sidebar Route For Attendance Operations
+
+**Date:** 2026-06-30
+**Status:** Accepted
+
+Transaction > Meeting Attendance now uses a dedicated canonical `/meeting-attendance` route that reuses the canonical meeting event query and detail tabs, while Master Data > Meetings continues to use `/meetings`.
+
+**Rationale:** The two sidebar entries represent different operator intent and should not highlight as the same navigation destination. Reusing the canonical meeting data avoids duplicating the Overview, Schedule, Participants, Attendance, and Packages detail workflow, while preserving direct `/meetings` compatibility for front-office attendance operations.

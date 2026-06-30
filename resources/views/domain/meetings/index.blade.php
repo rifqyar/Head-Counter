@@ -1,12 +1,14 @@
 <div class="container-fluid">
+    @php($isAttendanceContext = ($context ?? 'master') === 'attendance')
+    @php($usesOperationalMeetingContext = $isAttendanceContext || ! auth()->user()?->can('meeting.create'))
     @include('domain._alerts')
     @include('domain._page_header', [
-        'title' => 'Meeting Attendance Operations',
-        'breadcrumbs' => ['Operations' => null, 'Meeting Attendance' => null],
-        'actions' => new \Illuminate\Support\HtmlString('<a href="'.route('meetings.create').'" class="btn btn-primary spa_route"><i class="mdi mdi-plus"></i> Create Meeting</a>'),
+        'title' => $usesOperationalMeetingContext ? 'Meeting Attendance Operations' : 'Meetings',
+        'breadcrumbs' => $usesOperationalMeetingContext ? ['Transaction' => null, 'Meeting Attendance' => null] : ['Master Data' => null, 'Meetings' => null],
+        'actions' => $usesOperationalMeetingContext ? null : new \Illuminate\Support\HtmlString('<a href="'.route('meetings.create').'" class="btn btn-primary spa_route"><i class="mdi mdi-plus"></i> Create Meeting</a>'),
     ])
     @component('domain._card')
-        <form method="GET" action="{{ route('meetings.index') }}" class="mb-3">
+        <form method="GET" action="{{ $usesOperationalMeetingContext ? route('meeting-attendance.index') : route('meetings.index') }}" class="mb-3">
             <div class="form-row">
                 <div class="form-group col-md-3">
                     <label>Meeting Date</label>
@@ -27,7 +29,7 @@
                 </div>
                 <div class="form-group col-md-2 d-flex align-items-end">
                     <button class="btn btn-primary mr-2">Filter</button>
-                    <a href="{{ route('meetings.index') }}" class="btn btn-outline-secondary spa_route">Reset</a>
+                    <a href="{{ $usesOperationalMeetingContext ? route('meeting-attendance.index') : route('meetings.index') }}" class="btn btn-outline-secondary spa_route">Reset</a>
                 </div>
             </div>
         </form>

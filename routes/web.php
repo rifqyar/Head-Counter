@@ -70,6 +70,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::resource('clients', ClientDomainController::class)->middleware('permission:client.view|client.manage');
     Route::post('bookings/{booking}/status', [BookingController::class, 'changeStatus'])->middleware(['permission:booking.update|booking.cancel', 'throttle:sensitive-admin'])->name('bookings.status');
     Route::resource('bookings', BookingController::class)->middleware('permission:booking.view|booking.create|booking.update|booking.cancel');
+    Route::get('meeting-attendance', [MeetingEventController::class, 'attendanceIndex'])->middleware('permission:meeting.view|attendance.view|attendance.scan')->name('meeting-attendance.index');
     Route::resource('meetings', MeetingEventController::class)->middleware('permission:meeting.view|meeting.create|meeting.update|meeting.cancel');
     Route::post('meetings/{meeting}/transition', [MeetingEventController::class, 'transition'])->middleware('permission:meeting.update|meeting.start|meeting.complete|meeting.cancel|attendance.view|attendance.scan')->name('meetings.transition');
     Route::post('meetings/{meeting}/qr/generate', [MeetingQRCodeController::class, 'generate'])->middleware(['permission:meeting.qr.manage', 'throttle:sensitive-admin'])->name('meetings.qr.generate');

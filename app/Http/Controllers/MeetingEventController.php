@@ -18,6 +18,13 @@ use Illuminate\Http\Request;
 
 class MeetingEventController extends Controller
 {
+    public function attendanceIndex(Request $request)
+    {
+        $request->attributes->set('meeting_index_context', 'attendance');
+
+        return $this->index($request);
+    }
+
     public function index(Request $request)
     {
         $query = MeetingEvent::with(['meetingRoom', 'booking.client'])
@@ -43,8 +50,9 @@ class MeetingEventController extends Controller
 
         $meetings = $query->paginate(25)->withQueryString();
         $filters = $request->only(['date', 'client', 'status']);
+        $context = $request->attributes->get('meeting_index_context', 'master');
 
-        return $request->wantsJson() ? response()->json($meetings) : $this->viewOrRedirect($request, 'domain.meetings.index', compact('meetings', 'filters'));
+        return $request->wantsJson() ? response()->json($meetings) : $this->viewOrRedirect($request, 'domain.meetings.index', compact('meetings', 'filters', 'context'));
     }
 
     public function create(Request $request)

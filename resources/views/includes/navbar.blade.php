@@ -4,13 +4,13 @@
         <!-- Logo -->
         <!-- ============================================================== -->
         <div class="navbar-header">
-            <a class="navbar-brand" href="{{route('dashboard')}}">
-                <!-- Logo icon --><b>
+            <a class="navbar-brand spa_route" href="{{ route('dashboard.index') }}">
+                <!-- Logo icon --><b class="hc-brand-mark">
                     <!--You can put here icon as well // <i class="wi wi-sunset"></i> //-->
                     <!-- Dark Logo icon -->
-                    <img src="{{ app(\App\Support\Branding\HotelLogo::class)->currentAsset() }}" width="50%" alt="Hotel logo" class="dark-logo" />
+                    <img src="{{ app(\App\Support\Branding\HotelLogo::class)->currentAsset() }}" alt="Hotel logo" class="dark-logo" />
                     <!-- Light Logo icon -->
-                    <img src="{{ app(\App\Support\Branding\HotelLogo::class)->currentAsset() }}" width="50%" alt="Hotel logo" class="light-logo" />
+                    <img src="{{ app(\App\Support\Branding\HotelLogo::class)->currentAsset() }}" alt="Hotel logo" class="light-logo" />
                 </b>
                 <span></span>
             </a>
@@ -33,7 +33,7 @@
                         <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="hc-tenant-pill">
                                 <i class="mdi mdi-domain"></i>
-                                {{ app(\App\Support\Tenancy\TenantContext::class)->hotel()?->code ?? 'All Hotels' }}
+                                <span>{{ app(\App\Support\Tenancy\TenantContext::class)->hotel()?->name ?? 'All Hotels' }}</span>
                             </span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right scale-up p-3" style="min-width: 320px;">
@@ -62,7 +62,7 @@
                         <span class="nav-link text-muted">
                             <span class="hc-tenant-pill">
                                 <i class="mdi mdi-domain"></i>
-                                {{ app(\App\Support\Tenancy\TenantContext::class)->hotel()?->code ?? Auth::user()?->hotel?->code ?? 'No Hotel' }}
+                                <span>{{ app(\App\Support\Tenancy\TenantContext::class)->hotel()?->name ?? Auth::user()?->hotel?->name ?? 'No Hotel' }}</span>
                             </span>
                         </span>
                     </li>

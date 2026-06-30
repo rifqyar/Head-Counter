@@ -77,8 +77,8 @@
                     @endcan
                     @can('meeting.view')
                         <li>
-                            <a href='{{ route('meetings.index') }}' class='sidebar-link spa_route'>
-                                <i class='mdi mdi-account-circle'></i>
+                            <a href='{{ route('meeting-attendance.index') }}' class='sidebar-link spa_route'>
+                                <i class='mdi mdi-account-check'></i>
                                 <span>Meeting Attendance</span>
                             </a>
                         </li>
@@ -107,7 +107,7 @@
                     @can('Meeting Report')
                         <li>
                             <a href='{{ route('reports.show', 'meetings') }}' class='sidebar-link spa_route'>
-                                <i class='mdi mdi-file-chart'></i>
+                                <i class='mdi mdi-file-document-box'></i>
                                 <span>Meeting Report</span>
                             </a>
                         </li>
@@ -115,7 +115,7 @@
                     @can('report.view')
                         <li>
                             <a href='{{ route('reports.index') }}' class='sidebar-link spa_route'>
-                                <i class='fa fa-bar-chart'></i>
+                                <i class='mdi mdi-chart-bar'></i>
                                 <span>All Reports</span>
                             </a>
                         </li>
